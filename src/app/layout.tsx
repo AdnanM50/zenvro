@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import Footer from "@/components/Footer";
+import Navbar from "@/components/navbar";
 
 export default function RootLayout({
   children,
@@ -36,6 +37,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white">
+        <Navbar />
         {children}
         <Footer />
       </body>

@@ -4,29 +4,7 @@ const Hero = () => {
   return (
     <div className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-x-hidden min-h-screen">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-8 py-6 pointer-events-none">
-        <div className="flex items-center pointer-events-auto">
-          <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
-            <span className="material-symbols-outlined text-xl">menu</span>
-          </button>
-        </div>
-        
-        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto">
-          <h1 className="text-2xl font-black tracking-tight text-black italic">VELOUR</h1>
-        </div>
-        
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
-            <span className="material-symbols-outlined text-xl">search</span>
-          </button>
-          <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
-            <span className="material-symbols-outlined text-xl">shopping_bag</span>
-          </button>
-          <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
-            <span className="material-symbols-outlined text-xl">person</span>
-          </button>
-        </div>
-      </header>
+     
 
       <main className="relative min-h-screen pt-24 pb-12 flex items-center justify-center">
         <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
