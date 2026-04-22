@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Explore curated collections and everyday essentials thoughtfully designed.",
 };
 
+import Footer from "@/components/Footer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,6 +37,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white">
         {children}
+        <Footer />
       </body>
     </html>
   );
