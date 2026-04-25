@@ -67,8 +67,7 @@
 }
 
 @utility hero-text {
-  /* font-size: clamp(4rem, 12vw, 11rem); */
-  font-size: 6rem;
+  font-size: clamp(3rem, 10vw, 6rem);
   line-height: 0.85;
   letter-spacing: -0.04em;
   font-weight: 900;
@@ -95,9 +94,16 @@
 
 .editorial-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 1.5rem;
 }
+
+@media (min-width: 768px) {
+  .editorial-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
 .text-sideways {
   writing-mode: vertical-rl;
   text-orientation: mixed;

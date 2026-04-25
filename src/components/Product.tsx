@@ -155,16 +155,6 @@ const Product = () => {
 
       </div>
 
-      {/* Marquee Footer */}
-      <div className="mt-8 border-y border-surface-container py-4 xl:py-6 overflow-hidden max-w-[1600px] mx-auto">
-        <div className="marquee">
-          <div className="marquee-content flex items-center gap-6 xl:gap-12 text-primary font-headline font-black text-lg xl:text-2xl uppercase tracking-[0.2em]">
-            <span>T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE</span>
-            <span aria-hidden="true">T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE</span>
-            <span aria-hidden="true">T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE</span>
-          </div>
-        </div>
-      </div>
     </section>
   );
 };

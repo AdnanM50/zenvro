@@ -2,13 +2,13 @@ import React from 'react';
 
 const About = () => {
   return (
-    <section className="pt-24 pb-12 px-6 max-w-[1440px] mx-auto min-h-screen">
+    <section className="pt-12 md:pt-24 pb-12 px-6 max-w-[1440px] mx-auto min-h-screen">
       {/* Hero Editorial Section */}
-      <div className="editorial-grid min-h-[870px]">
+      <div className="editorial-grid md:min-h-[870px]">
         {/* Left Editorial Column */}
-        <div className="col-span-12 md:col-span-4 flex flex-col justify-between py-8">
+        <div className="col-span-1 md:col-span-4 flex flex-col justify-between py-4 md:py-8">
           <div>
-            <h1 className="font-headline text-7xl md:text-8xl font-black tracking-tighter leading-[0.85] text-primary uppercase mb-8">
+            <h1 className="font-headline text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] text-primary uppercase mb-6 md:mb-8">
               All - about<br />moments<br />©26
             </h1>
             <div className="max-w-xs space-y-4">
@@ -37,7 +37,7 @@ const About = () => {
         </div>
         
         {/* Central Hero Image */}
-        <div className="col-span-12 md:col-span-5 relative flex flex-col items-center">
+        <div className="col-span-1 md:col-span-5 relative flex flex-col items-center mt-8 md:mt-0">
           <div className="absolute -top-6 z-10 text-primary-fixed">
             <span
               className="material-symbols-outlined text-5xl"
@@ -63,7 +63,7 @@ const About = () => {
         </div>
 
         {/* Right Visual Column */}
-        <div className="col-span-12 md:col-span-3 flex flex-col justify-between py-8">
+        <div className="col-span-1 md:col-span-3 flex flex-col justify-between py-4 md:py-8">
           <div className="text-right flex flex-col items-end mt-4">
             <h3 className="font-headline text-2xl font-black tracking-tighter uppercase mb-4 leading-none">
               Design<br />Philosophy
@@ -102,8 +102,8 @@ const About = () => {
       </div>
 
       {/* Product Highlight Bento Section */}
-      <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-low p-12 flex flex-col justify-between h-[400px]">
+      <div className="mt-16 md:mt-32 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-surface-container-low p-8 md:p-12 flex flex-col justify-between h-[300px] md:h-[400px]">
           <h3 className="font-headline text-3xl font-bold tracking-tighter">THE ARCHIVE</h3>
           <p className="font-body text-sm text-secondary uppercase leading-relaxed">
             Curated selections from the last decade of street culture evolution.
@@ -122,7 +122,7 @@ const About = () => {
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-12">
             <span className="text-white font-label tracking-[0.3em] uppercase text-xs mb-2">Exclusive Look</span>
-            <h3 className="text-white font-headline text-5xl font-black tracking-tighter">SS/26 ACCESSORIES</h3>
+            <h3 className="text-white font-headline text-3xl md:text-5xl font-black tracking-tighter">SS/26 ACCESSORIES</h3>
           </div>
         </div>
       </div>
