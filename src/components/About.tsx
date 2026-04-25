@@ -1,4 +1,47 @@
-import React from 'react';
+"use client";
+
+import { motion } from "framer-motion";
+import {
+  fadeUp,
+  fadeLeft,
+  fadeRight,
+  fadeIn,
+  scaleUp,
+  wordContainer,
+  wordReveal,
+  staggerContainer,
+  staggerItem,
+  VIEWPORT_CONFIG,
+} from "@/lib/animations";
+
+// ─── Staggered Word Reveal Component ────────────────────────────────
+function RevealHeading({ text, className }: { text: string; className?: string }) {
+  const lines = text.split("\n");
+  return (
+    <motion.h1
+      className={className}
+      variants={wordContainer(0.08)}
+      initial="hidden"
+      whileInView="visible"
+      viewport={VIEWPORT_CONFIG}
+    >
+      {lines.map((line, lineIdx) => (
+        <span key={lineIdx} className="block">
+          {line.split(" ").map((word, wordIdx) => (
+            <motion.span
+              key={`${lineIdx}-${wordIdx}`}
+              variants={wordReveal}
+              className="inline-block mr-[0.3em]"
+              style={{ perspective: 400 }}
+            >
+              {word}
+            </motion.span>
+          ))}
+        </span>
+      ))}
+    </motion.h1>
+  );
+}
 
 const About = () => {
   return (
@@ -6,22 +49,48 @@ const About = () => {
       {/* Hero Editorial Section */}
       <div className="editorial-grid md:min-h-[870px]">
         {/* Left Editorial Column */}
-        <div className="col-span-1 md:col-span-4 flex flex-col justify-between py-4 md:py-8">
+        <motion.div
+          className="col-span-1 md:col-span-4 flex flex-col justify-between py-4 md:py-8"
+          variants={fadeLeft}
+          initial="hidden"
+          whileInView="visible"
+          viewport={VIEWPORT_CONFIG}
+          custom={0.1}
+        >
           <div>
-            <h1 className="font-headline text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] text-primary uppercase mb-6 md:mb-8">
-              All - about<br />moments<br />©26
-            </h1>
-            <div className="max-w-xs space-y-4">
+            <RevealHeading
+              text={"All - about\nmoments\n©26"}
+              className="font-headline text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] text-primary uppercase mb-6 md:mb-8"
+            />
+            <motion.div
+              className="max-w-xs space-y-4"
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={VIEWPORT_CONFIG}
+              custom={0.4}
+            >
               <p className="font-body text-sm leading-relaxed uppercase tracking-tight text-secondary">
                 Where Elegance Meets Sustainability Luxury Made Accessible
               </p>
-              <button className="bg-primary text-white px-8 py-4 rounded-full flex items-center gap-3 font-label font-bold text-xs tracking-widest hover:bg-primary-fixed transition-colors">
+              <motion.button
+                className="bg-primary text-white px-8 py-4 rounded-full flex items-center gap-3 font-label font-bold text-xs tracking-widest hover:bg-primary-fixed transition-colors"
+                whileHover={{ scale: 1.03, x: 4 }}
+                whileTap={{ scale: 0.97 }}
+              >
                 LEARN MORE
                 <span className="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           </div>
-          <div className="mt-12 md:mt-0 flex items-end gap-6">
+          <motion.div
+            className="mt-12 md:mt-0 flex items-end gap-6"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={VIEWPORT_CONFIG}
+            custom={0.3}
+          >
             <div className="w-32 aspect-3/4 bg-surface-container overflow-hidden group">
               <img
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -33,11 +102,18 @@ const About = () => {
               <span className="font-label text-xs font-bold tracking-widest text-primary-fixed uppercase block mb-1">New Drop</span>
               <span className="font-headline text-lg font-black tracking-tighter italic">($120)</span>
             </div>
-          </div>
-        </div>
-        
+          </motion.div>
+        </motion.div>
+
         {/* Central Hero Image */}
-        <div className="col-span-1 md:col-span-5 relative flex flex-col items-center mt-8 md:mt-0">
+        <motion.div
+          className="col-span-1 md:col-span-5 relative flex flex-col items-center mt-8 md:mt-0"
+          variants={scaleUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={VIEWPORT_CONFIG}
+          custom={0.2}
+        >
           <div className="absolute -top-6 z-10 text-primary-fixed">
             <span
               className="material-symbols-outlined text-5xl"
@@ -55,15 +131,29 @@ const About = () => {
             />
             <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white opacity-40"></div>
           </div>
-          <div className="w-full mt-4">
+          <motion.div
+            className="w-full mt-4"
+            variants={fadeIn}
+            initial="hidden"
+            whileInView="visible"
+            viewport={VIEWPORT_CONFIG}
+            custom={0.5}
+          >
             <p className="font-label text-[10px] uppercase tracking-widest text-secondary text-left">
               ©International - going distance 2026
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Right Visual Column */}
-        <div className="col-span-1 md:col-span-3 flex flex-col justify-between py-4 md:py-8">
+        <motion.div
+          className="col-span-1 md:col-span-3 flex flex-col justify-between py-4 md:py-8"
+          variants={fadeRight}
+          initial="hidden"
+          whileInView="visible"
+          viewport={VIEWPORT_CONFIG}
+          custom={0.2}
+        >
           <div className="text-right flex flex-col items-end mt-4">
             <h3 className="font-headline text-2xl font-black tracking-tighter uppercase mb-4 leading-none">
               Design<br />Philosophy
@@ -79,31 +169,47 @@ const About = () => {
           </div>
 
           <div className="flex flex-col items-end w-full space-y-12">
-            <div className="flex flex-col items-end">
-            <div className="w-full aspect-square bg-surface-container overflow-hidden rounded-bl-[4rem] zig-zag-mask scale-90 origin-right opacity-80">
-              <img
-                className="w-full h-full object-cover"
-                alt="Back detail of a jacket with artistic graphic design"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq"
-              />
-            </div>
-            <div className="mt-4 text-right">
-              <p className="font-label text-[10px] uppercase tracking-widest text-secondary leading-none">
-                ©International - just do it 2026
-              </p>
+            <motion.div
+              className="flex flex-col items-end"
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={VIEWPORT_CONFIG}
+              custom={0.4}
+            >
+              <div className="w-full aspect-square bg-surface-container overflow-hidden rounded-bl-[4rem] zig-zag-mask scale-90 origin-right opacity-80">
+                <img
+                  className="w-full h-full object-cover"
+                  alt="Back detail of a jacket with artistic graphic design"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq"
+                />
+              </div>
+              <div className="mt-4 text-right">
+                <p className="font-label text-[10px] uppercase tracking-widest text-secondary leading-none">
+                  ©International - just do it 2026
+                </p>
+              </div>
+            </motion.div>
+            <div className="flex justify-between items-end border-t border-outline-variant pt-4 w-full">
+              <span className="font-label text-xs font-mono text-secondary">PROJECT_V01</span>
+              <span className="font-headline text-4xl font-black tracking-tighter text-primary-fixed">(45%)</span>
             </div>
           </div>
-          <div className="flex justify-between items-end border-t border-outline-variant pt-4 w-full">
-            <span className="font-label text-xs font-mono text-secondary">PROJECT_V01</span>
-            <span className="font-headline text-4xl font-black tracking-tighter text-primary-fixed">(45%)</span>
-          </div>
-        </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Product Highlight Bento Section */}
-      <div className="mt-16 md:mt-32 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-low p-8 md:p-12 flex flex-col justify-between h-[300px] md:h-[400px]">
+      <motion.div
+        className="mt-16 md:mt-32 grid grid-cols-1 md:grid-cols-3 gap-6"
+        variants={staggerContainer(0.15, 0.1)}
+        initial="hidden"
+        whileInView="visible"
+        viewport={VIEWPORT_CONFIG}
+      >
+        <motion.div
+          className="bg-surface-container-low p-8 md:p-12 flex flex-col justify-between h-[300px] md:h-[400px]"
+          variants={staggerItem}
+        >
           <h3 className="font-headline text-3xl font-bold tracking-tighter">THE ARCHIVE</h3>
           <p className="font-body text-sm text-secondary uppercase leading-relaxed">
             Curated selections from the last decade of street culture evolution.
@@ -113,8 +219,11 @@ const About = () => {
             <div className="w-12 h-1 bg-outline-variant"></div>
             <div className="w-12 h-1 bg-outline-variant"></div>
           </div>
-        </div>
-        <div className="md:col-span-2 bg-surface-container p-0 overflow-hidden relative group">
+        </motion.div>
+        <motion.div
+          className="md:col-span-2 bg-surface-container p-0 overflow-hidden relative group"
+          variants={staggerItem}
+        >
           <img
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             alt="Editorial fashion photography of high-end accessories"
@@ -124,8 +233,8 @@ const About = () => {
             <span className="text-white font-label tracking-[0.3em] uppercase text-xs mb-2">Exclusive Look</span>
             <h3 className="text-white font-headline text-3xl md:text-5xl font-black tracking-tighter">SS/26 ACCESSORIES</h3>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 };
