@@ -30,7 +30,7 @@ const Hero = () => {
         <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
           {/* Left Side Text Content */}
           <motion.div
-            className="col-span-full md:col-span-4 z-20 flex flex-col justify-between h-full py-10 md:py-20"
+            className="col-span-full md:col-span-4 z-20 flex flex-col justify-between h-full py-10 md:py-20 overflow-hidden"
             variants={fadeLeft}
             initial="hidden"
             whileInView="visible"
@@ -82,7 +82,7 @@ const Hero = () => {
 
           {/* Right Side Text Content */}
           <motion.div
-            className="col-span-full md:col-span-4 z-20 flex flex-col justify-between h-full py-10 md:py-20 items-start md:items-end text-left md:text-right"
+            className="col-span-full md:col-span-4 z-20 flex flex-col justify-between h-full py-10 md:py-20 items-start md:items-end text-left md:text-right overflow-hidden"
             variants={fadeRight}
             initial="hidden"
             whileInView="visible"
@@ -138,7 +138,7 @@ const Hero = () => {
 
       {/* Marquee Footer */}
       <motion.div
-        className="mt-8 border-y border-surface-container py-4 xl:py-6 overflow-hidden max-w-[1600px] mx-auto"
+        className="mt-8 border-y border-surface-container py-4 xl:py-6 overflow-hidden w-full"
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
