@@ -43,7 +43,7 @@ const Hero = () => {
               </div>
 
               <div className="space-y-8 md:space-y-12">
-                <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold">// FASHION</p>
+                <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold">{"// FASHION"}</p>
                 <p className="text-sm leading-relaxed max-w-[240px] text-neutral-600">
                   Explore curated collections, exclusive drops, and everyday essentials all thoughtfully designed in one stylish shopping destination.
                 </p>
@@ -91,7 +91,7 @@ const Hero = () => {
           >
             <div className="space-y-12 md:space-y-24 w-full">
               <div className="flex flex-col items-start md:items-end w-full">
-                <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold mb-4 md:mb-8 leading-tight">// STYLED FOR<br />LIFE.</p>
+                <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold mb-4 md:mb-8 leading-tight">{"// STYLED FOR"}<br />LIFE.</p>
                 <div className="hero-text text-black">
                   lives<br />- now
                 </div>

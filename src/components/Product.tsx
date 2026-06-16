@@ -1,29 +1,25 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import { products } from "@/lib/products";
 import {
   fadeUp, fadeIn, staggerContainer, staggerItem,
   VIEWPORT_CONFIG, EASE_LUXURY,
 } from "@/lib/animations";
 
-const products = [
-  { id: 1, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuApqkDG7nrp_PbIMaiExWjRhCV6icWvah6de_G_Gn3rSrWWNk_D0SJonSKh2K9ltLuwEwLJ7l25Web5eiN-dY0hmzeKv_HeieLnWUQ3To4U34O44lzguJC6a_SxfpuHzedpqNicBTPnj6oFgm6BEAgm1fURLpPmC-SxMJGiZr0wIYw_DixMZ3pzJTx1xLj4lpTlwetP_s7LXe7sr9VZxlp_MrJ_SNT3wrpHm5QvALb3TUPZtqqZHYX2nzR3-XI-GEUdxeAwZo5CnFJ5" },
-  { id: 2, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDWUkkfOLkPA1s_eOv5emSCzRkDMp1u-bXn3gd1HekVg_oQ0VXGJG2wYICd4X0AUPJc7eSp5KdrYphfl4WnMvx2YTCjKvDbnPLnzy_SND7wqodNIOSsrnHaEXqObVOewcGJnxNQAvGNiUm3_EV7HQglEYIPmiZul0Cxx2MnEvc75IjyGwS-c2ilIQJF6RjFzOhih7b9SDCUhX3DstkoEncM23xxSP_W7aX3aTSMUPtudXC-LSR0LVxvoZpl_kTIabPntTdSLQd9fh8J" },
-  { id: 3, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmCQPxDqEmDCl9pMCnXP-4xFVjMrSM47OhMm03qJTwdIOhnrRPzft-91CzH32mhGZ6D5ofcbGQeX6L6GsZOkFq6ESe9KDiQmKm_EIFuoXK1CkqzhNHGRD7NsCMLqwL204ymZo_VL61OrH4batQwE46rn1fcSdljMsjR2LKf8BIkWmDy2fzDpuvUvFubsZqmhZNQ3zlwTZCThgXzHgt0MnIv8I2wZAPgd0hQwp-kMOYY0_jVTphJ9lrSIsqpY96F5EwN_hVtH2fjUkf" },
-  { id: 4, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBw-H6Lo7uHeSKQkkehwJ0obz6I87jHbVj4zkYmRhpYZcGseme6lf4Rgdmll6lz06j-oiOYvEIMTbnjze7cAoasqctetYOoRoAy5WDVV00FfXFyPxxhk1XeHI9zxoF9sNhvN-zjtsTBAccW1YtFVaXuXpZMV7r_uzUt7D4I6U9WbUISCZWcmwHq_K_ByL5hHDRo3uB4ZQTA0uFpMncIeTLgwLehGJdsJzQe2y39_CL8BfOVzMH2ruPF80UmCRx1KMCvDO0PNuFXZEHP" },
-];
-
 const Product = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const nextSlide = () => setActiveIndex((p) => (p + 1) % products.length);
   const prevSlide = () => setActiveIndex((p) => (p - 1 + products.length) % products.length);
-  const getImg = (offset: number) => products[(activeIndex + offset + products.length * 2) % products.length].image;
+  const getProduct = (offset: number) => products[(activeIndex + offset + products.length * 2) % products.length];
+  const activeProduct = getProduct(0);
 
   const sideHover = { y: -4, scale: 1.02 };
   const sideTrans = { duration: 0.3, ease: EASE_LUXURY };
 
   return (
-    <section className="pt-24 pb-12 overflow-hidden bg-white">
+    <section id="products" className="pt-24 pb-12 overflow-hidden bg-white">
       <motion.header className="px-6 md:px-8 max-w-[1600px] mx-auto w-full relative z-20"
         variants={fadeUp} initial="hidden" whileInView="visible" viewport={VIEWPORT_CONFIG} custom={0}>
         <h1 className="font-headline font-black text-3xl md:text-4xl xl:text-5xl tracking-tighter leading-none pt-4">
@@ -61,26 +57,39 @@ const Product = () => {
 
         <motion.div className="hidden xl:block w-[18vw] min-w-[200px] shrink-0 opacity-40 translate-x-[-20%] pb-[90px]" variants={staggerItem}>
           <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative">
-            <img alt="Model -2" className="w-full h-full object-cover" src={getImg(-2)} />
+            <img alt={getProduct(-2).name} className="w-full h-full object-cover" src={getProduct(-2).image} />
           </div>
         </motion.div>
 
         <motion.div className="w-[15vw] md:w-[25vw] xl:w-[20vw] xl:min-w-[260px] shrink-0 opacity-40 md:opacity-50 xl:opacity-100 pb-0 xl:pb-[90px] cursor-pointer"
           onClick={prevSlide} variants={staggerItem} whileHover={sideHover} transition={sideTrans}>
           <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative">
-            <img alt="Model -1" className="w-full h-full object-cover" src={getImg(-1)} />
+            <img alt={getProduct(-1).name} className="w-full h-full object-cover" src={getProduct(-1).image} />
           </div>
         </motion.div>
 
         <motion.div className="w-[65vw] md:w-[45vw] xl:w-[28vw] xl:min-w-[340px] shrink-0 flex flex-col items-center xl:translate-y-[-24px]" variants={staggerItem}>
-          <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative">
-            <img alt="Model active" className="w-full h-full object-cover" src={getImg(0)} />
-          </div>
+          <Link href={`/products/${activeProduct.slug}`} className="group block w-full" aria-label={`View ${activeProduct.name} details`}>
+            <motion.div
+              whileHover={{ y: -8, scale: 1.015 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.35, ease: EASE_LUXURY }}
+              className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative overflow-hidden"
+            >
+              <img alt={activeProduct.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src={activeProduct.image} />
+              <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                <div className="bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center justify-between gap-4">
+                  <span className="font-label text-[10px] md:text-xs font-black tracking-[0.18em] uppercase">{activeProduct.name}</span>
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </div>
+              </div>
+            </motion.div>
+          </Link>
           <div className="h-[70px] xl:h-[90px] w-full mt-4 flex flex-col items-center justify-start">
-            <span className="font-label text-[10px] md:text-xs font-bold tracking-widest text-primary mb-4 xl:mb-6">[Wear the Moment]</span>
+            <span className="max-w-full px-2 text-center font-label text-[10px] md:text-xs font-bold tracking-widest text-primary mb-4 xl:mb-6">[{activeProduct.tagline}]</span>
             <div className="flex gap-2">
-              {[0,1,2].map((dot) => (
-                <span key={dot} className={`w-6 xl:w-8 h-[2px] xl:h-[3px] transition-colors duration-300 ${activeIndex % 3 === dot ? 'bg-black' : 'bg-surface-container-high'}`}></span>
+              {products.map((product, dot) => (
+                <span key={product.slug} className={`w-6 xl:w-8 h-[2px] xl:h-[3px] transition-colors duration-300 ${activeIndex === dot ? 'bg-black' : 'bg-surface-container-high'}`}></span>
               ))}
             </div>
           </div>
@@ -89,13 +98,13 @@ const Product = () => {
         <motion.div className="w-[15vw] md:w-[25vw] xl:w-[20vw] xl:min-w-[260px] shrink-0 opacity-40 md:opacity-50 xl:opacity-100 pb-0 xl:pb-[90px] cursor-pointer"
           onClick={nextSlide} variants={staggerItem} whileHover={sideHover} transition={sideTrans}>
           <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative">
-            <img alt="Model 1" className="w-full h-full object-cover" src={getImg(1)} />
+            <img alt={getProduct(1).name} className="w-full h-full object-cover" src={getProduct(1).image} />
           </div>
         </motion.div>
 
         <motion.div className="hidden xl:block w-[18vw] min-w-[200px] shrink-0 opacity-40 translate-x-[20%] pb-[90px]" variants={staggerItem}>
           <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative">
-            <img alt="Model 2" className="w-full h-full object-cover" src={getImg(2)} />
+            <img alt={getProduct(2).name} className="w-full h-full object-cover" src={getProduct(2).image} />
           </div>
         </motion.div>
       </motion.div>
