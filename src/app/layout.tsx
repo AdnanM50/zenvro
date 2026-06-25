@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import Footer from "@/components/Footer";
 import Navbar from "@/components/navbar";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function RootLayout({
   children,
@@ -38,11 +39,13 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white overflow-x-hidden">
-        <SmoothScrollProvider>
-          <Navbar />
-          {children}
-          <Footer />
-        </SmoothScrollProvider>
+        <AuthProvider>
+          <SmoothScrollProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </SmoothScrollProvider>
+        </AuthProvider>
       </body>
     </html>
   );
