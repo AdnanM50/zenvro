@@ -17,10 +17,9 @@ export const metadata: Metadata = {
   description: "Explore curated collections and everyday essentials thoughtfully designed.",
 };
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/navbar";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
 
 export default function RootLayout({
   children,
@@ -37,13 +36,15 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
       </head>
       <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white overflow-x-hidden">
         <AuthProvider>
           <SmoothScrollProvider>
-            <Navbar />
-            {children}
-            <Footer />
+            <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
           </SmoothScrollProvider>
         </AuthProvider>
       </body>
