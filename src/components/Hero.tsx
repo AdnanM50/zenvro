@@ -24,9 +24,9 @@ const Hero = () => {
   return (
     <div
       ref={heroRef}
-      className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-x-hidden min-h-screen"
+      className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-hidden min-h-screen flex flex-col"
     >
-      <main className="relative min-h-screen pt-24 pb-12 flex items-center justify-center">
+      <main className="relative flex-1 pt-24 pb-12 flex items-center justify-center">
         <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
           {/* Left Side Text Content */}
           <motion.div
