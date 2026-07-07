@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -13,13 +13,27 @@ export default function SignupPage() {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [otpExpired, setOtpExpired] = useState(false);
   const { signup } = useAuth();
   const router = useRouter();
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (countdown <= 0) {
+      setOtpExpired(true);
+      return;
+    }
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSendOtp = useCallback(async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError('');
+    setOtp('');
+    setOtpExpired(false);
     setIsLoading(true);
 
     try {
@@ -32,7 +46,7 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setOtpSent(true);
+        setCountdown(data.expiresIn || 60);
         setStep(2);
       } else {
         setError(data.error || 'Failed to send OTP');
@@ -42,7 +56,7 @@ export default function SignupPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [name, email, password]);
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,9 +69,16 @@ export default function SignupPage() {
       router.push('/dashboard');
     } else {
       setError(result.error || 'Verification failed');
+      setOtp('');
     }
 
     setIsLoading(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -158,7 +179,7 @@ export default function SignupPage() {
                 One-Time Password
               </label>
               <input
-                id="otp"
+              id="otp"
                 name="otp"
                 type="text"
                 inputMode="numeric"
@@ -167,9 +188,16 @@ export default function SignupPage() {
                 maxLength={6}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all text-center text-2xl tracking-[0.3em] font-headline font-black"
+                className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all text-center text-2xl tracking-[0.3em] font-headline font-black disabled:opacity-50"
                 placeholder="000000"
+                disabled={otpExpired}
               />
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              <div className={`font-label text-xs font-bold uppercase tracking-widest ${otpExpired ? 'text-on-error-container' : 'text-secondary'}`}>
+                {otpExpired ? 'Code expired' : `Expires in ${formatTime(countdown)}`}
+              </div>
             </div>
 
             {error && (
@@ -180,7 +208,7 @@ export default function SignupPage() {
 
             <button
               type="submit"
-              disabled={isLoading || otp.length !== 6}
+              disabled={isLoading || otp.length !== 6 || otpExpired}
               className="w-full bg-primary text-white font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Verifying...' : 'Verify & Create Account'}
@@ -189,11 +217,13 @@ export default function SignupPage() {
             <div className="text-center">
               <button
                 type="button"
-                disabled={isLoading}
+                disabled={isLoading || (!otpExpired && countdown > 0)}
                 onClick={handleSendOtp}
-                className="font-label text-xs uppercase tracking-widest font-bold text-primary-fixed hover:text-primary-fixed-dim transition-colors disabled:opacity-50"
+                className="font-label text-xs uppercase tracking-widest font-bold text-primary-fixed hover:text-primary-fixed-dim transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Resend OTP
+                {countdown > 0 && !otpExpired
+                  ? `Resend in ${formatTime(countdown)}`
+                  : 'Resend OTP'}
               </button>
             </div>
           </form>

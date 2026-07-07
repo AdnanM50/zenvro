@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { generateOtp, storeOtp } from '@/lib/otp';
+import { generateOtp, storeOtp, isRateLimited, recordOtpRequest } from '@/lib/otp';
 import { sendOtpEmail } from '@/lib/mail';
 
 export async function POST(request: NextRequest) {
@@ -22,6 +22,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (isRateLimited(email)) {
+      return NextResponse.json(
+        { error: 'Too many OTP requests. Please wait a minute.' },
+        { status: 429 },
+      );
+    }
+
     const existingUser = await db.user.findByEmail(email);
     if (existingUser) {
       return NextResponse.json(
@@ -32,11 +39,12 @@ export async function POST(request: NextRequest) {
 
     const otp = generateOtp();
     storeOtp(email, otp, name, password);
+    recordOtpRequest(email);
 
     await sendOtpEmail(email, otp);
 
     return NextResponse.json(
-      { message: 'OTP sent successfully' },
+      { message: 'OTP sent successfully', expiresIn: 60 },
       { status: 200 },
     );
   } catch (error) {
