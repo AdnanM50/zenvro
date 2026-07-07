@@ -1,66 +1,51 @@
-// In-memory OTP storage (replace with Redis/database in production)
-interface OTPRecord {
+interface OtpEntry {
   otp: string;
+  name: string;
   email: string;
-  createdAt: Date;
-  expiresAt: Date;
+  password: string;
+  expiresAt: number;
 }
 
-const otpStore: Map<string, OTPRecord> = new Map();
+const otpStore = new Map<string, OtpEntry>();
 
-const OTP_EXPIRY_MINUTES = 10;
-
-export function generateOTP(): string {
+export function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-export async function createOTP(email: string): Promise<string> {
-  const otp = generateOTP();
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000);
-
+export function storeOtp(
+  email: string,
+  otp: string,
+  name: string,
+  password: string,
+): void {
   otpStore.set(email, {
     otp,
+    name,
     email,
-    createdAt: now,
-    expiresAt,
+    password,
+    expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
   });
-
-  return otp;
 }
 
-export function verifyOTP(email: string, otp: string): boolean {
-  const record = otpStore.get(email);
-  
-  if (!record) {
-    return false;
+export function verifyOtp(
+  email: string,
+  otp: string,
+): { valid: boolean; name?: string; password?: string } {
+  const entry = otpStore.get(email);
+
+  if (!entry) {
+    return { valid: false };
   }
 
-  const now = new Date();
-  if (now > record.expiresAt) {
+  if (Date.now() > entry.expiresAt) {
     otpStore.delete(email);
-    return false;
+    return { valid: false };
   }
 
-  if (record.otp !== otp) {
-    return false;
+  if (entry.otp !== otp) {
+    return { valid: false };
   }
 
-  // OTP is valid, remove it to prevent reuse
   otpStore.delete(email);
-  return true;
-}
-
-export function clearOTP(email: string): void {
-  otpStore.delete(email);
-}
-
-// Cleanup expired OTPs (call periodically in production)
-export function cleanupExpiredOTPs(): void {
-  const now = new Date();
-  for (const [email, record] of otpStore.entries()) {
-    if (now > record.expiresAt) {
-      otpStore.delete(email);
-    }
-  }
+  return { valid: true, name: entry.name, password: entry.password };
 }
