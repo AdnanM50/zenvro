@@ -10,9 +10,9 @@ export default function PublicLayoutWrapper({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const isAdmin = pathname.startsWith("/admin")
+  const hideLayout = pathname.startsWith("/admin") || pathname.startsWith("/user-dashboard")
 
-  if (isAdmin) return <>{children}</>
+  if (hideLayout) return <>{children}</>
 
   return (
     <>
