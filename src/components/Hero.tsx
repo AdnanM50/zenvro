@@ -24,10 +24,10 @@ const Hero = () => {
   return (
     <div
       ref={heroRef}
-      className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-hidden min-h-screen flex flex-col"
+      className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-hidden min-h-[calc(100vh-72px)] flex flex-col"
     >
-      <main className="relative flex-1 pt-24 pb-12 flex items-center justify-center">
-        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
+      <main className="relative flex-1  pb-1 flex items-start justify-center">
+        <div className="w-full max-w-[1340px] mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
           {/* Left Side Text Content */}
           <motion.div
             className="col-span-full md:col-span-4 z-20 flex flex-col justify-between h-full py-10 md:py-20 overflow-hidden"
@@ -37,7 +37,7 @@ const Hero = () => {
             viewport={VIEWPORT_CONFIG}
             custom={0.1}
           >
-            <div className="space-y-12 md:space-y-48">
+            <div className="space-y-12 ">
               <div className="hero-text text-black">
                 where<br />- style
               </div>
@@ -65,7 +65,7 @@ const Hero = () => {
             custom={0.2}
           >
             <motion.div
-              className="relative w-full md:w-[130%] aspect-square md:aspect-auto group pointer-events-auto"
+              className="relative w-full md:w-[100%] aspect-square md:h-[30rem] group pointer-events-auto"
               style={{ y: modelY, scale: modelScale }}
             >
               <img
@@ -75,7 +75,7 @@ const Hero = () => {
                   maskImage: "radial-gradient(circle, black 60%, transparent 95%)",
                   WebkitMaskImage: "radial-gradient(circle, black 60%, transparent 95%)",
                 }}
-                src="/hero/model.png"
+                src="/hero/model-Photoroom.png"
               />
             </motion.div>
           </motion.div>
@@ -89,7 +89,7 @@ const Hero = () => {
             viewport={VIEWPORT_CONFIG}
             custom={0.1}
           >
-            <div className="space-y-12 md:space-y-24 w-full">
+            <div className=" w-full">
               <div className="flex flex-col items-start md:items-end w-full">
                 <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold mb-4 md:mb-8 leading-tight">{"// STYLED FOR"}<br />LIFE.</p>
                 <div className="hero-text text-black">
@@ -97,7 +97,7 @@ const Hero = () => {
                 </div>
               </div>
 
-              <div className="pt-6 md:pt-12 space-y-12 md:space-y-20">
+              <div className="pt-6 md:pt-12 space-y-12 ">
                 <motion.div
                   className="flex items-center justify-start md:justify-end gap-3"
                   variants={fadeUp}

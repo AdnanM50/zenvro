@@ -67,7 +67,7 @@
 }
 
 @utility hero-text {
-  font-size: clamp(2.25rem, 8vw, 5.5rem);
+  font-size: clamp(2.25rem, 5vw, 5.5rem);
   line-height: 0.85;
   letter-spacing: -0.04em;
   font-weight: 900;
