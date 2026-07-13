@@ -12,9 +12,9 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] p-3 sm:p-4 lg:p-5">
+    <div className="min-h-screen">
       <div
-        className="max-w-[1440px] mx-auto bg-white rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden flex min-h-[calc(100vh-2rem)] lg:min-h-[900px]"
+        className="max-w-[1440px] mx-auto bg-white overflow-hidden flex min-h-[calc(100vh-2rem)] lg:min-h-[900px]"
       >
         {/* Mobile Overlay */}
         {sidebarOpen && (
