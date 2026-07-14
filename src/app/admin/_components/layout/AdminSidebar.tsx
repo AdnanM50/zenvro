@@ -1,21 +1,140 @@
 "use client";
 
 import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
+import {
+  BarChart3,
+  Box,
+  Boxes,
+  ChevronDown,
+  FileText,
+  Home,
+  Images,
+  Lock,
+  LogOut,
+  Megaphone,
+  MoreHorizontal,
+  MoreVertical,
+  Search,
+  Settings,
+  ShoppingCart,
+  TicketPercent,
+  Users,
+  X,
+} from "lucide-react";
 
-const mainNavItems = [
-  { label: "Dashboard", icon: "fas fa-home", href: "#", active: true },
-  { label: "Products", icon: "fas fa-box", href: "#", badge: 4 },
-  { label: "Orders & Invoices", icon: "fas fa-file-invoice", href: "#", badge: 6 },
-  { label: "Sales Analytics", icon: "fas fa-chart-line", href: "#" },
-  { label: "Customer Insights", icon: "fas fa-lightbulb", href: "#" },
-  { label: "Reports", icon: "fas fa-file-alt", href: "#", badge: 2 },
+type NavItemType = {
+  label: string;
+  icon?: LucideIcon;
+  href?: string;
+  active?: boolean;
+  badge?: number;
+  children?: NavItemType[];
+};
+
+const navItems: NavItemType[] = [
+  { label: "Dashboard", icon: Home, href: "#", active: true },
+  {
+    label: "Products",
+    icon: Box,
+    children: [
+      { label: "Products", href: "#" },
+      { label: "Categories", href: "#" },
+      { label: "Brands", href: "#" },
+      { label: "Collections", href: "#" },
+      { label: "Tags", href: "#" },
+      { label: "Attributes", href: "#" },
+      { label: "Reviews", href: "#" },
+    ],
+  },
+  { label: "Orders", icon: ShoppingCart, href: "#" },
+  { label: "Customers", icon: Users, href: "#" },
+  { label: "Coupons", icon: TicketPercent, href: "#" },
+  { label: "Inventory", icon: Boxes, href: "#" },
+  { label: "Marketing", icon: Megaphone, href: "#" },
+  { label: "CMS", icon: FileText, href: "#" },
+  {
+    label: "SEO",
+    icon: Search,
+    children: [
+      { label: "Global SEO", href: "#" },
+      { label: "Redirects", href: "#" },
+      { label: "Robots.txt", href: "#" },
+      { label: "Sitemap", href: "#" },
+      { label: "Analytics", href: "#" },
+    ],
+  },
+  { label: "Reports", icon: BarChart3, href: "#" },
+  { label: "Media Library", icon: Images, href: "#" },
+  { label: "Settings", icon: Settings, href: "#" },
 ];
 
-const otherNavItems = [
-  { label: "Settings", icon: "fas fa-cog", href: "#" },
-  { label: "Team Members", icon: "fas fa-users", href: "#", badge: 3 },
-  { label: "Help Center", icon: "fas fa-question-circle", href: "#" },
-];
+const NavItem = ({ item, depth = 0 }: { item: NavItemType; depth?: number }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const hasChildren = item.children && item.children.length > 0;
+  const Icon = item.icon;
+
+  return (
+    <li className="space-y-0.5">
+      <a
+        href={item.href || "#"}
+        onClick={(e) => {
+          if (hasChildren) {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
+        className={`
+          flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150
+          ${
+            item.active
+              ? "bg-black text-white shadow-lg shadow-black/20"
+              : "text-gray-600 hover:bg-gray-50"
+          }
+        `}
+        style={{ paddingLeft: depth > 0 ? `${depth * 1.5 + 0.875}rem` : undefined }}
+      >
+        {Icon && <Icon className="h-4 w-5 shrink-0" strokeWidth={2.2} />}
+        <span className="font-medium text-sm flex-1">{item.label}</span>
+        {item.badge && (
+          <span
+            className={`text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-semibold ${
+              item.active
+                ? "bg-white/20 text-white"
+                : "bg-orange-500 text-white"
+            }`}
+          >
+            {item.badge}
+          </span>
+        )}
+        {hasChildren && (
+          <ChevronDown
+            className={`h-3.5 w-3.5 opacity-70 ml-1 transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        )}
+      </a>
+      {hasChildren && (
+        <div
+          className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
+            isOpen
+              ? "grid-rows-[1fr] opacity-100 translate-y-0"
+              : "grid-rows-[0fr] opacity-0 -translate-y-1"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <ul className="mt-0.5 space-y-0.5">
+              {item.children!.map((child) => (
+                <NavItem key={child.label} item={child} depth={depth + 1} />
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+};
 
 interface AdminSidebarProps {
   open: boolean;
@@ -24,7 +143,6 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const [menuOpen, setMenuOpen] = useState(true);
-  const [othersOpen, setOthersOpen] = useState(true);
 
   return (
     <aside
@@ -50,7 +168,7 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
               </span>
             </div>
             <div className="text-[11px] text-gray-500 flex items-center gap-1">
-              <i className="fas fa-lock text-[10px]" /> Private
+              <Lock className="h-3 w-3" /> Private
             </div>
           </div>
           <button
@@ -58,9 +176,9 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             onClick={onClose}
             aria-label="Close sidebar"
           >
-            <i className="fas fa-times text-lg" />
+            <X className="h-5 w-5" />
           </button>
-          <i className="fas fa-ellipsis-v text-gray-400 ml-auto cursor-pointer hidden lg:block" />
+          <MoreVertical className="hidden h-5 w-5 text-gray-400 ml-auto cursor-pointer lg:block" />
         </div>
 
         {/* Greeting */}
@@ -74,88 +192,43 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           </h1>
         </div>
 
-        {/* Menu Section 1 */}
+        {/* Menu Section */}
         <div className="mb-6 lg:mb-8">
           <button
             className="text-[11px] font-semibold text-gray-400 tracking-wider mb-3 flex justify-between items-center w-full"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             MENU
-            <i className={`fas fa-chevron-${menuOpen ? "up" : "down"} transition-transform`} />
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                menuOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
-          {menuOpen && (
-            <ul className="space-y-0.5">
-              {mainNavItems.map((item) => (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className={`
-                      flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150
-                      ${
-                        item.active
-                          ? "bg-black text-white shadow-lg shadow-black/20"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }
-                    `}
-                  >
-                    <i className={`${item.icon} w-5 text-center text-sm`} />
-                    <span className="font-medium text-sm">{item.label}</span>
-                    {item.badge && (
-                      <span
-                        className={`ml-auto text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-semibold ${
-                          item.active
-                            ? "bg-white/20 text-white"
-                            : "bg-orange-500 text-white"
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Menu Section 2 */}
-        <div>
-          <button
-            className="text-[11px] font-semibold text-gray-400 tracking-wider mb-3 flex justify-between items-center w-full"
-            onClick={() => setOthersOpen(!othersOpen)}
+          <div
+            className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
+              menuOpen
+                ? "grid-rows-[1fr] opacity-100 translate-y-0"
+                : "grid-rows-[0fr] opacity-0 -translate-y-1"
+            }`}
           >
-            OTHERS
-            <i className={`fas fa-chevron-${othersOpen ? "up" : "down"} transition-transform`} />
-          </button>
-          {othersOpen && (
-            <ul className="space-y-0.5">
-              {otherNavItems.map((item) => (
-                <li key={item.label}>
+            <div className="overflow-hidden">
+              <ul className="space-y-0.5">
+                {navItems.map((item) => (
+                  <NavItem key={item.label} item={item} />
+                ))}
+                <li>
                   <a
-                    href={item.href}
-                    className="flex items-center gap-3 text-gray-600 hover:bg-gray-50 px-3.5 py-2.5 rounded-xl transition-colors"
+                    href="#"
+                    className="flex items-center gap-3 text-gray-600 hover:bg-red-50 hover:text-red-600 px-3.5 py-2.5 rounded-xl transition-colors mt-2"
                   >
-                    <i className={`${item.icon} w-5 text-center text-sm`} />
-                    <span className="font-medium text-sm">{item.label}</span>
-                    {item.badge && (
-                      <span className="ml-auto bg-orange-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-semibold">
-                        {item.badge}
-                      </span>
-                    )}
+                    <LogOut className="h-4 w-5 shrink-0" strokeWidth={2.2} />
+                    <span className="font-medium text-sm">Logout</span>
                   </a>
                 </li>
-              ))}
-              <li>
-                <a
-                  href="#"
-                  className="flex items-center gap-3 text-gray-600 hover:bg-red-50 hover:text-red-600 px-3.5 py-2.5 rounded-xl transition-colors mt-1"
-                >
-                  <i className="fas fa-sign-out-alt w-5 text-center text-sm" />
-                  <span className="font-medium text-sm">Logout</span>
-                </a>
-              </li>
-            </ul>
-          )}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -176,7 +249,7 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           </div>
         </div>
         <button className="text-gray-400 hover:text-gray-600 cursor-pointer shrink-0 p-1" aria-label="More options">
-          <i className="fas fa-ellipsis-h" />
+          <MoreHorizontal className="h-5 w-5" />
         </button>
       </div>
     </aside>
