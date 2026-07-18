@@ -66,7 +66,7 @@ export default function SignupPage() {
     const result = await signup(email, otp);
 
     if (result.success) {
-      router.push('/dashboard');
+      router.push('/user-dashboard');
     } else {
       setError(result.error || 'Verification failed');
       setOtp('');

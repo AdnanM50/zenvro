@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 
 interface User {
   id: string;
@@ -19,16 +19,52 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000; // 14 minutes
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const checkAuth = async () => {
+  const refreshAccessToken = useCallback(async (): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch('/api/auth/refresh', { method: 'POST' });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const startRefreshTimer = useCallback(() => {
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+    }
+    refreshTimerRef.current = setInterval(async () => {
+      const success = await refreshAccessToken();
+      if (!success) {
+        setUser(null);
+        if (refreshTimerRef.current) {
+          clearInterval(refreshTimerRef.current);
+        }
+      }
+    }, TOKEN_REFRESH_INTERVAL);
+  }, [refreshAccessToken]);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      let response = await fetch('/api/auth/me');
+
+      if (response.status === 401) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          response = await fetch('/api/auth/me');
+        }
+      }
+
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
+        startRefreshTimer();
       } else {
         setUser(null);
       }
@@ -38,11 +74,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [refreshAccessToken, startRefreshTimer]);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+    return () => {
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+      }
+    };
+  }, [checkAuth]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -56,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         setUser(data.user);
+        startRefreshTimer();
         return { success: true };
       } else {
         return { success: false, error: data.error };
@@ -78,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         setUser(data.user);
+        startRefreshTimer();
         return { success: true };
       } else {
         return { success: false, error: data.error };
@@ -90,14 +133,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      // Clear the token by setting an expired cookie
-      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
-      
-      // Optionally call a logout endpoint if you want to invalidate server-side
-      // await fetch('/api/auth/logout', { method: 'POST' });
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+      }
     } catch (error) {
       console.error('Logout error:', error);
+      setUser(null);
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+      }
     }
   };
 

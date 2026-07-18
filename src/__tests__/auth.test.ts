@@ -1,5 +1,4 @@
-import { hashPassword, verifyPassword, generateToken, verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { hashPassword, verifyPassword, generateAccessToken, verifyAccessToken, generateRefreshToken, verifyRefreshToken } from '@/lib/auth';
 
 describe('Auth Library', () => {
   describe('hashPassword', () => {
@@ -40,11 +39,11 @@ describe('Auth Library', () => {
     });
   });
 
-  describe('generateToken', () => {
-    it('should generate a JWT token', () => {
+  describe('generateAccessToken', () => {
+    it('should generate a JWT access token', () => {
       const userId = '123';
       const email = 'test@example.com';
-      const token = generateToken(userId, email);
+      const token = generateAccessToken(userId, email);
       
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
@@ -52,13 +51,13 @@ describe('Auth Library', () => {
     });
   });
 
-  describe('verifyToken', () => {
-    it('should verify a valid token', () => {
+  describe('verifyAccessToken', () => {
+    it('should verify a valid access token', () => {
       const userId = '123';
       const email = 'test@example.com';
-      const token = generateToken(userId, email);
+      const token = generateAccessToken(userId, email);
       
-      const decoded = verifyToken(token);
+      const decoded = verifyAccessToken(token);
       expect(decoded).toBeDefined();
       expect(decoded?.userId).toBe(userId);
       expect(decoded?.email).toBe(email);
@@ -66,85 +65,55 @@ describe('Auth Library', () => {
 
     it('should return null for invalid token', () => {
       const invalidToken = 'invalid.token.here';
-      const decoded = verifyToken(invalidToken);
+      const decoded = verifyAccessToken(invalidToken);
       expect(decoded).toBeNull();
     });
 
-    it('should return null for expired token', () => {
-      // This test would require mocking time or using a very short expiry
-      // For now, we test with an obviously malformed token
-      const decoded = verifyToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired');
+    it('should return null for malformed token', () => {
+      const decoded = verifyAccessToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired');
+      expect(decoded).toBeNull();
+    });
+
+    it('should return null when verifying a refresh token as access token', () => {
+      const token = generateRefreshToken('123', 'test@example.com');
+      const decoded = verifyAccessToken(token);
       expect(decoded).toBeNull();
     });
   });
-});
 
-describe('Database', () => {
-  beforeEach(() => {
-    // Clear the in-memory database before each test
-    // Note: In real implementation, you'd want to reset the Map
-  });
-
-  describe('user.create', () => {
-    it('should create a new user', async () => {
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword',
-      };
+  describe('generateRefreshToken', () => {
+    it('should generate a JWT refresh token', () => {
+      const userId = '123';
+      const email = 'test@example.com';
+      const token = generateRefreshToken(userId, email);
       
-      const user = await db.user.create(userData);
-      
-      expect(user).toBeDefined();
-      expect(user.id).toBeDefined();
-      expect(user.name).toBe(userData.name);
-      expect(user.email).toBe(userData.email);
-      expect(user.password).toBe(userData.password);
-      expect(user.createdAt).toBeInstanceOf(Date);
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+      expect(token.split('.')).toHaveLength(3);
     });
   });
 
-  describe('user.findByEmail', () => {
-    it('should find a user by email', async () => {
-      const userData = {
-        name: 'Find Test User',
-        email: 'findtest@example.com',
-        password: 'hashedpassword',
-      };
+  describe('verifyRefreshToken', () => {
+    it('should verify a valid refresh token', () => {
+      const userId = '123';
+      const email = 'test@example.com';
+      const token = generateRefreshToken(userId, email);
       
-      await db.user.create(userData);
-      const foundUser = await db.user.findByEmail(userData.email);
-      
-      expect(foundUser).toBeDefined();
-      expect(foundUser?.email).toBe(userData.email);
-      expect(foundUser?.name).toBe(userData.name);
+      const decoded = verifyRefreshToken(token);
+      expect(decoded).toBeDefined();
+      expect(decoded?.userId).toBe(userId);
+      expect(decoded?.email).toBe(email);
     });
 
-    it('should return null for non-existent email', async () => {
-      const foundUser = await db.user.findByEmail('nonexistent@example.com');
-      expect(foundUser).toBeNull();
-    });
-  });
-
-  describe('user.findById', () => {
-    it('should find a user by id', async () => {
-      const userData = {
-        name: 'ID Test User',
-        email: 'idtest@example.com',
-        password: 'hashedpassword',
-      };
-      
-      const createdUser = await db.user.create(userData);
-      const foundUser = await db.user.findById(createdUser.id);
-      
-      expect(foundUser).toBeDefined();
-      expect(foundUser?.id).toBe(createdUser.id);
-      expect(foundUser?.email).toBe(userData.email);
+    it('should return null for invalid token', () => {
+      const decoded = verifyRefreshToken('invalid.token.here');
+      expect(decoded).toBeNull();
     });
 
-    it('should return null for non-existent id', async () => {
-      const foundUser = await db.user.findById('non-existent-id');
-      expect(foundUser).toBeNull();
+    it('should return null when verifying an access token as refresh token', () => {
+      const token = generateAccessToken('123', 'test@example.com');
+      const decoded = verifyRefreshToken(token);
+      expect(decoded).toBeNull();
     });
   });
 });

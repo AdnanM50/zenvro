@@ -38,13 +38,13 @@ export async function POST(request: NextRequest) {
     }
 
     const otp = generateOtp();
-    storeOtp(email, otp, name, password);
+    await storeOtp(email, otp, name, password);
     recordOtpRequest(email);
 
     await sendOtpEmail(email, otp);
 
     return NextResponse.json(
-      { message: 'OTP sent successfully', expiresIn: 60 },
+      { message: 'OTP sent successfully', expiresIn: 300 },
       { status: 200 },
     );
   } catch (error) {

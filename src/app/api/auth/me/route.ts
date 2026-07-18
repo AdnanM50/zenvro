@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyAccessToken } from '@/lib/auth';
 import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from cookie
-    const token = request.cookies.get('token')?.value;
+    const token = request.cookies.get('access_token')?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -14,16 +13,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify token
-    const decoded = verifyToken(token);
+    const decoded = verifyAccessToken(token);
     if (!decoded) {
       return NextResponse.json(
-        { error: 'Invalid token' },
+        { error: 'Invalid or expired token' },
         { status: 401 }
       );
     }
 
-    // Get user from database
     const user = await db.user.findById(decoded.userId);
     if (!user) {
       return NextResponse.json(

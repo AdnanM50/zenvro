@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { hashPassword, generateToken } from '@/lib/auth';
+import { generateTokenPair, getTokenExpiration } from '@/lib/auth';
 import { verifyOtp } from '@/lib/otp';
 
 export async function POST(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = verifyOtp(email, otp);
+    const result = await verifyOtp(email, otp);
 
     if (!result.valid) {
       return NextResponse.json(
@@ -41,25 +41,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const hashedPassword = await hashPassword(password);
+    // Password is already hashed by storeOtp, so use it directly
     const user = await db.user.create({
       name: name!,
       email,
-      password: hashedPassword,
+      password,
     });
 
-    const token = generateToken(user.id, user.email);
+    console.log('User created successfully:', { id: user.id, email: user.email });
+
+    const { accessToken, refreshToken } = generateTokenPair(user.id, user.email);
+    const refreshExpiresAt = getTokenExpiration(refreshToken);
+
+    if (refreshExpiresAt) {
+      await db.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
+    }
 
     const response = NextResponse.json(
       { message: 'User created successfully', user: { id: user.id, name: user.name, email: user.email } },
       { status: 201 },
     );
 
-    response.cookies.set('token', token, {
+    response.cookies.set('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 15, // 15 minutes
+      path: '/',
+    });
+
+    response.cookies.set('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
 
