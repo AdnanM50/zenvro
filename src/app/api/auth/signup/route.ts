@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       password,
     });
 
-    const { accessToken, refreshToken } = generateTokenPair(user.id, user.email);
+    const { accessToken, refreshToken } = generateTokenPair(user.id, user.email, user.role);
     const refreshExpiresAt = getTokenExpiration(refreshToken);
 
     if (refreshExpiresAt) {

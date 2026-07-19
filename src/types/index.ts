@@ -12,3 +12,6 @@ export interface AuthUser {
   email: string;
   role: UserRole;
 }
+
+export type { Category, CategorySEO, CategoryFormData } from './category';
+export { defaultCategorySEO, emptyCategoryForm } from './category';

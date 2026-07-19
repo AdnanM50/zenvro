@@ -21,7 +21,7 @@ export default function LoginPage() {
     const result = await login(email, password);
 
     if (result.success) {
-      router.push('/user-dashboard');
+      router.push(result.role === 'admin' ? '/admin' : '/user-dashboard');
     } else {
       setError(result.error || 'Login failed');
     }

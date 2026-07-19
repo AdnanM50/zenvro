@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import type { UserRole } from '@/types';
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || '';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '';
@@ -15,12 +16,12 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateAccessToken(userId: string, email: string): string {
+export function generateAccessToken(userId: string, email: string, role: UserRole): string {
   if (!JWT_ACCESS_SECRET) {
     throw new Error('JWT_ACCESS_SECRET environment variable is not set');
   }
   const options: SignOptions = { expiresIn: ACCESS_TOKEN_EXPIRES as unknown as number };
-  return jwt.sign({ userId, email, type: 'access' }, JWT_ACCESS_SECRET, options);
+  return jwt.sign({ userId, email, role, type: 'access' }, JWT_ACCESS_SECRET, options);
 }
 
 export function generateRefreshToken(userId: string, email: string): string {
@@ -31,11 +32,12 @@ export function generateRefreshToken(userId: string, email: string): string {
   return jwt.sign({ userId, email, type: 'refresh' }, JWT_REFRESH_SECRET, options);
 }
 
-export function verifyAccessToken(token: string): { userId: string; email: string } | null {
+export function verifyAccessToken(token: string): { userId: string; email: string; role: UserRole } | null {
   try {
     const decoded = jwt.verify(token, JWT_ACCESS_SECRET) as {
       userId: string;
       email: string;
+      role: UserRole;
       type: string;
     };
     if (decoded.type !== 'access') return null;
@@ -71,9 +73,9 @@ export function getTokenExpiration(token: string): Date | null {
   }
 }
 
-export function generateTokenPair(userId: string, email: string) {
+export function generateTokenPair(userId: string, email: string, role: UserRole) {
   return {
-    accessToken: generateAccessToken(userId, email),
+    accessToken: generateAccessToken(userId, email, role),
     refreshToken: generateRefreshToken(userId, email),
   };
 }

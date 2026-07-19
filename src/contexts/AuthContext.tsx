@@ -13,8 +13,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (email: string, otp: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
+  signup: (email: string, otp: string) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         setUser(data.user);
         startRefreshTimer();
-        return { success: true };
+        return { success: true, role: data.user.role };
       } else {
         return { success: false, error: data.error };
       }
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         setUser(data.user);
         startRefreshTimer();
-        return { success: true };
+        return { success: true, role: data.user.role };
       } else {
         return { success: false, error: data.error };
       }

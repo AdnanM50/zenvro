@@ -43,7 +43,7 @@ describe('Auth Library', () => {
     it('should generate a JWT access token', () => {
       const userId = '123';
       const email = 'test@example.com';
-      const token = generateAccessToken(userId, email);
+      const token = generateAccessToken(userId, email, 'user');
       
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
@@ -55,7 +55,7 @@ describe('Auth Library', () => {
     it('should verify a valid access token', () => {
       const userId = '123';
       const email = 'test@example.com';
-      const token = generateAccessToken(userId, email);
+      const token = generateAccessToken(userId, email, 'user');
       
       const decoded = verifyAccessToken(token);
       expect(decoded).toBeDefined();
@@ -111,7 +111,7 @@ describe('Auth Library', () => {
     });
 
     it('should return null when verifying an access token as refresh token', () => {
-      const token = generateAccessToken('123', 'test@example.com');
+      const token = generateAccessToken('123', 'test@example.com', 'user');
       const decoded = verifyRefreshToken(token);
       expect(decoded).toBeNull();
     });

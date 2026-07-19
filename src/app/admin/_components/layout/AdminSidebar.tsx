@@ -39,7 +39,7 @@ const navItems: NavItemType[] = [
     icon: Box,
     children: [
       { label: "Products", href: "#" },
-      { label: "Categories", href: "#" },
+      { label: "Categories", href: "/admin/categories" },
       { label: "Brands", href: "#" },
       { label: "Collections", href: "#" },
       { label: "Tags", href: "#" },

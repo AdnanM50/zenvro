@@ -23,14 +23,25 @@ export interface RefreshToken {
 const USERS_COLLECTION = 'users';
 const REFRESH_COLLECTION = 'refresh_tokens';
 
-async function usersCol(): Promise<Collection<User>> {
+async function usersCol(): Promise<Collection> {
   const db = await getDb();
-  return db.collection<User>(USERS_COLLECTION);
+  return db.collection(USERS_COLLECTION);
 }
 
 async function refreshCol(): Promise<Collection<RefreshToken>> {
   const db = await getDb();
   return db.collection<RefreshToken>(REFRESH_COLLECTION);
+}
+
+function normalizeUser(raw: any): User {
+  return {
+    id: raw.id,
+    email: raw.email,
+    password: raw.password,
+    name: raw.name,
+    role: raw.role || 'user',
+    createdAt: raw.createdAt,
+  };
 }
 
 export const UserModel = {
@@ -50,12 +61,14 @@ export const UserModel = {
 
   async findByEmail(email: string): Promise<User | null> {
     const col = await usersCol();
-    return col.findOne({ email });
+    const raw = await col.findOne({ email });
+    return raw ? normalizeUser(raw) : null;
   },
 
   async findById(id: string): Promise<User | null> {
     const col = await usersCol();
-    return col.findOne({ id });
+    const raw = await col.findOne({ id });
+    return raw ? normalizeUser(raw) : null;
   },
 
   async updateRole(id: string, role: UserRole): Promise<boolean> {
@@ -64,9 +77,13 @@ export const UserModel = {
     return result.modifiedCount > 0;
   },
 
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<Omit<User, 'password'>[]> {
     const col = await usersCol();
-    return col.find({}, { projection: { password: 0 } }).toArray();
+    const raws = await col.find({}, { projection: { password: 0 } }).toArray();
+    return raws.map((raw) => {
+      const { password: _, ...rest } = normalizeUser(raw);
+      return rest;
+    });
   },
 
   async deleteById(id: string): Promise<boolean> {

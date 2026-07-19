@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     await UserModel.refreshToken.revokeByToken(refreshTokenValue);
 
-    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user.id, user.email);
+    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user.id, user.email, user.role);
     const newRefreshExpiresAt = getTokenExpiration(newRefreshToken);
 
     if (newRefreshExpiresAt) {

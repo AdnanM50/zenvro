@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth';
 
 const protectedRoutes = ['/user-dashboard', '/admin'];
-
 const authRoutes = ['/login', '/signup'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('access_token')?.value;
 
@@ -24,12 +23,18 @@ export function middleware(request: NextRequest) {
       response.cookies.delete('refresh_token');
       return response;
     }
+
+    if (pathname.startsWith('/admin') && decoded.role !== 'admin') {
+      return NextResponse.redirect(new URL('/user-dashboard', request.url));
+    }
   }
 
   if (isAuthRoute && token) {
     const decoded = verifyAccessToken(token);
     if (decoded) {
-      return NextResponse.redirect(new URL('/user-dashboard', request.url));
+      return NextResponse.redirect(
+        new URL(decoded.role === 'admin' ? '/admin' : '/user-dashboard', request.url),
+      );
     }
   }
 
