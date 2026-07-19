@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { generateOtp, storeOtp, isRateLimited, recordOtpRequest } from '@/lib/otp';
+import { UserModel } from '@/models/user.model';
+import { generateOtp, storeOtp, isRateLimited, recordOtpRequest } from '@/models/otp.model';
 import { sendOtpEmail } from '@/lib/mail';
 
 export async function POST(request: NextRequest) {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingUser = await db.user.findByEmail(email);
+    const existingUser = await UserModel.findByEmail(email);
     if (existingUser) {
       return NextResponse.json(
         { error: 'User with this email already exists' },

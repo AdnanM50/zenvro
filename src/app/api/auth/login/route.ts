@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { UserModel } from '@/models/user.model';
 import { verifyPassword, generateTokenPair, getTokenExpiration } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await db.user.findByEmail(email);
+    const user = await UserModel.findByEmail(email);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
@@ -34,11 +34,11 @@ export async function POST(request: NextRequest) {
     const refreshExpiresAt = getTokenExpiration(refreshToken);
 
     if (refreshExpiresAt) {
-      await db.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
+      await UserModel.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
     }
 
     const response = NextResponse.json(
-      { message: 'Login successful', user: { id: user.id, name: user.name, email: user.email } },
+      { message: 'Login successful', user: { id: user.id, name: user.name, email: user.email, role: user.role } },
       { status: 200 }
     );
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 15, // 15 minutes
+      maxAge: 60 * 15,
       path: '/',
     });
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 

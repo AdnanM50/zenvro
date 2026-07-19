@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { UserModel } from '@/models/user.model';
 import { verifyRefreshToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (refreshTokenValue) {
       const decoded = verifyRefreshToken(refreshTokenValue);
       if (decoded) {
-        await db.refreshToken.revokeByUserId(decoded.userId);
+        await UserModel.refreshToken.revokeByUserId(decoded.userId);
       }
     }
 

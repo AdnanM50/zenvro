@@ -1,31 +1,24 @@
-import { MongoClient, Collection } from 'mongodb';
+import { Collection } from 'mongodb';
 import bcrypt from 'bcryptjs';
+import { getDb } from '@/lib/db';
 
-const MONGODB_URI = process.env.DB_STRING || '';
-const DB_NAME = 'velour';
-const SALT_ROUNDS = 12;
-
-let client: MongoClient | null = null;
-
-async function getOtpCollection(): Promise<Collection<OtpEntry>> {
-  if (!client) {
-    client = new MongoClient(MONGODB_URI);
-    await client.connect();
-  }
-  return client.db(DB_NAME).collection<OtpEntry>('otps');
-}
-
-interface OtpEntry {
+export interface OtpEntry {
   email: string;
   otp: string;
   name: string;
-  password: string; // stored as hashed password
+  password: string;
   expiresAt: Date;
   attempts: number;
 }
 
+const COLLECTION = 'otps';
 const MAX_ATTEMPTS = 3;
-const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
+const SALT_ROUNDS = 12;
+
+function collection(): Promise<Collection<OtpEntry>> {
+  return getDb().then((db) => db.collection<OtpEntry>(COLLECTION));
+}
 
 export function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -37,10 +30,9 @@ export async function storeOtp(
   name: string,
   password: string,
 ): Promise<void> {
-  const collection = await getOtpCollection();
-  // Hash the password before storing for security
+  const col = await collection();
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-  await collection.updateOne(
+  await col.updateOne(
     { email },
     {
       $set: {
@@ -60,32 +52,31 @@ export async function verifyOtp(
   email: string,
   otp: string,
 ): Promise<{ valid: boolean; name?: string; password?: string }> {
-  const collection = await getOtpCollection();
-  const entry = await collection.findOne({ email });
+  const col = await collection();
+  const entry = await col.findOne({ email });
 
   if (!entry) {
     return { valid: false };
   }
 
   if (new Date() > entry.expiresAt) {
-    await collection.deleteOne({ email });
+    await col.deleteOne({ email });
     return { valid: false };
   }
 
   const newAttempts = entry.attempts + 1;
 
   if (newAttempts > MAX_ATTEMPTS) {
-    await collection.deleteOne({ email });
+    await col.deleteOne({ email });
     return { valid: false };
   }
 
   if (entry.otp !== otp) {
-    await collection.updateOne({ email }, { $set: { attempts: newAttempts } });
+    await col.updateOne({ email }, { $set: { attempts: newAttempts } });
     return { valid: false };
   }
 
-  await collection.deleteOne({ email });
-  // Password is already hashed from storeOtp
+  await col.deleteOne({ email });
   return { valid: true, name: entry.name, password: entry.password };
 }
 

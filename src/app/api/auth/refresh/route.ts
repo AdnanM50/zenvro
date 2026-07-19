@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { UserModel } from '@/models/user.model';
 import { verifyRefreshToken, generateTokenPair, getTokenExpiration } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const storedToken = await db.refreshToken.findByToken(refreshTokenValue);
+    const storedToken = await UserModel.refreshToken.findByToken(refreshTokenValue);
     if (!storedToken) {
       const response = NextResponse.json(
         { error: 'Refresh token has been revoked' },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const user = await db.user.findById(decoded.userId);
+    const user = await UserModel.findById(decoded.userId);
     if (!user) {
       const response = NextResponse.json(
         { error: 'User not found' },
@@ -46,19 +46,19 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    await db.refreshToken.revokeByToken(refreshTokenValue);
+    await UserModel.refreshToken.revokeByToken(refreshTokenValue);
 
     const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user.id, user.email);
     const newRefreshExpiresAt = getTokenExpiration(newRefreshToken);
 
     if (newRefreshExpiresAt) {
-      await db.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt);
+      await UserModel.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt);
     }
 
-    const activeTokenCount = await db.refreshToken.countByUserId(user.id);
+    const activeTokenCount = await UserModel.refreshToken.countByUserId(user.id);
     if (activeTokenCount > 5) {
-      await db.refreshToken.revokeByUserId(user.id);
-      await db.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt!);
+      await UserModel.refreshToken.revokeByUserId(user.id);
+      await UserModel.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt!);
     }
 
     const response = NextResponse.json(
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 15, // 15 minutes
+      maxAge: 60 * 15,
       path: '/',
     });
 
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 

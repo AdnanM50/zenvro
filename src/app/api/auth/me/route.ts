@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { UserModel } from '@/models/user.model';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await db.user.findById(decoded.userId);
+    const user = await UserModel.findById(decoded.userId);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
     console.error('Get current user error:', error);

@@ -1,11 +1,13 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import type { UserRole } from '@/types';
 
 interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
 }
 
 interface AuthContextType {
@@ -19,7 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000; // 14 minutes
+const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
