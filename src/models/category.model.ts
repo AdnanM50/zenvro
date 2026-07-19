@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from '@/lib/db';
+import { deleteImages } from '@/lib/cloudinary';
 import type { Category } from '@/types';
 
 export type { Category } from '@/types';
@@ -18,6 +19,11 @@ function slugify(text: string): string {
 async function col(): Promise<any> {
   const db = await getDb();
   return db.collection(COLLECTION);
+}
+
+/** Extract all image URLs from a category (image, banner, seo.ogImage). */
+function collectImages(cat: Category): (string | undefined)[] {
+  return [cat.image, cat.banner, cat.seo?.ogImage];
 }
 
 export const CategoryModel = {
@@ -60,19 +66,58 @@ export const CategoryModel = {
 
   async update(_id: string, data: Partial<Omit<Category, '_id' | 'createdAt'>>): Promise<boolean> {
     const c = await col();
+
+    // Fetch old category to detect changed images
+    const old: Category | null = await c.findOne({ _id });
+    if (!old) return false;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateFields: any = { ...data, updatedAt: new Date() };
     if (data.name && !data.slug) {
       updateFields.slug = slugify(data.name);
     }
+
     const result = await c.updateOne({ _id }, { $set: updateFields });
-    return result.modifiedCount > 0;
+    if (result.modifiedCount === 0) return false;
+
+    // Delete old images that were replaced
+    const oldUrls = collectImages(old);
+    const newUrls: (string | undefined)[] = [
+      data.image !== undefined ? data.image : old.image,
+      data.banner !== undefined ? data.banner : old.banner,
+      data.seo?.ogImage !== undefined ? data.seo.ogImage : old.seo?.ogImage,
+    ];
+
+    const removed = oldUrls.filter((url, i) => url && url !== newUrls[i]);
+    if (removed.length > 0) {
+      await deleteImages(removed);
+    }
+
+    return true;
   },
 
   async delete(_id: string): Promise<boolean> {
     const c = await col();
+
+    // Collect images from the category itself and all its children before deletion
+    const cat: Category | null = await c.findOne({ _id });
+    if (!cat) return false;
+
+    const children: Category[] = await c.find({ parentCategory: _id }).toArray();
+    const allImages = [
+      ...collectImages(cat),
+      ...children.flatMap(collectImages),
+    ];
+
+    // Delete from DB
     await c.deleteMany({ parentCategory: _id });
     const result = await c.deleteOne({ _id });
+
+    // Delete images from Cloudinary (fire-and-forget, don't block)
+    if (result.deletedCount > 0) {
+      deleteImages(allImages).catch(() => {});
+    }
+
     return result.deletedCount > 0;
   },
 

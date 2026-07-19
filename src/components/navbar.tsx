@@ -29,7 +29,7 @@ const Navbar = () => {
           <span className="material-symbols-outlined text-xl">shopping_bag</span>
         </button>
         {user ? (
-          <Link href="/dashboard" className="hidden md:flex w-10 h-10 items-center justify-center bg-black text-white rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
+          <Link href={user.role === "admin" ? "/admin" : "/user-dashboard"} className="hidden md:flex w-10 h-10 items-center justify-center bg-black text-white rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
             <span className="text-[10px] font-bold font-mono">{user.email?.charAt(0).toUpperCase()}</span>
           </Link>
         ) : (

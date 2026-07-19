@@ -1,8 +1,9 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Globe, Image as ImageIcon } from 'lucide-react';
+import { X, Loader2, Globe } from 'lucide-react';
 import type { Category, CategoryFormData } from '@/types';
+import ImageUpload from './ImageUpload';
 
 interface CategoryFormModalProps {
   open: boolean;
@@ -110,30 +111,18 @@ export default function CategoryFormModal({
 
               {/* Media */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
-                    <ImageIcon className="h-3.5 w-3.5" /> Image URL
-                  </label>
-                  <input
-                    type="text"
-                    value={form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"
-                    placeholder="https://..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
-                    <ImageIcon className="h-3.5 w-3.5" /> Banner URL
-                  </label>
-                  <input
-                    type="text"
-                    value={form.banner}
-                    onChange={(e) => setForm({ ...form, banner: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"
-                    placeholder="https://..."
-                  />
-                </div>
+                <ImageUpload
+                  value={form.image}
+                  onChange={(url) => setForm({ ...form, image: url })}
+                  label="Category Image"
+                  folder="velour/categories"
+                />
+                <ImageUpload
+                  value={form.banner}
+                  onChange={(url) => setForm({ ...form, banner: url })}
+                  label="Banner Image"
+                  folder="velour/banners"
+                />
               </div>
 
               {/* SEO */}
