@@ -13,7 +13,6 @@ export interface Category {
   slug: string;
   parentCategory?: string;
   image: string;
-  banner: string;
   description: string;
   seo: CategorySEO;
   isActive: boolean;
@@ -26,7 +25,6 @@ export interface CategoryFormData {
   slug: string;
   parentCategory: string;
   image: string;
-  banner: string;
   description: string;
   seo: CategorySEO;
   isActive: boolean;
@@ -46,7 +44,6 @@ export const emptyCategoryForm: CategoryFormData = {
   slug: '',
   parentCategory: '',
   image: '',
-  banner: '',
   description: '',
   seo: { ...defaultCategorySEO },
   isActive: true,

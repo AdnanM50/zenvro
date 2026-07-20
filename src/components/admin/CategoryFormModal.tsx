@@ -25,7 +25,6 @@ const categorySchema = z.object({
   slug: z.string().optional(),
   parentCategory: z.string().optional(),
   image: z.string().optional(),
-  banner: z.string().optional(),
   description: z.string().optional(),
   seo: z.object({
     title: z.string().optional(),
@@ -75,7 +74,6 @@ export default function CategoryFormModal({
       slug: '',
       parentCategory: '',
       image: '',
-      banner: '',
       description: '',
       seo: {
         title: '',
@@ -97,7 +95,6 @@ export default function CategoryFormModal({
           slug: initialData.slug || '',
           parentCategory: initialData.parentCategory || '',
           image: initialData.image || '',
-          banner: initialData.banner || '',
           description: initialData.description || '',
           seo: {
             title: initialData.seo?.title || '',
@@ -115,7 +112,6 @@ export default function CategoryFormModal({
           slug: '',
           parentCategory: '',
           image: '',
-          banner: '',
           description: '',
           seo: {
             title: '',
@@ -230,23 +226,17 @@ export default function CategoryFormModal({
         </div>
 
         {/* Media */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
           <ImageUpload
             value={formValues.image || ''}
             onChange={(url) => setValue('image', url)}
             label="Category Image"
             folder="velour/categories"
           />
-          <ImageUpload
-            value={formValues.banner || ''}
-            onChange={(url) => setValue('banner', url)}
-            label="Banner Image"
-            folder="velour/banners"
-          />
         </div>
 
         {/* SEO */}
-        <div className="border border-gray-200 rounded-xl p-4 space-y-4">
+        <div className=" p-4 space-y-4">
           <h3 className="text-sm font-bold flex items-center gap-2">
             <Globe className="h-4 w-4 text-gray-400" /> SEO Settings
           </h3>

@@ -11,7 +11,6 @@ interface CategoryFormData {
   slug?: string;
   parentCategory?: string;
   image?: string;
-  banner?: string;
   description?: string;
   seo?: {
     title?: string;
@@ -86,7 +85,6 @@ export default function AdminCategoriesPage() {
       slug: cat.slug,
       parentCategory: cat.parentCategory || '',
       image: cat.image,
-      banner: cat.banner,
       description: cat.description,
       seo: cat.seo || { title: '', description: '', keywords: [], canonical: '', ogImage: '', robots: 'index' },
       isActive: cat.isActive,

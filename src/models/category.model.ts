@@ -21,9 +21,9 @@ async function col(): Promise<any> {
   return db.collection(COLLECTION);
 }
 
-/** Extract all image URLs from a category (image, banner, seo.ogImage). */
+/** Extract all image URLs from a category (image, seo.ogImage). */
 function collectImages(cat: Category): (string | undefined)[] {
-  return [cat.image, cat.banner, cat.seo?.ogImage];
+  return [cat.image, cat.seo?.ogImage];
 }
 
 export const CategoryModel = {
@@ -84,7 +84,6 @@ export const CategoryModel = {
     const oldUrls = collectImages(old);
     const newUrls: (string | undefined)[] = [
       data.image !== undefined ? data.image : old.image,
-      data.banner !== undefined ? data.banner : old.banner,
       data.seo?.ogImage !== undefined ? data.seo.ogImage : old.seo?.ogImage,
     ];
 

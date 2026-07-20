@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     if ('error' in auth) return auth.error;
 
     const body = await request.json();
-    const { name, slug, parentCategory, image, banner, description, seo, isActive } = body;
+    const { name, slug, parentCategory, image, description, seo, isActive } = body;
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       slug,
       parentCategory,
       image: image || '',
-      banner: banner || '',
       description: description || '',
       seo: seo || { title: '', description: '', keywords: [], canonical: '', ogImage: '', robots: 'index' },
       isActive: isActive ?? true,
