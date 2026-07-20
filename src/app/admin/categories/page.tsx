@@ -2,10 +2,27 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Loader2, FolderTree } from 'lucide-react';
-import type { Category, CategoryFormData } from '@/types';
-import { emptyCategoryForm } from '@/types';
+import type { Category } from '@/types';
 import CategoryFormModal from '@/components/admin/CategoryFormModal';
 import CategoryRow from '@/components/admin/CategoryRow';
+
+interface CategoryFormData {
+  name: string;
+  slug?: string;
+  parentCategory?: string;
+  image?: string;
+  banner?: string;
+  description?: string;
+  seo?: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    canonical?: string;
+    ogImage?: string;
+    robots?: string;
+  };
+  isActive: boolean;
+}
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -13,7 +30,7 @@ export default function AdminCategoriesPage() {
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<CategoryFormData>(emptyCategoryForm);
+  const [initialData, setInitialData] = useState<Partial<CategoryFormData> | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -57,29 +74,28 @@ export default function AdminCategoriesPage() {
 
   const openCreate = (parentId?: string) => {
     setEditingId(null);
-    setForm({ ...emptyCategoryForm, parentCategory: parentId || '' });
+    setInitialData({ parentCategory: parentId || '' });
     setShowForm(true);
     setError('');
   };
 
   const openEdit = (cat: Category) => {
     setEditingId(cat._id);
-    setForm({
+    setInitialData({
       name: cat.name,
       slug: cat.slug,
       parentCategory: cat.parentCategory || '',
       image: cat.image,
       banner: cat.banner,
       description: cat.description,
-      seo: cat.seo || emptyCategoryForm.seo,
+      seo: cat.seo || { title: '', description: '', keywords: [], canonical: '', ogImage: '', robots: 'index' },
       isActive: cat.isActive,
     });
     setShowForm(true);
     setError('');
   };
 
-  const handleSave = async () => {
-    if (!form.name.trim()) { setError('Name is required'); return; }
+  const handleSave = async (form: CategoryFormData) => {
     setSaving(true);
     setError('');
     try {
@@ -224,8 +240,7 @@ export default function AdminCategoriesPage() {
         open={showForm}
         onClose={() => setShowForm(false)}
         onSave={handleSave}
-        form={form}
-        setForm={setForm}
+        initialData={initialData}
         editing={!!editingId}
         saving={saving}
         error={error}
