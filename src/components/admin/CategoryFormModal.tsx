@@ -166,7 +166,7 @@ export default function CategoryFormModal({
       footer={modalFooter}
       maxWidth="2xl"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" autoComplete="off">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3">{error}</div>
         )}
@@ -179,6 +179,8 @@ export default function CategoryFormModal({
               id="name"
               {...register('name')}
               placeholder="Category name"
+              autoComplete="off"
+              aria-invalid={!!errors.name}
               className={errors.name ? 'border-red-500' : ''}
             />
             {errors.name && (
@@ -191,6 +193,7 @@ export default function CategoryFormModal({
               id="slug"
               {...register('slug')}
               placeholder="auto-generated from name"
+              autoComplete="off"
             />
           </div>
         </div>
@@ -198,14 +201,14 @@ export default function CategoryFormModal({
         <div className="space-y-1.5">
           <Label>Parent Category</Label>
           <Select
-            value={formValues.parentCategory || ''}
-            onValueChange={(value) => setValue('parentCategory', value === 'none' ? '' : (value ?? ''))}
+            value={formValues.parentCategory || null}
+            onValueChange={(value) => setValue('parentCategory', value ?? '')}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="None (Root Category)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None (Root Category)</SelectItem>
+              <SelectItem value={null}>None (Root Category)</SelectItem>
               {rootCategories.map((c) => (
                 <SelectItem key={c._id} value={c._id}>
                   {c.name}
@@ -222,6 +225,7 @@ export default function CategoryFormModal({
             {...register('description')}
             rows={3}
             placeholder="Category description"
+            autoComplete="off"
           />
         </div>
 
@@ -253,6 +257,7 @@ export default function CategoryFormModal({
                 id="seo.title"
                 {...register('seo.title')}
                 placeholder="Page title"
+                autoComplete="off"
               />
             </div>
             <div className="space-y-1.5">
@@ -261,6 +266,7 @@ export default function CategoryFormModal({
                 id="seo.canonical"
                 {...register('seo.canonical')}
                 placeholder="https://..."
+                autoComplete="off"
               />
             </div>
           </div>
@@ -271,6 +277,7 @@ export default function CategoryFormModal({
               {...register('seo.description')}
               rows={2}
               placeholder="SEO description"
+              autoComplete="off"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -280,6 +287,7 @@ export default function CategoryFormModal({
                 id="seo.ogImage"
                 {...register('seo.ogImage')}
                 placeholder="https://..."
+                autoComplete="off"
               />
             </div>
             <div className="space-y-1.5">
@@ -310,6 +318,7 @@ export default function CategoryFormModal({
                 setValue('seo.keywords', keywords);
               }}
               placeholder="keyword1, keyword2"
+              autoComplete="off"
             />
           </div>
         </div>
