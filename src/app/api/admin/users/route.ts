@@ -1,113 +1,75 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth';
 import { UserModel } from '@/models/user.model';
+import { api } from '@/lib/api-response';
 import type { UserRole } from '@/types';
+
+async function requireAdmin(request: NextRequest) {
+  const token = request.cookies.get('access_token')?.value;
+  if (!token) return api.unauthorized();
+  const decoded = verifyAccessToken(token);
+  if (!decoded) return api.unauthorized('Invalid or expired token');
+  const user = await UserModel.findById(decoded.userId);
+  if (!user || user.role !== 'admin') return api.forbidden();
+  return { admin: user };
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('access_token')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const decoded = verifyAccessToken(token);
-    if (!decoded) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-    }
-
-    const currentUser = await UserModel.findById(decoded.userId);
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const auth = await requireAdmin(request);
+    if (auth instanceof Response) return auth;
 
     const users = await UserModel.findAll();
-    return NextResponse.json({ users });
+    return api.ok(users, 'Users fetched');
   } catch (error) {
     console.error('Get users error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return api.serverError();
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const token = request.cookies.get('access_token')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const decoded = verifyAccessToken(token);
-    if (!decoded) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-    }
-
-    const currentUser = await UserModel.findById(decoded.userId);
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const auth = await requireAdmin(request);
+    if (auth instanceof Response) return auth;
 
     const body = await request.json();
     const { userId, role } = body;
 
-    if (!userId || !role) {
-      return NextResponse.json({ error: 'userId and role are required' }, { status: 400 });
-    }
+    if (!userId || !role) return api.badRequest('userId and role are required');
 
     const validRoles: UserRole[] = ['admin', 'user'];
-    if (!validRoles.includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
-    }
+    if (!validRoles.includes(role)) return api.badRequest('Invalid role');
 
     const updated = await UserModel.updateRole(userId, role);
-    if (!updated) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    if (!updated) return api.notFound('User not found');
 
-    return NextResponse.json({ message: 'User role updated successfully' });
+    return api.ok(null, 'User role updated');
   } catch (error) {
     console.error('Update user role error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return api.serverError();
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const token = request.cookies.get('access_token')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const decoded = verifyAccessToken(token);
-    if (!decoded) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-    }
-
-    const currentUser = await UserModel.findById(decoded.userId);
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const auth = await requireAdmin(request);
+    if (auth instanceof Response) return auth;
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-    }
+    if (!userId) return api.badRequest('userId is required');
 
-    if (userId === decoded.userId) {
-      return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 });
+    if (userId === (auth as { admin: { id: string } }).admin.id) {
+      return api.badRequest('Cannot delete yourself');
     }
 
     const deleted = await UserModel.deleteById(userId);
-    if (!deleted) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    if (!deleted) return api.notFound('User not found');
 
-    return NextResponse.json({ message: 'User deleted successfully' });
+    return api.ok(null, 'User deleted');
   } catch (error) {
     console.error('Delete user error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return api.serverError();
   }
 }

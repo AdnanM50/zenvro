@@ -59,6 +59,28 @@ export const CategoryModel = {
     return c.find({}).sort({ createdAt: -1 }).toArray();
   },
 
+  async findPaginated(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{ categories: Category[]; total: number }> {
+    const c = await col();
+    const filter: Record<string, unknown> = {};
+
+    if (search) {
+      const regex = { $regex: search, $options: 'i' };
+      filter.$or = [{ name: regex }, { slug: regex }];
+    }
+
+    const skip = (page - 1) * limit;
+    const [categories, total] = await Promise.all([
+      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      c.countDocuments(filter),
+    ]);
+
+    return { categories, total };
+  },
+
   async findChildren(parentCategory: string): Promise<Category[]> {
     const c = await col();
     return c.find({ parentCategory }).sort({ createdAt: -1 }).toArray();

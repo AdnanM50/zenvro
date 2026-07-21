@@ -45,8 +45,8 @@ export default function SignupPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        setCountdown(data.expiresIn || 60);
+      if (data.success) {
+        setCountdown(data.data.expiresIn || 60);
         setStep(2);
       } else {
         setError(data.error || 'Failed to send OTP');

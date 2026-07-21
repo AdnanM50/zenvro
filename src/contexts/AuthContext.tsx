@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+        setUser(data.data);
         startRefreshTimer();
       } else {
         setUser(null);
@@ -98,9 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok) {
-        setUser(data.user);
+        setUser(data.data);
         startRefreshTimer();
-        return { success: true, role: data.user.role };
+        return { success: true, role: data.data.role };
       } else {
         return { success: false, error: data.error };
       }
@@ -121,9 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok) {
-        setUser(data.user);
+        setUser(data.data);
         startRefreshTimer();
-        return { success: true, role: data.user.role };
+        return { success: true, role: data.data.role };
       } else {
         return { success: false, error: data.error };
       }

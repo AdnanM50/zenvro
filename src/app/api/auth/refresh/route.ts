@@ -1,49 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UserModel } from '@/models/user.model';
 import { verifyRefreshToken, generateTokenPair, getTokenExpiration } from '@/lib/auth';
+import { api } from '@/lib/api-response';
+
+function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string) {
+  const cookieOpts = (maxAge: number) => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+    maxAge,
+    path: '/',
+  });
+  response.cookies.set('access_token', accessToken, cookieOpts(60 * 15));
+  response.cookies.set('refresh_token', refreshToken, cookieOpts(60 * 60 * 24 * 7));
+  return response;
+}
+
+function clearAuthCookies(response: NextResponse) {
+  response.cookies.delete('access_token');
+  response.cookies.delete('refresh_token');
+  return response;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const refreshTokenValue = request.cookies.get('refresh_token')?.value;
 
-    if (!refreshTokenValue) {
-      return NextResponse.json(
-        { error: 'Refresh token not found' },
-        { status: 401 }
-      );
-    }
+    if (!refreshTokenValue) return api.unauthorized('Refresh token not found');
 
     const decoded = verifyRefreshToken(refreshTokenValue);
     if (!decoded) {
-      const response = NextResponse.json(
-        { error: 'Invalid or expired refresh token' },
-        { status: 401 }
-      );
-      response.cookies.delete('access_token');
-      response.cookies.delete('refresh_token');
-      return response;
+      return clearAuthCookies(api.unauthorized('Invalid or expired refresh token'));
     }
 
     const storedToken = await UserModel.refreshToken.findByToken(refreshTokenValue);
     if (!storedToken) {
-      const response = NextResponse.json(
-        { error: 'Refresh token has been revoked' },
-        { status: 401 }
-      );
-      response.cookies.delete('access_token');
-      response.cookies.delete('refresh_token');
-      return response;
+      return clearAuthCookies(api.unauthorized('Refresh token has been revoked'));
     }
 
     const user = await UserModel.findById(decoded.userId);
     if (!user) {
-      const response = NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-      response.cookies.delete('access_token');
-      response.cookies.delete('refresh_token');
-      return response;
+      return clearAuthCookies(api.unauthorized('User not found'));
     }
 
     await UserModel.refreshToken.revokeByToken(refreshTokenValue);
@@ -61,33 +58,10 @@ export async function POST(request: NextRequest) {
       await UserModel.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt!);
     }
 
-    const response = NextResponse.json(
-      { message: 'Token refreshed successfully' },
-      { status: 200 }
-    );
-
-    response.cookies.set('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 15,
-      path: '/',
-    });
-
-    response.cookies.set('refresh_token', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    return response;
+    const response = api.ok(null, 'Token refreshed successfully');
+    return setAuthCookies(response, accessToken, newRefreshToken);
   } catch (error) {
     console.error('Token refresh error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return api.serverError();
   }
 }

@@ -1,34 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UserModel } from '@/models/user.model';
 import { verifyPassword, generateTokenPair, getTokenExpiration } from '@/lib/auth';
+import { api } from '@/lib/api-response';
+
+function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string) {
+  const cookieOpts = (maxAge: number) => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+    maxAge,
+    path: '/',
+  });
+  response.cookies.set('access_token', accessToken, cookieOpts(60 * 15));
+  response.cookies.set('refresh_token', refreshToken, cookieOpts(60 * 60 * 24 * 7));
+  return response;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
+    if (!email || !password) return api.badRequest('Email and password are required');
 
     const user = await UserModel.findByEmail(email);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
+    if (!user) return api.unauthorized('Invalid email or password');
 
     const isValid = await verifyPassword(password, user.password);
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
+    if (!isValid) return api.unauthorized('Invalid email or password');
 
     const { accessToken, refreshToken } = generateTokenPair(user.id, user.email, user.role);
     const refreshExpiresAt = getTokenExpiration(refreshToken);
@@ -37,33 +36,14 @@ export async function POST(request: NextRequest) {
       await UserModel.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
     }
 
-    const response = NextResponse.json(
-      { message: 'Login successful', user: { id: user.id, name: user.name, email: user.email, role: user.role } },
-      { status: 200 }
+    const response = api.ok(
+      { id: user.id, name: user.name, email: user.email, role: user.role },
+      'Login successful',
     );
 
-    response.cookies.set('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 15,
-      path: '/',
-    });
-
-    response.cookies.set('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    return response;
+    return setAuthCookies(response, accessToken, refreshToken);
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return api.serverError();
   }
 }

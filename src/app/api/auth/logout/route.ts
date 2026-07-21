@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { UserModel } from '@/models/user.model';
 import { verifyRefreshToken } from '@/lib/auth';
+import { api } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,20 +14,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const response = NextResponse.json(
-      { message: 'Logged out successfully' },
-      { status: 200 }
-    );
-
+    const response = api.ok(null, 'Logged out successfully');
     response.cookies.delete('access_token');
     response.cookies.delete('refresh_token');
 
     return response;
   } catch (error) {
     console.error('Logout error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return api.serverError();
   }
 }

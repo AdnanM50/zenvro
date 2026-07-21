@@ -32,8 +32,8 @@ export default function ImageUpload({
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
 
-      if (res.ok) {
-        onChange(data.url);
+      if (data.success) {
+        onChange(data.data.url);
       } else {
         alert(data.error || 'Upload failed');
       }

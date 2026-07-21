@@ -2,50 +2,38 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UserModel } from '@/models/user.model';
 import { generateTokenPair, getTokenExpiration } from '@/lib/auth';
 import { verifyOtp } from '@/models/otp.model';
+import { api } from '@/lib/api-response';
+
+function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string) {
+  const cookieOpts = (maxAge: number) => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+    maxAge,
+    path: '/',
+  });
+  response.cookies.set('access_token', accessToken, cookieOpts(60 * 15));
+  response.cookies.set('refresh_token', refreshToken, cookieOpts(60 * 60 * 24 * 7));
+  return response;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, otp } = body;
 
-    if (!email || !otp) {
-      return NextResponse.json(
-        { error: 'Email and OTP are required' },
-        { status: 400 },
-      );
-    }
+    if (!email || !otp) return api.badRequest('Email and OTP are required');
 
     const result = await verifyOtp(email, otp);
-
-    if (!result.valid) {
-      return NextResponse.json(
-        { error: 'Invalid or expired OTP' },
-        { status: 400 },
-      );
-    }
+    if (!result.valid) return api.badRequest('Invalid or expired OTP');
 
     const { name, password } = result;
-
-    if (!name || !password) {
-      return NextResponse.json(
-        { error: 'Registration data not found. Please start over.' },
-        { status: 400 },
-      );
-    }
+    if (!name || !password) return api.badRequest('Registration data not found. Please start over.');
 
     const existingUser = await UserModel.findByEmail(email);
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 },
-      );
-    }
+    if (existingUser) return api.conflict('User with this email already exists');
 
-    const user = await UserModel.create({
-      name: name!,
-      email,
-      password,
-    });
+    const user = await UserModel.create({ name: name!, email, password });
 
     const { accessToken, refreshToken } = generateTokenPair(user.id, user.email, user.role);
     const refreshExpiresAt = getTokenExpiration(refreshToken);
@@ -54,33 +42,14 @@ export async function POST(request: NextRequest) {
       await UserModel.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
     }
 
-    const response = NextResponse.json(
-      { message: 'User created successfully', user: { id: user.id, name: user.name, email: user.email, role: user.role } },
-      { status: 201 },
+    const response = api.created(
+      { id: user.id, name: user.name, email: user.email, role: user.role },
+      'User created successfully',
     );
 
-    response.cookies.set('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 15,
-      path: '/',
-    });
-
-    response.cookies.set('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    return response;
+    return setAuthCookies(response, accessToken, refreshToken);
   } catch (error) {
     console.error('Signup error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    return api.serverError();
   }
 }
