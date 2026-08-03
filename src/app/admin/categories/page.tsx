@@ -1,44 +1,32 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import type { Category } from '@/types';
+import { useApiGet, createQueryKeys } from '@/hooks';
+import { getCategories } from '@/services/category.service';
 import CategoryTable from '@/components/admin/CategoryTable';
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
 
 const PAGE_SIZE = 20;
 
+const categoryKeys = createQueryKeys('categories');
+
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
-      if (search) params.set('search', search);
-      const res = await fetch(`/api/admin/categories?${params}`);
-      const data = await res.json();
-      if (data.success) {
-        setCategories(data.data);
-        setPagination(data.meta);
-      }
-    } catch {
-      console.error('Failed to fetch categories');
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search]);
+  const listParams = {
+    page,
+    limit: PAGE_SIZE,
+    ...(search ? { search } : {}),
+  };
 
-  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+  const { data, isLoading } = useApiGet<Category[]>({
+    queryKey: categoryKeys.list(listParams),
+    queryFn: () => getCategories(listParams),
+  });
+
+  const categories = data?.data ?? [];
+  const pagination = data?.meta;
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -48,12 +36,11 @@ export default function AdminCategoriesPage() {
   return (
     <CategoryTable
       categories={categories}
-      loading={loading}
+      loading={isLoading}
       search={search}
       onSearchChange={handleSearch}
       pagination={pagination}
       onPageChange={setPage}
-      onRefresh={fetchCategories}
     />
   );
 }

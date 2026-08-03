@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
+import QueryProvider from "@/components/QueryProvider";
+import { Toaster } from "react-hot-toast";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -46,11 +48,14 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white overflow-x-hidden">
-        <AuthProvider>
-          <SmoothScrollProvider>
-            <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
-          </SmoothScrollProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <SmoothScrollProvider>
+              <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
+            </SmoothScrollProvider>
+          </AuthProvider>
+          <Toaster position="top-right" />
+        </QueryProvider>
       </body>
     </html>
   );

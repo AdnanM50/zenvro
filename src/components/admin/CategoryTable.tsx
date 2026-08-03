@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import { Plus, Search, Loader2, FolderTree, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Category } from '@/types';
+import { useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  type CreateCategoryPayload,
+  type UpdateCategoryPayload,
+} from '@/services/category.service';
 import CategoryRow from './CategoryRow';
 import CategoryFormModal from './CategoryFormModal';
 
@@ -43,10 +51,11 @@ interface CategoryTableProps {
   onSave?: (form: CategoryFormData, editingId: string | null) => Promise<void>;
   onDelete?: (_id: string) => void;
   onToggleActive?: (_id: string) => void;
-  onRefresh?: () => void;
   emptyMessage?: string;
   columns?: ('children' | 'seo' | 'status' | 'created' | 'actions')[];
 }
+
+const categoryKeys = createQueryKeys('categories');
 
 function getPageNumbers(current: number, total: number): (number | '...')[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -73,7 +82,6 @@ export default function CategoryTable({
   onSave,
   onDelete,
   onToggleActive,
-  onRefresh,
   emptyMessage = 'No categories found',
   columns = ['children', 'seo', 'status', 'created', 'actions'],
 }: CategoryTableProps) {
@@ -84,6 +92,23 @@ export default function CategoryTable({
   const [initialData, setInitialData] = useState<Partial<CategoryFormData> | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const invalidateKeys = [categoryKeys.lists()];
+
+  const createMutation = useApiPost<Category, CreateCategoryPayload>({
+    mutationFn: createCategory,
+    invalidateKeys,
+  });
+
+  const updateMutation = useApiPut<Category, UpdateCategoryPayload>({
+    mutationFn: updateCategory,
+    invalidateKeys,
+  });
+
+  const deleteMutation = useApiDelete({
+    mutationFn: deleteCategory,
+    invalidateKeys,
+  });
 
   const search = searchProp !== undefined ? searchProp : internalSearch;
   const setSearch = onSearchChange || setInternalSearch;
@@ -142,20 +167,17 @@ export default function CategoryTable({
     setSaving(true);
     setError('');
     try {
-      const payload = {
+      const payload: CreateCategoryPayload = {
         ...form,
         parentCategory: form.parentCategory || undefined,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
       };
-      const res = await fetch('/api/admin/categories', {
-        method: editingId ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: editingId ? JSON.stringify({ _id: editingId, ...payload }) : JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!data.success) { setError(data.error); return; }
+      if (editingId) {
+        await updateMutation.mutateAsync({ _id: editingId, ...payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
       setShowForm(false);
-      onRefresh?.();
     } catch {
       setError('Something went wrong');
     } finally {
@@ -166,22 +188,14 @@ export default function CategoryTable({
   const handleDelete = (_id: string) => {
     if (onDelete) { onDelete(_id); return; }
     if (!confirm('Delete this category and all its subcategories?')) return;
-    fetch(`/api/admin/categories?_id=${_id}`, { method: 'DELETE' })
-      .then((res) => res.json())
-      .then((data) => { if (data.success) onRefresh?.(); })
-      .catch(() => {});
+    deleteMutation.mutate(_id);
   };
 
   const handleToggleActive = (_id: string) => {
     if (onToggleActive) { onToggleActive(_id); return; }
-    fetch('/api/admin/categories', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ _id, isActive: !categories.find((c) => c._id === _id)?.isActive }),
-    })
-      .then((res) => res.json())
-      .then((data) => { if (data.success) onRefresh?.(); })
-      .catch(() => {});
+    const category = categories.find((c) => c._id === _id);
+    if (!category) return;
+    updateMutation.mutate({ _id, isActive: !category.isActive });
   };
 
   return (
