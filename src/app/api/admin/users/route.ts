@@ -25,12 +25,16 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
 
     const result = await UserModel.findPaginated({ page, limit, search });
-    return api.ok(result.users, 'Users fetched', {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages,
-    });
+    return api.paginated(
+      result.users,
+      {
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages,
+      },
+      'Users fetched',
+    );
   } catch (error) {
     console.error('Get users error:', error);
     return api.serverError();

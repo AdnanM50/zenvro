@@ -15,3 +15,27 @@ Object.defineProperty(globalThis, 'crypto', {
   writable: true,
   configurable: true,
 });
+
+jest.mock('@/lib/db', () => ({
+  getDb: jest.fn().mockResolvedValue({
+    collection: jest.fn().mockReturnValue({
+      insertOne: jest.fn().mockResolvedValue({ acknowledged: true }),
+      findOne: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              toArray: jest.fn().mockResolvedValue([]),
+            }),
+            toArray: jest.fn().mockResolvedValue([]),
+          }),
+          toArray: jest.fn().mockResolvedValue([]),
+        }),
+        toArray: jest.fn().mockResolvedValue([]),
+      }),
+      countDocuments: jest.fn().mockResolvedValue(0),
+      updateOne: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+      deleteOne: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+    }),
+  }),
+}));

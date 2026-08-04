@@ -25,6 +25,11 @@ export type {
   ProductListParams,
 } from './product';
 
+export type { Tag, CreateTagPayload, UpdateTagPayload } from './tag';
+export type { Brand, CreateBrandPayload, UpdateBrandPayload } from './brand';
+export type { Attribute, CreateAttributePayload, UpdateAttributePayload } from './attribute';
+export type { CollectionItem, CreateCollectionPayload, UpdateCollectionPayload } from './collection';
+
 export type {
   ApiResponseMeta,
   ApiSuccessResponse,
