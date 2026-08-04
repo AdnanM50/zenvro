@@ -42,10 +42,9 @@ function renderWithClient(ui: ReactElement) {
 }
 
 function getPaginationButtons() {
-  const pageText = screen.getByText(/Page \d+ of \d+/);
-  const paginationNav = pageText.parentElement!;
-  const btnContainer = paginationNav.querySelector('.flex.items-center.gap-1')!;
-  return within(btnContainer as HTMLElement).getAllByRole('button');
+  const pageText = screen.getByText(/Showing/);
+  const container = pageText.closest('div.flex-col, div.flex-row') || pageText.parentElement!;
+  return within(container as HTMLElement).getAllByRole('button');
 }
 
 describe('CategoryTable', () => {
@@ -126,7 +125,7 @@ describe('CategoryTable', () => {
       renderWithClient(
         <CategoryTable categories={sampleCategories} pagination={{ page: 1, limit: 20, total: 100, totalPages: 5 }} />,
       );
-      expect(screen.getByText('100')).toBeInTheDocument();
+      expect(screen.getAllByText('100').length).toBeGreaterThan(0);
     });
 
     it('shows active count', () => {
@@ -194,21 +193,22 @@ describe('CategoryTable', () => {
 
     it('shows pagination info when totalPages > 1', () => {
       renderWithClient(<CategoryTable categories={sampleCategories} pagination={pagination} />);
-      expect(screen.getByText('Page 2 of 3 (50 total)')).toBeInTheDocument();
+      expect(screen.getByText(/Showing/).parentElement).toHaveTextContent('Showing 21 to 40 of 50 categories');
     });
 
-    it('hides pagination when totalPages is 1', () => {
+    it('hides pagination when totalPages is 1 and total is 0', () => {
       renderWithClient(
-        <CategoryTable categories={sampleCategories} pagination={{ page: 1, limit: 20, total: 5, totalPages: 1 }} />,
+        <CategoryTable categories={sampleCategories} pagination={{ page: 1, limit: 20, total: 0, totalPages: 1 }} />,
       );
-      expect(screen.queryByText(/Page/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Showing/)).not.toBeInTheDocument();
     });
 
     it('calls onPageChange with next page', () => {
       const onPageChange = jest.fn();
       renderWithClient(<CategoryTable categories={sampleCategories} pagination={pagination} onPageChange={onPageChange} />);
       const btns = getPaginationButtons();
-      const nextBtn = btns[btns.length - 1];
+      // Second to last button is next page
+      const nextBtn = btns[btns.length - 2];
       fireEvent.click(nextBtn);
       expect(onPageChange).toHaveBeenCalledWith(3);
     });
@@ -217,7 +217,8 @@ describe('CategoryTable', () => {
       const onPageChange = jest.fn();
       renderWithClient(<CategoryTable categories={sampleCategories} pagination={pagination} onPageChange={onPageChange} />);
       const btns = getPaginationButtons();
-      fireEvent.click(btns[0]);
+      // Second button is previous page
+      fireEvent.click(btns[1]);
       expect(onPageChange).toHaveBeenCalledWith(1);
     });
 
@@ -226,7 +227,7 @@ describe('CategoryTable', () => {
         <CategoryTable categories={sampleCategories} pagination={{ page: 1, limit: 20, total: 50, totalPages: 3 }} />,
       );
       const btns = getPaginationButtons();
-      expect(btns[0]).toBeDisabled();
+      expect(btns[1]).toBeDisabled();
     });
 
     it('disables next button on last page', () => {
@@ -234,7 +235,7 @@ describe('CategoryTable', () => {
         <CategoryTable categories={sampleCategories} pagination={{ page: 3, limit: 20, total: 50, totalPages: 3 }} />,
       );
       const btns = getPaginationButtons();
-      expect(btns[btns.length - 1]).toBeDisabled();
+      expect(btns[btns.length - 2]).toBeDisabled();
     });
 
     it('highlights current page button', () => {

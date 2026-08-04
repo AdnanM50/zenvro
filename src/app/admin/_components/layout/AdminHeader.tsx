@@ -1,3 +1,5 @@
+import ThemeToggle from '@/components/ui/ThemeToggle';
+
 interface AdminHeaderProps {
   onOpenSidebar: () => void;
 }
@@ -7,7 +9,7 @@ export default function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
     <header className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8 pb-0 lg:pb-0">
       {/* Mobile hamburger */}
       <button
-        className="lg:hidden text-gray-600 hover:text-black p-2 -ml-2 shrink-0"
+        className="lg:hidden text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white p-2 -ml-2 shrink-0"
         onClick={onOpenSidebar}
         aria-label="Open sidebar"
       >
@@ -18,13 +20,13 @@ export default function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
       <div className="relative flex-1 max-w-lg">
         <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
         <input
-          className="w-full bg-white border border-gray-200 rounded-full py-2.5 pl-10 pr-10 sm:pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-shadow"
+          className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full py-2.5 pl-10 pr-10 sm:pr-12 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 transition-shadow"
           placeholder="Search here..."
           type="text"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-2 text-xs text-gray-400">
-          <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] font-medium">&#8984;S</span>
-          <button aria-label="Filter" className="hover:text-gray-600 transition-colors">
+          <span className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px] font-medium">&#8984;S</span>
+          <button aria-label="Filter" className="hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
             <i className="fas fa-sliders-h" />
           </button>
         </div>
@@ -33,17 +35,11 @@ export default function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
       {/* Right Actions */}
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Theme & Notification */}
-        <div className="hidden sm:flex gap-2 text-gray-500 bg-white p-1.5 rounded-full border border-gray-100 shadow-sm">
-          <button className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center" aria-label="Light mode">
-            <i className="fas fa-sun text-xs" />
-          </button>
-          <button className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center" aria-label="Dark mode">
-            <i className="fas fa-moon text-xs" />
-          </button>
-          <div className="w-px h-5 bg-gray-200 my-auto" />
-          <button className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center relative" aria-label="Notifications">
+        <div className="flex items-center gap-2">
+          <ThemeToggle variant="buttons" />
+          <button className="w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center relative shadow-xs" aria-label="Notifications">
             <i className="far fa-bell text-sm" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-gray-900" />
           </button>
         </div>
 

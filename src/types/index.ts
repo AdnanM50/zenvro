@@ -7,7 +7,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface AuthUser {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: UserRole;

@@ -19,8 +19,18 @@ export async function GET(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const users = await UserModel.findAll();
-    return api.ok(users, 'Users fetched');
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const search = searchParams.get('search') || '';
+
+    const result = await UserModel.findPaginated({ page, limit, search });
+    return api.ok(result.users, 'Users fetched', {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: result.totalPages,
+    });
   } catch (error) {
     console.error('Get users error:', error);
     return api.serverError();
@@ -60,7 +70,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!userId) return api.badRequest('userId is required');
 
-    if (userId === (auth as { admin: { id: string } }).admin.id) {
+    if (userId === (auth as { admin: { _id: string } }).admin._id) {
       return api.badRequest('Cannot delete yourself');
     }
 

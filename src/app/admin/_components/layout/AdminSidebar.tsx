@@ -147,7 +147,7 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   return (
     <aside
       className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100
+        fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800
         flex flex-col justify-between p-5
         transform transition-transform duration-300 ease-in-out
         lg:static lg:translate-x-0 lg:w-64 lg:p-6 lg:shrink-0
@@ -157,36 +157,36 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       <div className="overflow-y-auto flex-1 -mr-2 pr-2">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8 lg:mb-10">
-          <div className="w-9 h-9 bg-black rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0">
+          <div className="w-9 h-9 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center font-bold text-lg shrink-0">
             V
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-base lg:text-lg flex items-center gap-2">
+            <div className="font-bold text-base lg:text-lg flex items-center gap-2 text-gray-900 dark:text-white">
               <span className="truncate">Teknova Store</span>
-              <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0">
+              <span className="bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-400 text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 border border-green-200 dark:border-green-800">
                 PRO
               </span>
             </div>
-            <div className="text-[11px] text-gray-500 flex items-center gap-1">
+            <div className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <Lock className="h-3 w-3" /> Private
             </div>
           </div>
           <button
-            className="lg:hidden text-gray-400 hover:text-gray-600 p-1 -mr-1"
+            className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mr-1"
             onClick={onClose}
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </button>
-          <MoreVertical className="hidden h-5 w-5 text-gray-400 ml-auto cursor-pointer lg:block" />
+          <MoreVertical className="hidden h-5 w-5 text-gray-400 dark:text-gray-500 ml-auto cursor-pointer lg:block" />
         </div>
 
         {/* Greeting */}
         <div className="mb-6 lg:mb-8">
-          <div className="text-[11px] text-gray-400 mb-1">
+          <div className="text-[11px] text-gray-400 dark:text-gray-500 mb-1">
             Teknova Store &gt; Dashboard
           </div>
-          <h1 className="text-xl lg:text-2xl font-bold leading-tight">
+          <h1 className="text-xl lg:text-2xl font-bold leading-tight text-gray-900 dark:text-white">
             Welcome Back,<br />
             Noah Bellingham <span role="img" aria-label="wave">&#128075;</span>
           </h1>
@@ -195,7 +195,7 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
         {/* Menu Section */}
         <div className="mb-6 lg:mb-8">
           <button
-            className="text-[11px] font-semibold text-gray-400 tracking-wider mb-3 flex justify-between items-center w-full"
+            className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-wider mb-3 flex justify-between items-center w-full"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             MENU
@@ -220,7 +220,7 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                 <li>
                   <a
                     href="#"
-                    className="flex items-center gap-3 text-gray-600 hover:bg-red-50 hover:text-red-600 px-3.5 py-2.5 rounded-xl transition-colors mt-2"
+                    className="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 px-3.5 py-2.5 rounded-xl transition-colors mt-2"
                   >
                     <LogOut className="h-4 w-5 shrink-0" strokeWidth={2.2} />
                     <span className="font-medium text-sm">Logout</span>
@@ -233,22 +233,22 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       </div>
 
       {/* User Profile Bottom */}
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100 mt-5 shrink-0">
+      <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-5 shrink-0">
         <img
           alt="User Avatar"
           className="w-10 h-10 rounded-full shrink-0 object-cover"
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa1xDcspgxj2FSQ74NfSLrT4HWcBvcD72IIYy2JfXutd5H0GOkbZ-WDA0bCGuNv14qVNYAipF4ZCCl_tkZFqBRh1u7cYVdRGYvUjizlygZp87cWIGTnXG_IclEAyEFNxUCIjXBKmDMnOTHzM03KxxupLbFchUzNU1u3wfC30jyeBqFbJQHUvJfzoWOHHO-q_HVOfU3nNvj9UZBkBJxOzyNF8PzqD5BUMIH0FBb4ppEpX1ouEBoCXSqxg"
         />
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-gray-900 truncate">
+          <div className="text-sm font-bold text-gray-900 dark:text-white truncate">
             Noah Bellingham
           </div>
-          <div className="text-[11px] text-gray-500 flex items-center gap-1">
+          <div className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full shrink-0" />
             <span className="truncate">noah@gmail.com</span>
           </div>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 cursor-pointer shrink-0 p-1" aria-label="More options">
+        <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer shrink-0 p-1" aria-label="More options">
           <MoreHorizontal className="h-5 w-5" />
         </button>
       </div>

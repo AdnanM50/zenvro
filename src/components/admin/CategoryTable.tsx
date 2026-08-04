@@ -12,6 +12,7 @@ import {
   type UpdateCategoryPayload,
 } from '@/services/category.service';
 import CategoryRow from './CategoryRow';
+import Pagination from '@/components/ui/pagination';
 import CategoryFormModal from './CategoryFormModal';
 
 interface CategoryFormData {
@@ -203,15 +204,15 @@ export default function CategoryTable({
       {showHeader && (
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
               <FolderTree className="h-6 w-6 text-gray-400" />
               {title}
             </h1>
-            {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+            {description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>}
           </div>
           <button
             onClick={() => openCreate()}
-            className="bg-black text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition-colors"
+            className="bg-black dark:bg-white text-white dark:text-black px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-xs"
           >
             <Plus className="h-4 w-4" /> Add Category
           </button>
@@ -226,22 +227,22 @@ export default function CategoryTable({
             placeholder="Search categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10"
           />
         </div>
         <div className="flex gap-3">
-          <div className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm">
-            <span className="text-gray-500">Total:</span>{' '}
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100">
+            <span className="text-gray-500 dark:text-gray-400">Total:</span>{' '}
             <span className="font-bold">{pagination?.total ?? categories.length}</span>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm">
-            <span className="text-gray-500">Active:</span>{' '}
-            <span className="font-bold text-green-600">{categories.filter((c) => c.isActive).length}</span>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100">
+            <span className="text-gray-500 dark:text-gray-400">Active:</span>{' '}
+            <span className="font-bold text-green-600 dark:text-green-400">{categories.filter((c) => c.isActive).length}</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -250,7 +251,7 @@ export default function CategoryTable({
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
             <FolderTree className="h-12 w-12 mb-3" />
             <p className="text-sm font-medium">{emptyMessage}</p>
-            <button onClick={() => openCreate()} className="mt-3 text-sm text-black font-medium hover:underline">
+            <button onClick={() => openCreate()} className="mt-3 text-sm text-black dark:text-white font-medium hover:underline">
               Create your first category
             </button>
           </div>
@@ -259,7 +260,7 @@ export default function CategoryTable({
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-gray-100 text-xs text-gray-500">
+                  <tr className="border-b border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-950/50">
                     <th className="px-4 py-3 font-medium">Category</th>
                     <th className="px-4 py-3 font-medium">Slug</th>
                     {columns.includes('children') && <th className="px-4 py-3 font-medium">Children</th>}
@@ -288,45 +289,15 @@ export default function CategoryTable({
               </table>
             </div>
 
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500">
-                  Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-                </p>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => onPageChange?.(pagination.page - 1)}
-                    disabled={pagination.page <= 1}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  {getPageNumbers(pagination.page, pagination.totalPages).map((p, i) =>
-                    p === '...' ? (
-                      <span key={`dots-${i}`} className="px-1.5 text-xs text-gray-400">...</span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => onPageChange?.(p)}
-                        className={`min-w-[28px] h-7 rounded-lg text-xs font-medium transition-colors ${
-                          p === pagination.page
-                            ? 'bg-black text-white'
-                            : 'hover:bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
-                  <button
-                    onClick={() => onPageChange?.(pagination.page + 1)}
-                    disabled={pagination.page >= pagination.totalPages}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+            {pagination && (
+              <Pagination
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                onPageChange={(p) => onPageChange?.(p)}
+                itemUnitName="categories"
+              />
             )}
           </>
         )}

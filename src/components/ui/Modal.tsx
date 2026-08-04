@@ -80,16 +80,16 @@ export default function Modal({
               stiffness: 350,
               mass: 0.8
             }}
-            className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden z-10 border border-gray-100`}
+            className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden z-10 border border-gray-100 dark:border-gray-800`}
             data-lenis-prevent
           >
             {/* Header */}
             {title && (
-              <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h2>
                 <button 
                   onClick={onClose} 
-                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500 hover:text-gray-700 focus:outline-none"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -103,7 +103,7 @@ export default function Modal({
 
             {/* Footer */}
             {footer && (
-              <div className="flex justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
+              <div className="flex justify-end gap-3 p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/50">
                 {footer}
               </div>
             )}

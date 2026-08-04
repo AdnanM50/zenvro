@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import type { UserRole } from '@/types';
 
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: UserRole;

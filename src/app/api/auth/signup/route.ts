@@ -35,15 +35,15 @@ export async function POST(request: NextRequest) {
 
     const user = await UserModel.create({ name: name!, email, password });
 
-    const { accessToken, refreshToken } = generateTokenPair(user.id, user.email, user.role);
+    const { accessToken, refreshToken } = generateTokenPair(user._id, user.email, user.role);
     const refreshExpiresAt = getTokenExpiration(refreshToken);
 
     if (refreshExpiresAt) {
-      await UserModel.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
+      await UserModel.refreshToken.create(user._id, refreshToken, refreshExpiresAt);
     }
 
     const response = api.created(
-      { id: user.id, name: user.name, email: user.email, role: user.role },
+      { _id: user._id, name: user.name, email: user.email, role: user.role },
       'User created successfully',
     );
 

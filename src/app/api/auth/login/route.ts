@@ -29,15 +29,15 @@ export async function POST(request: NextRequest) {
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) return api.unauthorized('Invalid email or password');
 
-    const { accessToken, refreshToken } = generateTokenPair(user.id, user.email, user.role);
+    const { accessToken, refreshToken } = generateTokenPair(user._id, user.email, user.role);
     const refreshExpiresAt = getTokenExpiration(refreshToken);
 
     if (refreshExpiresAt) {
-      await UserModel.refreshToken.create(user.id, refreshToken, refreshExpiresAt);
+      await UserModel.refreshToken.create(user._id, refreshToken, refreshExpiresAt);
     }
 
     const response = api.ok(
-      { id: user.id, name: user.name, email: user.email, role: user.role },
+      { _id: user._id, name: user.name, email: user.email, role: user.role },
       'Login successful',
     );
 

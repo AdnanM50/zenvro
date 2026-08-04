@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     if (!user) return api.notFound('User not found');
 
     return api.ok(
-      { id: user.id, name: user.name, email: user.email, role: user.role },
+      { _id: user._id, name: user.name, email: user.email, role: user.role },
       'User fetched',
     );
   } catch (error) {

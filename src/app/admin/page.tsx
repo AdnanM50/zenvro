@@ -4,17 +4,17 @@ export default function AdminDashboard() {
       {/* Left Column (Span 2 on desktop) */}
       <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
         {/* Profit Overview Chart */}
-        <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-soft relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-green-100 rounded-full blur-3xl opacity-50 -mr-20 -mt-20" />
+        <div className="bg-white dark:bg-gray-900 border border-transparent dark:border-gray-800 text-gray-900 dark:text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-soft relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-green-100 dark:bg-green-950/40 rounded-full blur-3xl opacity-50 -mr-20 -mt-20" />
 
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 sm:mb-6 relative z-10">
             <div>
-              <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 mb-2">
+              <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 mb-2 text-gray-900 dark:text-white">
                 <i className="fas fa-chart-bar text-gray-400" /> Total Profit
                 Overview
               </h2>
-              <div className="text-2xl sm:text-4xl font-black mb-1">$ 110,450</div>
-              <div className="text-xs sm:text-sm text-gray-500">
+              <div className="text-2xl sm:text-4xl font-black mb-1 text-gray-900 dark:text-white">$ 110,450</div>
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 <span className="text-green-500 font-semibold inline-flex items-center gap-1">
                   <i className="fas fa-arrow-up text-[10px]" /> $10,250
                 </span>{" "}
@@ -22,13 +22,13 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex gap-2 shrink-0">
-              <button className="bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-2 border border-gray-100">
+              <button className="bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-2 border border-gray-100 dark:border-gray-700">
                 Month <i className="fas fa-chevron-down text-[10px]" />
               </button>
-              <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center border border-gray-100 text-gray-500">
+              <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-700 text-gray-500 dark:text-gray-400">
                 <i className="fas fa-sliders-h text-sm" />
               </button>
-              <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center border border-gray-100 text-gray-500">
+              <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-700 text-gray-500 dark:text-gray-400">
                 <i className="fas fa-ellipsis-h text-sm" />
               </button>
             </div>

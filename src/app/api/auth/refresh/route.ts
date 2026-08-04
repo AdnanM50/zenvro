@@ -45,17 +45,17 @@ export async function POST(request: NextRequest) {
 
     await UserModel.refreshToken.revokeByToken(refreshTokenValue);
 
-    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user.id, user.email, user.role);
+    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user._id, user.email, user.role);
     const newRefreshExpiresAt = getTokenExpiration(newRefreshToken);
 
     if (newRefreshExpiresAt) {
-      await UserModel.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt);
+      await UserModel.refreshToken.create(user._id, newRefreshToken, newRefreshExpiresAt);
     }
 
-    const activeTokenCount = await UserModel.refreshToken.countByUserId(user.id);
+    const activeTokenCount = await UserModel.refreshToken.countByUserId(user._id);
     if (activeTokenCount > 5) {
-      await UserModel.refreshToken.revokeByUserId(user.id);
-      await UserModel.refreshToken.create(user.id, newRefreshToken, newRefreshExpiresAt!);
+      await UserModel.refreshToken.revokeByUserId(user._id);
+      await UserModel.refreshToken.create(user._id, newRefreshToken, newRefreshExpiresAt!);
     }
 
     const response = api.ok(null, 'Token refreshed successfully');
