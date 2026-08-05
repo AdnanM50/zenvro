@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const STALE_TIME = 5 * 60 * 1000; // 5 minutes — aligned with per-hook defaults
+const STALE_TIME = 0; // 0 ms for real-time responsiveness on mutations
 
 export default function QueryProvider({
   children,

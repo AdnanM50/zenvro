@@ -23,7 +23,7 @@ export default function TagTable() {
   const [slug, setSlug] = useState('');
 
   // Fetch Tags using generic React Query hook
-  const { data: tagResponse, isLoading } = useApiGet<Tag[]>({
+  const { data: tagResponse, isLoading, refetch } = useApiGet<Tag[]>({
     queryKey: tagQueryKeys.list({ search, page, limit }),
     queryFn: () => getTags({ page, limit, search }),
   });
@@ -34,26 +34,37 @@ export default function TagTable() {
   // Mutations using generic hooks
   const createMutation = useApiPost({
     mutationFn: createTag,
-    invalidateKeys: [tagQueryKeys.all],
+    invalidateKeys: [tagQueryKeys.all, tagQueryKeys.lists()],
     successMessage: 'Tag created successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const updateMutation = useApiPut({
     mutationFn: updateTag,
-    invalidateKeys: [tagQueryKeys.all],
+    invalidateKeys: [tagQueryKeys.all, tagQueryKeys.lists()],
     successMessage: 'Tag updated successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const deleteMutation = useApiDelete({
     mutationFn: deleteTag,
-    invalidateKeys: [tagQueryKeys.all],
+    invalidateKeys: [tagQueryKeys.all, tagQueryKeys.lists()],
     successMessage: 'Tag deleted successfully',
+    options: {
+      onSuccess: () => {
+        refetch();
+      },
+    },
   });
 
   const openCreateModal = () => {

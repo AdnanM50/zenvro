@@ -38,18 +38,18 @@ const Hero = () => {
             custom={0.1}
           >
             <div className="space-y-12 ">
-              <div className="hero-text text-black">
+              <div className="hero-text text-foreground">
                 where<br />- style
               </div>
 
               <div className="space-y-8 md:space-y-12">
-                <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold">{"// FASHION"}</p>
-                <p className="text-sm leading-relaxed max-w-[240px] text-neutral-600">
+                <p className="font-mono text-[10px] md:text-xs tracking-widest text-secondary uppercase font-bold">{"// FASHION"}</p>
+                <p className="text-sm leading-relaxed max-w-[240px] text-secondary">
                   Explore curated collections, exclusive drops, and everyday essentials all thoughtfully designed in one stylish shopping destination.
                 </p>
                 <div className="flex flex-col gap-1">
-                  <p className="font-mono text-[10px] md:text-xs tracking-tight text-neutral-500">/ New</p>
-                  <p className="font-mono text-[10px] md:text-xs tracking-tight text-neutral-500">Collection 2026</p>
+                  <p className="font-mono text-[10px] md:text-xs tracking-tight text-secondary">/ New</p>
+                  <p className="font-mono text-[10px] md:text-xs tracking-tight text-secondary">Collection 2026</p>
                 </div>
               </div>
             </div>
@@ -91,8 +91,8 @@ const Hero = () => {
           >
             <div className=" w-full">
               <div className="flex flex-col items-start md:items-end w-full">
-                <p className="font-mono text-[10px] md:text-xs tracking-widest text-neutral-500 uppercase font-bold mb-4 md:mb-8 leading-tight">{"// STYLED FOR"}<br />LIFE.</p>
-                <div className="hero-text text-black">
+                <p className="font-mono text-[10px] md:text-xs tracking-widest text-secondary uppercase font-bold mb-4 md:mb-8 leading-tight">{"// STYLED FOR"}<br />LIFE.</p>
+                <div className="hero-text text-foreground">
                   lives<br />- now
                 </div>
               </div>
@@ -127,8 +127,8 @@ const Hero = () => {
                   viewport={VIEWPORT_CONFIG}
                   custom={0.5}
                 >
-                  <p className="text-4xl md:text-5xl font-black tracking-tighter">280K</p>
-                  <p className="font-mono text-[10px] tracking-widest text-neutral-400 uppercase">PEOPLE WE INSPIRE</p>
+                  <p className="text-4xl md:text-5xl font-black tracking-tighter text-foreground">280K</p>
+                  <p className="font-mono text-[10px] tracking-widest text-secondary uppercase">PEOPLE WE INSPIRE</p>
                 </motion.div>
               </div>
             </div>
@@ -138,7 +138,7 @@ const Hero = () => {
 
       {/* Marquee Footer */}
       <motion.div
-        className="mt-8 border-y border-surface-container py-4 xl:py-6 overflow-hidden w-full"
+        className="mt-8 border-y border-outline-variant py-4 xl:py-6 overflow-hidden w-full"
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
@@ -146,7 +146,7 @@ const Hero = () => {
         custom={0.3}
       >
         <div className="marquee">
-          <div className="marquee-content flex items-center gap-6 xl:gap-12 text-primary font-headline font-black text-lg xl:text-2xl uppercase tracking-[0.2em]">
+          <div className="marquee-content flex items-center gap-6 xl:gap-12 text-foreground font-headline font-black text-lg xl:text-2xl uppercase tracking-[0.2em]">
             <span>T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE</span>
             <span aria-hidden="true">T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE</span>
             <span aria-hidden="true">T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE</span>

@@ -24,7 +24,7 @@ export default function AttributeTable() {
   const [isVariant, setIsVariant] = useState(true);
 
   // Fetch Attributes using generic React Query hook
-  const { data: attributeResponse, isLoading } = useApiGet<Attribute[]>({
+  const { data: attributeResponse, isLoading, refetch } = useApiGet<Attribute[]>({
     queryKey: attributeQueryKeys.list({ search, page, limit }),
     queryFn: () => getAttributes({ page, limit, search }),
   });
@@ -35,26 +35,37 @@ export default function AttributeTable() {
   // Mutations using generic hooks
   const createMutation = useApiPost({
     mutationFn: createAttribute,
-    invalidateKeys: [attributeQueryKeys.all],
+    invalidateKeys: [attributeQueryKeys.all, attributeQueryKeys.lists()],
     successMessage: 'Attribute created successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const updateMutation = useApiPut({
     mutationFn: updateAttribute,
-    invalidateKeys: [attributeQueryKeys.all],
+    invalidateKeys: [attributeQueryKeys.all, attributeQueryKeys.lists()],
     successMessage: 'Attribute updated successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const deleteMutation = useApiDelete({
     mutationFn: deleteAttribute,
-    invalidateKeys: [attributeQueryKeys.all],
+    invalidateKeys: [attributeQueryKeys.all, attributeQueryKeys.lists()],
     successMessage: 'Attribute deleted successfully',
+    options: {
+      onSuccess: () => {
+        refetch();
+      },
+    },
   });
 
   const openCreateModal = () => {

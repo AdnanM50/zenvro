@@ -93,8 +93,8 @@ export default function ImageUpload({
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
-          className={`w-full h-32 border-2 border-dashed rounded-[6px] flex flex-col items-center justify-center cursor-pointer transition-colors ${
-            dragOver ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'
+          className={`w-full h-32 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors ${
+            dragOver ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-800' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300'
           }`}
         >
           {uploading ? (

@@ -137,14 +137,14 @@ export default function CategoryFormModal({
     <>
       <button
         onClick={onClose}
-        className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+        className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
       >
         Cancel
       </button>
       <button
         onClick={handleSubmit(onSubmit)}
         disabled={saving}
-        className="px-6 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+        className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black text-sm font-medium rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
       >
         {saving && <Loader2 className="h-4 w-4 animate-spin" />}
         {editing ? 'Update' : 'Create'}

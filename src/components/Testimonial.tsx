@@ -67,7 +67,7 @@ const Testimonial = () => {
           viewport={VIEWPORT_CONFIG}
         >
           <motion.blockquote className="relative" variants={staggerItem}>
-            <p className="text-huge font-headline font-extrabold text-black tracking-tight leading-none">
+            <p className="text-huge font-headline font-extrabold text-foreground tracking-tight leading-none">
               Everything is absolutely perfect! From the fabric quality to the flawless fit every piece feels premium. This brand has completely transformed my wardrobe.
             </p>
           </motion.blockquote>
@@ -81,7 +81,7 @@ const Testimonial = () => {
               <span className="material-symbols-outlined" data-icon="star" data-weight="fill" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
               <span className="material-symbols-outlined" data-icon="star" data-weight="fill" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
               <span className="material-symbols-outlined" data-icon="star" data-weight="fill" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="ml-2 font-headline font-bold text-black">5.0 (49 Reviews)</span>
+              <span className="ml-2 font-headline font-bold text-foreground">5.0 (49 Reviews)</span>
             </div>
             <p className="font-label text-xs uppercase tracking-widest text-secondary">See What Our Customers Are Saying</p>
           </motion.div>

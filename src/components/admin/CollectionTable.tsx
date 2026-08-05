@@ -28,7 +28,7 @@ export default function CollectionTable() {
   const [isActive, setIsActive] = useState(true);
 
   // Fetch Collections using generic React Query hook
-  const { data: collectionResponse, isLoading } = useApiGet<CollectionItem[]>({
+  const { data: collectionResponse, isLoading, refetch } = useApiGet<CollectionItem[]>({
     queryKey: collectionQueryKeys.list({ search, page, limit }),
     queryFn: () => getCollections({ page, limit, search }),
   });
@@ -39,26 +39,37 @@ export default function CollectionTable() {
   // Mutations using generic hooks
   const createMutation = useApiPost({
     mutationFn: createCollection,
-    invalidateKeys: [collectionQueryKeys.all],
+    invalidateKeys: [collectionQueryKeys.all, collectionQueryKeys.lists()],
     successMessage: 'Collection created successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const updateMutation = useApiPut({
     mutationFn: updateCollection,
-    invalidateKeys: [collectionQueryKeys.all],
+    invalidateKeys: [collectionQueryKeys.all, collectionQueryKeys.lists()],
     successMessage: 'Collection updated successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const deleteMutation = useApiDelete({
     mutationFn: deleteCollection,
-    invalidateKeys: [collectionQueryKeys.all],
+    invalidateKeys: [collectionQueryKeys.all, collectionQueryKeys.lists()],
     successMessage: 'Collection deleted successfully',
+    options: {
+      onSuccess: () => {
+        refetch();
+      },
+    },
   });
 
   const openCreateModal = () => {

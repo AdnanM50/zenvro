@@ -88,9 +88,7 @@ export function useApiGet<TData>({
   return useQuery<ApiSuccessResponse<TData>, ApiError>({
     queryKey,
     queryFn,
-    staleTime: DEFAULT_STALE_TIME,
-    // Keep previous data visible during refetches (great for pagination).
-    placeholderData: (prev) => prev,
+    staleTime: options?.staleTime ?? 0,
     ...options,
   });
 }
@@ -148,6 +146,7 @@ export function useApiPost<TData, TPayload>({
       // Invalidate specified query keys so lists refresh with new data.
       invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
+        queryClient.refetchQueries({ queryKey: key });
       });
 
       // Forward to caller's onSuccess if provided.
@@ -216,6 +215,7 @@ export function useApiPut<TData, TPayload>({
       // Invalidate to refetch latest data from server.
       invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
+        queryClient.refetchQueries({ queryKey: key });
       });
 
       options?.onSuccess?.(response, variables, onMutateResult, fnContext);
@@ -230,6 +230,7 @@ export function useApiPut<TData, TPayload>({
     onSettled: (_data, _error, variables, context, fnContext) => {
       invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
+        queryClient.refetchQueries({ queryKey: key });
       });
       options?.onSettled?.(_data, _error, variables, context, fnContext);
     },
@@ -290,6 +291,7 @@ export function useApiDelete<TPayload = string>({
       // Invalidate all related caches — the resource no longer exists.
       invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
+        queryClient.refetchQueries({ queryKey: key });
       });
 
       options?.onSuccess?.(response, variables, onMutateResult, fnContext);
@@ -304,6 +306,7 @@ export function useApiDelete<TPayload = string>({
     onSettled: (_data, _error, variables, context, fnContext) => {
       invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
+        queryClient.refetchQueries({ queryKey: key });
       });
       options?.onSettled?.(_data, _error, variables, context, fnContext);
     },

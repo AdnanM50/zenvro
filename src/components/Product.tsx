@@ -62,20 +62,20 @@ const Product = () => {
   return (
     <section
       id="products"
-      className="pt-24 pb-12 overflow-hidden bg-white"
+      className="pt-24 pb-12 overflow-hidden bg-background text-foreground"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
       {/* Header — simplified, no 2026 / [Other] */}
       <motion.header
-        className="px-6 md:px-8 max-w-[1600px] mx-auto w-full relative z-20 flex items-end justify-between"
+        className="px-6 md:px-8 max-w-[1600px] mx-auto w-full relative z-20 flex items-end justify-between text-foreground"
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
         viewport={VIEWPORT_CONFIG}
         custom={0}
       >
-        <h1 className="font-headline font-black text-3xl md:text-4xl xl:text-5xl tracking-tighter leading-none pt-4">
+        <h1 className="font-headline font-black text-3xl md:text-4xl xl:text-5xl tracking-tighter leading-none pt-4 text-foreground">
           ©velour - <br className="hidden md:block" />
           jacket momento
         </h1>
@@ -83,18 +83,18 @@ const Product = () => {
         <div className="flex gap-2 pb-2">
           <motion.button
             onClick={prevSlide}
-            whileHover={{ scale: 1.15, backgroundColor: "#000", color: "#fff" }}
+            whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
-            className="w-11 h-11 rounded-full border border-outline-variant flex items-center justify-center bg-white text-black transition-colors duration-300"
+            className="w-11 h-11 rounded-full border border-outline-variant flex items-center justify-center bg-surface text-foreground transition-colors duration-300"
             aria-label="Previous slide"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>
           </motion.button>
           <motion.button
             onClick={nextSlide}
-            whileHover={{ scale: 1.15, backgroundColor: "#000", color: "#fff" }}
+            whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
-            className="w-11 h-11 rounded-full border border-outline-variant flex items-center justify-center bg-white text-black transition-colors duration-300"
+            className="w-11 h-11 rounded-full border border-outline-variant flex items-center justify-center bg-surface text-foreground transition-colors duration-300"
             aria-label="Next slide"
           >
             <span className="material-symbols-outlined text-sm">arrow_forward</span>

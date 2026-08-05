@@ -5,16 +5,34 @@
 :root {
   --background: #ffffff;
   --foreground: #1a1c1c;
+  --primary: #000000;
+  --secondary: #5e5e5e;
+  --on-surface: #1a1c1c;
+  --surface: #f9f9f9;
+  --surface-container: #eeeeee;
+  --outline-variant: #c6c6c6;
 }
 
 .dark {
   --background: #090d16;
   --foreground: #f8fafc;
+  --primary: #ffffff;
+  --secondary: #94a3b8;
+  --on-surface: #f8fafc;
+  --surface: #0d1322;
+  --surface-container: #172033;
+  --outline-variant: #2a364f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-on-surface: var(--on-surface);
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-outline-variant: var(--outline-variant);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   
   --font-headline: var(--font-manrope), sans-serif;
@@ -22,9 +40,6 @@
   --font-label: var(--font-inter), sans-serif;
   
   /* Custom Palette */
-  --color-outline-variant: #c6c6c6;
-  --color-secondary-container: #d4d4d4;
-  --color-secondary: #5e5e5e;
   --color-primary-fixed: #b02f00;
   --color-inverse-on-surface: #f0f1f1;
   --color-on-error-container: #410002;
@@ -35,7 +50,6 @@
   --color-secondary-fixed: #c6c6c6;
   --color-surface-variant: #e2e2e2;
   --color-inverse-surface: #2f3131;
-  --color-surface: #f9f9f9;
   --color-on-primary-fixed: #ffffff;
   --color-surface-tint: #b02f00;
   --color-primary-container: #731b00;
@@ -50,15 +64,12 @@
   --color-on-secondary-fixed: #1b1b1b;
   --color-surface-bright: #f9f9f9;
   --color-tertiary-fixed-dim: #454747;
-  --color-primary: #000000;
   --color-on-tertiary-fixed-variant: #e2e2e2;
-  --color-surface-container: #eeeeee;
   --color-on-secondary: #ffffff;
   --color-secondary-fixed-dim: #ababab;
-  --color-on-background: #1a1c1c;
+  --color-on-background: var(--foreground);
   --color-surface-container-high: #e8e8e8;
   --color-tertiary: #3a3c3c;
-  --color-on-surface: #1a1c1c;
   --color-error-container: #ffdad6;
   --color-outline: #777777;
   --color-surface-dim: #dadada;
@@ -96,6 +107,7 @@
   html, body {
     scrollbar-width: none;
     -ms-overflow-style: none;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   html::-webkit-scrollbar, body::-webkit-scrollbar {
@@ -105,6 +117,7 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

@@ -26,7 +26,7 @@ export default function BrandTable() {
   const [isActive, setIsActive] = useState(true);
 
   // Fetch Brands using generic React Query hook
-  const { data: brandResponse, isLoading } = useApiGet<Brand[]>({
+  const { data: brandResponse, isLoading, refetch } = useApiGet<Brand[]>({
     queryKey: brandQueryKeys.list({ search, page, limit }),
     queryFn: () => getBrands({ page, limit, search }),
   });
@@ -37,26 +37,37 @@ export default function BrandTable() {
   // Mutations using generic hooks
   const createMutation = useApiPost({
     mutationFn: createBrand,
-    invalidateKeys: [brandQueryKeys.all],
+    invalidateKeys: [brandQueryKeys.all, brandQueryKeys.lists()],
     successMessage: 'Brand created successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const updateMutation = useApiPut({
     mutationFn: updateBrand,
-    invalidateKeys: [brandQueryKeys.all],
+    invalidateKeys: [brandQueryKeys.all, brandQueryKeys.lists()],
     successMessage: 'Brand updated successfully',
     options: {
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        refetch();
+      },
     },
   });
 
   const deleteMutation = useApiDelete({
     mutationFn: deleteBrand,
-    invalidateKeys: [brandQueryKeys.all],
+    invalidateKeys: [brandQueryKeys.all, brandQueryKeys.lists()],
     successMessage: 'Brand deleted successfully',
+    options: {
+      onSuccess: () => {
+        refetch();
+      },
+    },
   });
 
   const openCreateModal = () => {
