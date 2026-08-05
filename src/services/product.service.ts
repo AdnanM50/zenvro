@@ -12,6 +12,10 @@ export function getProducts(params: ProductListParams = {}) {
   return httpGet<Product[]>(`${BASE_URL}${buildQueryString(params)}`);
 }
 
+export function getProduct(_id: string) {
+  return httpGet<Product>(`${BASE_URL}/${_id}`);
+}
+
 export function createProduct(payload: CreateProductPayload) {
   return httpPost<Product>(BASE_URL, payload);
 }

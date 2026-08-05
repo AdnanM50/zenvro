@@ -2,25 +2,20 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
 import ProductTable from '@/components/admin/ProductTable';
-import {
-  getProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-} from '@/services/product.service';
+import { getProducts, deleteProduct } from '@/services/product.service';
 import { defaultProductSEO } from '@/types';
 import type { Product } from '@/types';
 
 jest.mock('@/services/product.service', () => ({
   getProducts: jest.fn(),
-  createProduct: jest.fn(),
-  updateProduct: jest.fn(),
   deleteProduct: jest.fn(),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+}));
+
 const mockedGetProducts = getProducts as jest.Mock;
-const mockedCreateProduct = createProduct as jest.Mock;
-const mockedUpdateProduct = updateProduct as jest.Mock;
 const mockedDeleteProduct = deleteProduct as jest.Mock;
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
@@ -110,11 +105,12 @@ describe('ProductTable', () => {
   });
 
   describe('header', () => {
-    it('renders title, description and Add Product button', async () => {
+    it('renders title, description and an Add Product link', async () => {
       renderWithClient(<ProductTable />);
       expect(screen.getByText('Products')).toBeInTheDocument();
       expect(screen.getByText('Manage your product catalog, pricing, inventory and SEO.')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /add product/i })).toBeInTheDocument();
+      const addLink = screen.getByRole('link', { name: /add product/i });
+      expect(addLink).toHaveAttribute('href', '/admin/products/new');
     });
 
     it('renders a search input', () => {
@@ -180,131 +176,23 @@ describe('ProductTable', () => {
     });
   });
 
-  describe('create flow', () => {
-    it('opens the create modal and submits a new product with full details', async () => {
-      mockedCreateProduct.mockResolvedValue({ success: true, message: 'ok', data: makeProduct() });
+  describe('navigation links', () => {
+    it('links the product name to the edit page', async () => {
       renderWithClient(<ProductTable />);
-
-      fireEvent.click(screen.getByRole('button', { name: /add product/i }));
-      expect(screen.getByText('Create New Product')).toBeInTheDocument();
-
-      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'New Denim Jacket' } });
-      fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'JCK-NEW-001' } });
-      fireEvent.change(screen.getByLabelText('Barcode'), { target: { value: '8801234567890' } });
-      fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'cat-2' } });
-      fireEvent.change(screen.getByLabelText('Tags'), { target: { value: 'tag-1, tag-2' } });
-      fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '149.99' } });
-      fireEvent.change(screen.getByLabelText('Sale Price ($)'), { target: { value: '129.99' } });
-      fireEvent.change(screen.getByLabelText('Cost Price ($)'), { target: { value: '70' } });
-      fireEvent.change(screen.getByLabelText('Stock'), { target: { value: '50' } });
-      fireEvent.change(screen.getByLabelText('Low Stock Threshold'), { target: { value: '5' } });
-      fireEvent.change(screen.getByLabelText('Sold'), { target: { value: '12' } });
-
-      fireEvent.click(screen.getByLabelText('Featured'));
-      fireEvent.click(screen.getByLabelText('Trending'));
-
-      fireEvent.change(screen.getByPlaceholderText('e.g. Material'), { target: { value: 'Material' } });
-      fireEvent.change(screen.getByPlaceholderText('e.g. Cotton'), { target: { value: 'Denim' } });
-
-      fireEvent.change(screen.getByLabelText('Variants (JSON array)'), {
-        target: { value: '[{"sku":"JCK-NEW-BLK","price":149.99,"stock":5}]' },
-      });
-
-      fireEvent.change(screen.getByLabelText('SEO Title'), { target: { value: 'New Denim Jacket' } });
-
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      await waitFor(() => {
-        expect(mockedCreateProduct).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: 'New Denim Jacket',
-            sku: 'JCK-NEW-001',
-            barcode: '8801234567890',
-            category: 'cat-2',
-            tags: ['tag-1', 'tag-2'],
-            regularPrice: 149.99,
-            salePrice: 129.99,
-            costPrice: 70,
-            stock: 50,
-            lowStock: 5,
-            sold: 12,
-            status: 'active',
-            isFeatured: true,
-            isTrending: true,
-            specifications: { Material: 'Denim' },
-            variants: [{ sku: 'JCK-NEW-BLK', price: 149.99, stock: 5 }],
-            seo: expect.objectContaining({ title: 'New Denim Jacket' }),
-          }),
-          expect.anything()
-        );
-      });
-    });
-
-    it('submits only the required fields when optional fields are left blank', async () => {
-      mockedCreateProduct.mockResolvedValue({ success: true, message: 'ok', data: makeProduct() });
-      renderWithClient(<ProductTable />);
-
-      fireEvent.click(screen.getByRole('button', { name: /add product/i }));
-      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Minimal Product' } });
-      fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'MIN-001' } });
-      fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '9.99' } });
-      fireEvent.change(screen.getByLabelText('Stock'), { target: { value: '2' } });
-
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      await waitFor(() => {
-        expect(mockedCreateProduct).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: 'Minimal Product',
-            sku: 'MIN-001',
-            regularPrice: 9.99,
-            stock: 2,
-            status: 'active',
-            isFeatured: false,
-            gallery: [],
-            specifications: {},
-          }),
-          expect.anything()
-        );
-      });
-    });
-
-    it('removes the last specification row instead of deleting all rows', async () => {
-      renderWithClient(<ProductTable />);
-      fireEvent.click(screen.getByRole('button', { name: /add product/i }));
-
-      const removeButtons = screen.getAllByTitle('Remove specification');
-      expect(removeButtons).toHaveLength(1);
-      fireEvent.click(removeButtons[0]);
-
-      expect(screen.getAllByPlaceholderText('e.g. Material')).toHaveLength(1);
-    });
-  });
-
-  describe('edit flow', () => {
-    it('opens the edit modal prefilled and updates the product', async () => {
-      mockedUpdateProduct.mockResolvedValue({ success: true, message: 'ok', data: makeProduct() });
-      renderWithClient(<ProductTable />);
-
       await screen.findByText('Classic Tee');
-      fireEvent.click(screen.getAllByTitle('Edit')[0]);
+      expect(screen.getByRole('link', { name: 'Classic Tee' })).toHaveAttribute(
+        'href',
+        '/admin/products/edit/p-1'
+      );
+    });
 
-      expect(screen.getByText('Edit Product')).toBeInTheDocument();
-      expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Classic Tee');
-      expect((screen.getByLabelText('SKU') as HTMLInputElement).value).toBe('TSH-COT-001');
-      expect((screen.getByLabelText('Regular Price ($)') as HTMLInputElement).value).toBe('59.99');
-      expect((screen.getByLabelText('Stock') as HTMLInputElement).value).toBe('25');
-      expect((screen.getByLabelText('Status') as HTMLSelectElement).value).toBe('active');
-
-      fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '64.99' } });
-      fireEvent.click(screen.getByRole('button', { name: /update product/i }));
-
-      await waitFor(() => {
-        expect(mockedUpdateProduct).toHaveBeenCalledWith(
-          expect.objectContaining({ _id: 'p-1', regularPrice: 64.99, name: 'Classic Tee' }),
-          expect.anything()
-        );
-      });
+    it('links the edit action to the edit page', async () => {
+      renderWithClient(<ProductTable />);
+      await screen.findByText('Classic Tee');
+      const editLinks = screen.getAllByTitle('Edit');
+      expect(editLinks).toHaveLength(2);
+      expect(editLinks[0]).toHaveAttribute('href', '/admin/products/edit/p-1');
+      expect(editLinks[1]).toHaveAttribute('href', '/admin/products/edit/p-2');
     });
   });
 

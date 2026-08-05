@@ -21,6 +21,7 @@ export type {
 // ── Product-specific hooks (pre-built convenience hooks) ───────────────────
 export {
   useGetProducts,
+  useGetProduct,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,

@@ -49,6 +49,10 @@ export const productKeys = {
   /** Unique key per filter/pagination combination */
   list: (params: ProductListParams) =>
     [...productKeys.lists(), params] as const,
+
+  /** Single product detail by id */
+  detail: (productId: string) =>
+    [...productKeys.all, 'detail', productId] as const,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -95,6 +99,37 @@ export function useGetProducts({ params = {}, options }: UseGetProductsParams = 
     staleTime: STALE_TIME,
     // Keep showing previous page data while the next page loads.
     placeholderData: (previousData) => previousData,
+    ...options,
+  });
+}
+
+// ── useGetProduct ──────────────────────────────────────────────────────────
+
+interface UseGetProductParams {
+  /** Override any useQuery option at the call site */
+  options?: Partial<
+    Omit<
+      UseQueryOptions<ApiSuccessResponse<Product>, ApiError>,
+      'queryKey' | 'queryFn'
+    >
+  >;
+}
+
+/**
+ * Fetches a single product by id.
+ *
+ * @example
+ * ```tsx
+ * const { data, isLoading } = useGetProduct(productId);
+ * const product = data?.data;
+ * ```
+ */
+export function useGetProduct(productId: string, { options }: UseGetProductParams = {}) {
+  return useQuery<ApiSuccessResponse<Product>, ApiError>({
+    queryKey: productKeys.detail(productId),
+    queryFn: () => productApi.getProduct(productId),
+    enabled: Boolean(productId),
+    staleTime: STALE_TIME,
     ...options,
   });
 }
