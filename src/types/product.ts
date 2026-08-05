@@ -1,79 +1,93 @@
-// ---------------------------------------------------------------------------
-// Product Entity Types
-// Aligned with the API response format defined in src/lib/api-response.ts
-// ---------------------------------------------------------------------------
+import type { Variant, CreateVariantPayload } from './variant';
 
-/** Individual product review */
-export interface ProductReview {
-  _id: string;
-  userId: string;
-  name: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-}
+/** Lifecycle status of a product listing */
+export type ProductStatus = 'draft' | 'active' | 'archived';
 
-/** Individual product comment */
-export interface ProductComment {
-  _id: string;
-  author: string;
-  text: string;
-  time: string;
+/** Audience/gender targeting of a product */
+export type ProductGender = 'men' | 'women' | 'unisex' | 'kids' | '';
+
+/** Rich SEO metadata for a product listing */
+export interface ProductSEO {
+  title: string;
+  description: string;
+  keywords: string[];
+  canonical: string;
+  ogImage: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogType: string;
+  twitterCard: string;
+  structuredData: string;
+  robots: string;
 }
 
 /** Core product entity returned by the API */
 export interface Product {
   _id: string;
-  slug: string;
   name: string;
-  category: string;
-  year: string;
-  price: number;
-  compareAtPrice?: number;
-  rating: number;
-  reviewsCount: number;
-  tagline: string;
-  description: string;
-  image: string;
-  images: string[];
-  color: string;
-  material: string;
-  fit: string;
-  sizes: string[];
-  stock: number;
+  slug: string;
   sku: string;
-  details: string[];
-  reviews: ProductReview[];
-  comments: ProductComment[];
-  isActive: boolean;
-  isFeatured: boolean;
+  barcode: string;
+  shortDescription: string;
+  description: string;
+  category: string;
+  brand: string;
+  collection: string;
   tags: string[];
-  createdAt: string;
-  updatedAt: string;
+  featuredImage: string;
+  gallery: string[];
+  video: string;
+  regularPrice: number;
+  salePrice: number;
+  costPrice: number;
+  stock: number;
+  lowStock: number;
+  sold: number;
+  status: ProductStatus;
+  isFeatured: boolean;
+  isNewArrival: boolean;
+  isTrending: boolean;
+  gender: ProductGender;
+  material: string;
+  careInstruction: string;
+  specifications: Record<string, string>;
+  variants: Variant[];
+  seo: ProductSEO;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /** Payload for creating a new product */
 export interface CreateProductPayload {
   name: string;
-  slug: string;
-  category: string;
-  year?: string;
-  price: number;
-  compareAtPrice?: number;
-  tagline?: string;
-  description: string;
-  image: string;
-  images?: string[];
-  color?: string;
-  material?: string;
-  fit?: string;
-  sizes?: string[];
-  stock: number;
+  slug?: string;
   sku: string;
-  details?: string[];
-  isActive?: boolean;
-  isFeatured?: boolean;
+  barcode?: string;
+  shortDescription?: string;
+  description?: string;
+  category?: string;
+  brand?: string;
+  collection?: string;
   tags?: string[];
+  featuredImage?: string;
+  gallery?: string[];
+  video?: string;
+  regularPrice: number;
+  salePrice?: number;
+  costPrice?: number;
+  stock: number;
+  lowStock?: number;
+  sold?: number;
+  status?: ProductStatus;
+  isFeatured?: boolean;
+  isNewArrival?: boolean;
+  isTrending?: boolean;
+  gender?: ProductGender;
+  material?: string;
+  careInstruction?: string;
+  specifications?: Record<string, string>;
+  variants?: CreateVariantPayload[];
+  seo?: ProductSEO;
 }
 
 /** Payload for updating an existing product (partial, _id required) */
@@ -87,11 +101,24 @@ export interface ProductListParams {
   limit?: number;
   search?: string;
   category?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  sortBy?: 'price' | 'rating' | 'createdAt' | 'name';
-  sortOrder?: 'asc' | 'desc';
+  brand?: string;
+  status?: ProductStatus;
+  gender?: ProductGender;
   isFeatured?: boolean;
-  isActive?: boolean;
-  tags?: string[];
+  isNewArrival?: boolean;
+  isTrending?: boolean;
 }
+
+export const defaultProductSEO: ProductSEO = {
+  title: '',
+  description: '',
+  keywords: [],
+  canonical: '',
+  ogImage: '',
+  ogTitle: '',
+  ogDescription: '',
+  ogType: 'product',
+  twitterCard: 'summary_large_image',
+  structuredData: '',
+  robots: 'index',
+};

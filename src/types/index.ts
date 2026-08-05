@@ -18,12 +18,24 @@ export { defaultCategorySEO, emptyCategoryForm } from './category';
 
 export type {
   Product,
-  ProductReview,
-  ProductComment,
+  ProductSEO,
+  ProductStatus,
+  ProductGender,
   CreateProductPayload,
   UpdateProductPayload,
   ProductListParams,
 } from './product';
+export { defaultProductSEO } from './product';
+
+export type {
+  Coupon,
+  CouponType,
+  CouponStatus,
+  CouponAppliesTo,
+  CreateCouponPayload,
+  UpdateCouponPayload,
+  CouponListParams,
+} from './coupon';
 
 export type { Tag, CreateTagPayload, UpdateTagPayload } from './tag';
 export type { Brand, CreateBrandPayload, UpdateBrandPayload } from './brand';

@@ -20,10 +20,18 @@ export type {
 
 // ── Product-specific hooks (pre-built convenience hooks) ───────────────────
 export {
-  useGetProduct,
   useGetProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
   productKeys,
 } from './use-products';
+
+// ── Coupon-specific hooks (pre-built convenience hooks) ────────────────────
+export {
+  useGetCoupons,
+  useCreateCoupon,
+  useUpdateCoupon,
+  useDeleteCoupon,
+  couponKeys,
+} from './use-coupons';

@@ -9,4 +9,6 @@ export { TagModel } from './tag.model';
 export { BrandModel } from './brand.model';
 export { AttributeModel } from './attribute.model';
 export { VariantModel } from './variant.model';
+export { ProductModel } from './product.model';
 export { CollectionModel } from './collection.model';
+export { CouponModel } from './coupon.model';

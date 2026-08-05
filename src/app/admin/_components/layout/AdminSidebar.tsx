@@ -39,7 +39,7 @@ const navItems: NavItemType[] = [
     label: "Products",
     icon: Box,
     children: [
-      { label: "Products", href: "#" },
+      { label: "Products", href: "/admin/products" },
       { label: "Categories", href: "/admin/categories" },
       { label: "Brands", href: "/admin/brands" },
       { label: "Collections", href: "/admin/collections" },
@@ -51,7 +51,7 @@ const navItems: NavItemType[] = [
   },
   { label: "Orders", icon: ShoppingCart, href: "#" },
   { label: "Customers", icon: Users, href: "#" },
-  { label: "Coupons", icon: TicketPercent, href: "#" },
+  { label: "Coupons", icon: TicketPercent, href: "/admin/coupons" },
   { label: "Inventory", icon: Boxes, href: "#" },
   { label: "Marketing", icon: Megaphone, href: "#" },
   { label: "CMS", icon: FileText, href: "#" },

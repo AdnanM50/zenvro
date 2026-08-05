@@ -1,15 +1,15 @@
 // ---------------------------------------------------------------------------
-// useProduct Hooks — Production-Ready TanStack React Query v5 Hooks
+// useCoupon Hooks — Production-Ready TanStack React Query v5 Hooks
 // ---------------------------------------------------------------------------
 //
 // Thin, typed convenience hooks over the generic API hooks. Every function
-// talks to `src/services/product.service` (the only module that knows the
-// /api/admin/products endpoint) and returns the standard envelope shape.
+// talks to `src/services/coupon.service` (the only module that knows the
+// /api/admin/coupons endpoint) and returns the standard envelope shape.
 //
 // Dependencies:
 //   @tanstack/react-query ^5   (already installed)
 //   react-hot-toast ^2          (already installed)
-//   ../services/product.service (thin HTTP layer)
+//   ../services/coupon.service (thin HTTP layer)
 // ---------------------------------------------------------------------------
 
 import {
@@ -22,33 +22,33 @@ import {
 import toast from 'react-hot-toast';
 
 import type {
-  Product,
-  CreateProductPayload,
-  UpdateProductPayload,
-  ProductListParams,
+  Coupon,
+  CreateCouponPayload,
+  UpdateCouponPayload,
+  CouponListParams,
   ApiSuccessResponse,
 } from '@/types';
 import { ApiError } from '@/types';
 
-import * as productApi from '@/services/product.service';
+import * as couponApi from '@/services/coupon.service';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. QUERY KEY FACTORY
 // ═══════════════════════════════════════════════════════════════════════════
-// Hierarchical key design: invalidating `productKeys.all` cascades to every
-// product query, while `productKeys.lists()` only affects list views.
+// Hierarchical key design: invalidating `couponKeys.all` cascades to every
+// coupon query, while `couponKeys.lists()` only affects list views.
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const productKeys = {
-  /** Root key — invalidate to refetch ALL product queries */
-  all: ['products'] as const,
+export const couponKeys = {
+  /** Root key — invalidate to refetch ALL coupon queries */
+  all: ['coupons'] as const,
 
   /** Scoped to all list queries (any filter combination) */
-  lists: () => [...productKeys.all, 'list'] as const,
+  lists: () => [...couponKeys.all, 'list'] as const,
 
   /** Unique key per filter/pagination combination */
-  list: (params: ProductListParams) =>
-    [...productKeys.lists(), params] as const,
+  list: (params: CouponListParams) =>
+    [...couponKeys.lists(), params] as const,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -64,34 +64,34 @@ const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 // 3. FETCHING HOOKS
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface UseGetProductsParams {
+interface UseGetCouponsParams {
   /** Pagination, search and filter parameters */
-  params?: ProductListParams;
+  params?: CouponListParams;
   /** Override any useQuery option at the call site */
   options?: Partial<
     Omit<
-      UseQueryOptions<ApiSuccessResponse<Product[]>, ApiError>,
+      UseQueryOptions<ApiSuccessResponse<Coupon[]>, ApiError>,
       'queryKey' | 'queryFn'
     >
   >;
 }
 
 /**
- * Fetches a paginated, searchable list of products.
+ * Fetches a paginated, searchable list of coupons.
  *
  * @example
  * ```tsx
- * const { data, isLoading } = useGetProducts({
- *   params: { page: 1, limit: 12, category: 'jackets' },
+ * const { data, isLoading } = useGetCoupons({
+ *   params: { page: 1, limit: 12, status: 'active' },
  * });
- * const products = data?.data;
+ * const coupons = data?.data;
  * const meta = data?.meta;
  * ```
  */
-export function useGetProducts({ params = {}, options }: UseGetProductsParams = {}) {
-  return useQuery<ApiSuccessResponse<Product[]>, ApiError>({
-    queryKey: productKeys.list(params),
-    queryFn: () => productApi.getProducts(params),
+export function useGetCoupons({ params = {}, options }: UseGetCouponsParams = {}) {
+  return useQuery<ApiSuccessResponse<Coupon[]>, ApiError>({
+    queryKey: couponKeys.list(params),
+    queryFn: () => couponApi.getCoupons(params),
     staleTime: STALE_TIME,
     // Keep showing previous page data while the next page loads.
     placeholderData: (previousData) => previousData,
@@ -103,15 +103,15 @@ export function useGetProducts({ params = {}, options }: UseGetProductsParams = 
 // 4. MUTATION HOOKS
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ── useCreateProduct ───────────────────────────────────────────────────────
+// ── useCreateCoupon ────────────────────────────────────────────────────────
 
-interface UseCreateProductParams {
+interface UseCreateCouponParams {
   options?: Partial<
     Omit<
       UseMutationOptions<
-        ApiSuccessResponse<Product>,
+        ApiSuccessResponse<Coupon>,
         ApiError,
-        CreateProductPayload
+        CreateCouponPayload
       >,
       'mutationFn'
     >
@@ -119,32 +119,32 @@ interface UseCreateProductParams {
 }
 
 /**
- * Creates a new product.
+ * Creates a new coupon.
  *
  * @example
  * ```tsx
- * const { mutate, isPending } = useCreateProduct();
- * mutate(newProductData);
+ * const { mutate, isPending } = useCreateCoupon();
+ * mutate(newCouponData);
  * ```
  */
-export function useCreateProduct({ options }: UseCreateProductParams = {}) {
+export function useCreateCoupon({ options }: UseCreateCouponParams = {}) {
   const queryClient = useQueryClient();
 
   return useMutation<
-    ApiSuccessResponse<Product>,
+    ApiSuccessResponse<Coupon>,
     ApiError,
-    CreateProductPayload
+    CreateCouponPayload
   >({
-    mutationFn: (payload) => productApi.createProduct(payload),
+    mutationFn: (payload) => couponApi.createCoupon(payload),
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
-      toast.success(response.message || 'Product created successfully');
-      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      toast.success(response.message || 'Coupon created successfully');
+      queryClient.invalidateQueries({ queryKey: couponKeys.lists() });
       options?.onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
-      toast.error(error.serverMessage || 'Failed to create product');
+      toast.error(error.serverMessage || 'Failed to create coupon');
       options?.onError?.(error, variables, onMutateResult, fnContext);
     },
 
@@ -152,15 +152,15 @@ export function useCreateProduct({ options }: UseCreateProductParams = {}) {
   });
 }
 
-// ── useUpdateProduct ───────────────────────────────────────────────────────
+// ── useUpdateCoupon ────────────────────────────────────────────────────────
 
-interface UseUpdateProductParams {
+interface UseUpdateCouponParams {
   options?: Partial<
     Omit<
       UseMutationOptions<
-        ApiSuccessResponse<Product>,
+        ApiSuccessResponse<Coupon>,
         ApiError,
-        UpdateProductPayload
+        UpdateCouponPayload
       >,
       'mutationFn'
     >
@@ -168,45 +168,45 @@ interface UseUpdateProductParams {
 }
 
 /**
- * Updates an existing product.
+ * Updates an existing coupon.
  *
  * @example
  * ```tsx
- * const { mutate } = useUpdateProduct();
- * mutate({ _id: product._id, name: 'Updated Name', price: 199 });
+ * const { mutate } = useUpdateCoupon();
+ * mutate({ _id: coupon._id, value: 15 });
  * ```
  */
-export function useUpdateProduct({ options }: UseUpdateProductParams = {}) {
+export function useUpdateCoupon({ options }: UseUpdateCouponParams = {}) {
   const queryClient = useQueryClient();
 
   return useMutation<
-    ApiSuccessResponse<Product>,
+    ApiSuccessResponse<Coupon>,
     ApiError,
-    UpdateProductPayload
+    UpdateCouponPayload
   >({
-    mutationFn: (payload) => productApi.updateProduct(payload),
+    mutationFn: (payload) => couponApi.updateCoupon(payload),
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
-      toast.success(response.message || 'Product updated successfully');
+      toast.success(response.message || 'Coupon updated successfully');
       options?.onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
-      toast.error(error.serverMessage || 'Failed to update product');
+      toast.error(error.serverMessage || 'Failed to update coupon');
       options?.onError?.(error, variables, onMutateResult, fnContext);
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: couponKeys.lists() });
     },
 
     ...options,
   });
 }
 
-// ── useDeleteProduct ───────────────────────────────────────────────────────
+// ── useDeleteCoupon ────────────────────────────────────────────────────────
 
-interface UseDeleteProductParams {
+interface UseDeleteCouponParams {
   options?: Partial<
     Omit<
       UseMutationOptions<
@@ -220,32 +220,32 @@ interface UseDeleteProductParams {
 }
 
 /**
- * Deletes a product.
+ * Deletes a coupon.
  *
  * @example
  * ```tsx
- * const { mutate } = useDeleteProduct();
- * mutate(product._id);
+ * const { mutate } = useDeleteCoupon();
+ * mutate(coupon._id);
  * ```
  */
-export function useDeleteProduct({ options }: UseDeleteProductParams = {}) {
+export function useDeleteCoupon({ options }: UseDeleteCouponParams = {}) {
   const queryClient = useQueryClient();
 
   return useMutation<ApiSuccessResponse<null>, ApiError, string>({
-    mutationFn: (id) => productApi.deleteProduct(id),
+    mutationFn: (id) => couponApi.deleteCoupon(id),
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
-      toast.success(response.message || 'Product deleted successfully');
+      toast.success(response.message || 'Coupon deleted successfully');
       options?.onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
-      toast.error(error.serverMessage || 'Failed to delete product');
+      toast.error(error.serverMessage || 'Failed to delete coupon');
       options?.onError?.(error, variables, onMutateResult, fnContext);
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      queryClient.invalidateQueries({ queryKey: couponKeys.all });
     },
 
     ...options,
