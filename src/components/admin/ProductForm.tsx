@@ -56,7 +56,7 @@ const toFiniteOrUndefined = (raw: string): number | undefined => {
 };
 
 const inputClass =
-  'w-full px-3.5 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 text-gray-900 dark:text-gray-100';
+  'w-full px-3.5 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 text-gray-900 dark:text-gray-100';
 const textareaClass = `${inputClass} font-mono`;
 const sectionTitleClass =
   'text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500';
@@ -285,7 +285,7 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-6">
       {/* Page header */}
       <div>
         <Link

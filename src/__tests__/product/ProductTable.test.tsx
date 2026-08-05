@@ -110,7 +110,7 @@ describe('ProductTable', () => {
       expect(screen.getByText('Products')).toBeInTheDocument();
       expect(screen.getByText('Manage your product catalog, pricing, inventory and SEO.')).toBeInTheDocument();
       const addLink = screen.getByRole('link', { name: /add product/i });
-      expect(addLink).toHaveAttribute('href', '/admin/products/new');
+      expect(addLink).toHaveAttribute('href', '/admin/products/create-product');
     });
 
     it('renders a search input', () => {

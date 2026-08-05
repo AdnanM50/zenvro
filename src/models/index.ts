@@ -12,3 +12,4 @@ export { VariantModel } from './variant.model';
 export { ProductModel } from './product.model';
 export { CollectionModel } from './collection.model';
 export { CouponModel } from './coupon.model';
+export { ReviewModel } from './review.model';

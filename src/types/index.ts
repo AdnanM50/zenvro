@@ -44,6 +44,25 @@ export type { Variant, VariantAttributes, CreateVariantPayload, UpdateVariantPay
 export type { CollectionItem, CreateCollectionPayload, UpdateCollectionPayload } from './collection';
 
 export type {
+  UserStatus,
+  UserAddress,
+  WishlistItem,
+  AddWishlistPayload,
+  PublicUser,
+  UserListParams,
+} from './user';
+
+export type {
+  Review,
+  ReviewStatus,
+  ReviewRating,
+  CreateReviewPayload,
+  UpdateReviewPayload,
+  ReviewListParams,
+  ProductRatingSummary,
+} from './review';
+
+export type {
   ApiResponseMeta,
   ApiSuccessResponse,
   ApiErrorResponse,

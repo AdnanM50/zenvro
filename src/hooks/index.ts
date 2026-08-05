@@ -36,3 +36,32 @@ export {
   useDeleteCoupon,
   couponKeys,
 } from './use-coupons';
+
+// ── Review-specific hooks (pre-built convenience hooks) ────────────────────
+export {
+  useGetAdminReviews,
+  useGetProductReviews,
+  useGetProductRatingSummary,
+  useCreateReview,
+  useUpdateReviewApproval,
+  useDeleteReview,
+  reviewKeys,
+} from './use-reviews';
+
+// ── Wishlist-specific hooks (pre-built convenience hooks) ──────────────────
+export {
+  useWishlist,
+  useAddToWishlist,
+  useRemoveFromWishlist,
+  wishlistKeys,
+} from './use-wishlist';
+
+// ── User-specific hooks (pre-built convenience hooks) ──────────────────────
+export {
+  useGetUsers,
+  useGetUserStats,
+  useUpdateUserRole,
+  useUpdateUserStatus,
+  useDeleteUser,
+  userKeys,
+} from './use-users';
