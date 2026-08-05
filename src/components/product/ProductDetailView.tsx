@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import type { Product } from "@/lib/products";
+import { useCart } from "@/contexts/CartContext";
 import {
   EASE_LUXURY,
   VIEWPORT_CONFIG,
@@ -33,9 +35,19 @@ export default function ProductDetailView({
 }: ProductDetailViewProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const { addItem } = useCart();
   
   // Support single image or multiple images
   const images = product.images || [product.image];
+
+  const handleAddToBag = () => {
+    if (!selectedSize) {
+      toast.error("Select a size first");
+      return;
+    }
+    addItem(product, selectedSize);
+    toast.success(`${product.name} added to bag`);
+  };
 
   return (
     <main className="bg-surface text-on-surface overflow-hidden">
@@ -193,7 +205,8 @@ export default function ProductDetailView({
               <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex h-14 w-full items-center justify-center gap-3 bg-black px-6 font-label text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-lg"
+                onClick={handleAddToBag}
+                className="flex h-14 w-full items-center justify-center gap-3 bg-black px-6 font-label text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-lg dark:bg-white dark:text-black"
               >
                 Add to Bag
                 <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
@@ -400,7 +413,7 @@ export default function ProductDetailView({
                 Complete the rotation
               </h2>
             </div>
-            <Link href="/#products" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em]">
+            <Link href="/products" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em]">
               View all
               <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
             </Link>

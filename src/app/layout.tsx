@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { CartProvider } from "@/contexts/CartContext";
 import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
 import QueryProvider from "@/components/QueryProvider";
 import { Toaster } from "react-hot-toast";
@@ -53,9 +54,11 @@ export default function RootLayout({
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              <SmoothScrollProvider>
-                <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
-              </SmoothScrollProvider>
+              <CartProvider>
+                <SmoothScrollProvider>
+                  <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
+                </SmoothScrollProvider>
+              </CartProvider>
             </AuthProvider>
             <Toaster position="top-right" />
           </QueryProvider>

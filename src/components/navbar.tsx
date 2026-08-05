@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 
 const Navbar = () => {
   const { user } = useAuth();
+  const { count } = useCart();
 
   return (
     <header className=" top-0 w-full z-50 flex justify-between items-center px-4 md:px-8 py-4 md:py-6 pointer-events-none text-foreground">
@@ -25,9 +27,14 @@ const Navbar = () => {
         <button className="hidden md:flex w-10 h-10 items-center justify-center hover:scale-105 transition-transform cursor-pointer">
           <span className="material-symbols-outlined text-xl">search</span>
         </button>
-        <button className="w-10 h-10 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+        <Link href="/cart" className="relative w-10 h-10 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
           <span className="material-symbols-outlined text-xl">shopping_bag</span>
-        </button>
+          {count > 0 && (
+            <span className="absolute top-0 right-0 min-w-4 h-4 px-1 rounded-full bg-[#ff5c00] text-white text-[10px] font-bold flex items-center justify-center">
+              {count}
+            </span>
+          )}
+        </Link>
         {user ? (
           <Link href={user.role === "admin" ? "/admin" : "/user-dashboard"} className="hidden md:flex w-10 h-10 items-center justify-center bg-foreground text-background rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer">
             <span className="text-[10px] font-bold font-mono">{user.email?.charAt(0).toUpperCase()}</span>
