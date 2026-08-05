@@ -16,6 +16,28 @@ Object.defineProperty(globalThis, 'crypto', {
   configurable: true,
 });
 
+if (typeof globalThis.Response === 'undefined') {
+  class MockResponse {
+    status: number;
+    private body: unknown;
+
+    constructor(body: unknown, init?: { status?: number }) {
+      this.body = body;
+      this.status = init?.status ?? 200;
+    }
+
+    async json(): Promise<unknown> {
+      return this.body;
+    }
+  }
+
+  Object.defineProperty(globalThis, 'Response', {
+    value: MockResponse,
+    writable: true,
+    configurable: true,
+  });
+}
+
 jest.mock('@/lib/db', () => ({
   getDb: jest.fn().mockResolvedValue({
     collection: jest.fn().mockReturnValue({

@@ -5,7 +5,7 @@ import { Layers, Plus, Edit3, Trash2, Eye, EyeOff, Calendar } from 'lucide-react
 import type { CollectionItem } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getCollections, createCollection, updateCollection, deleteCollection } from '@/services/collection.service';
-import DataTable, { ColumnDef } from '@/components/ui/DataTable';
+import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

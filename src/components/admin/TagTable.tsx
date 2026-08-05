@@ -5,7 +5,7 @@ import { Tag as TagIcon, Plus, Edit3, Trash2 } from 'lucide-react';
 import type { Tag } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getTags, createTag, updateTag, deleteTag } from '@/services/tag.service';
-import DataTable, { ColumnDef } from '@/components/ui/DataTable';
+import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

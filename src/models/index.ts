@@ -8,4 +8,5 @@ export { CategoryModel } from './category.model';
 export { TagModel } from './tag.model';
 export { BrandModel } from './brand.model';
 export { AttributeModel } from './attribute.model';
+export { VariantModel } from './variant.model';
 export { CollectionModel } from './collection.model';

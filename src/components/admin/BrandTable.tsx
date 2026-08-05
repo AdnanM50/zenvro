@@ -5,7 +5,7 @@ import { ShieldCheck, Plus, Edit3, Trash2, Eye, EyeOff } from 'lucide-react';
 import type { Brand } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getBrands, createBrand, updateBrand, deleteBrand } from '@/services/brand.service';
-import DataTable, { ColumnDef } from '@/components/ui/DataTable';
+import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

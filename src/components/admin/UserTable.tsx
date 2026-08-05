@@ -3,7 +3,7 @@
 import React from 'react';
 import { Users, Trash2, Shield, User as UserIcon } from 'lucide-react';
 import type { AuthUser, UserRole } from '@/types';
-import DataTable, { ColumnDef } from '@/components/ui/DataTable';
+import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 
 export interface UserTableItem extends AuthUser {
   createdAt?: string | Date;

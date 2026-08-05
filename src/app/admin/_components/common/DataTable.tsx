@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Search, Loader2, Inbox } from 'lucide-react';
-import Pagination, { PaginationProps } from './pagination';
+import Pagination, { PaginationProps } from '../../../../components/ui/pagination';
 
 export interface ColumnDef<T> {
   key: string;

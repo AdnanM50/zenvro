@@ -22,6 +22,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import Link from "next/link";
 
 type NavItemType = {
   label: string;
@@ -44,6 +45,7 @@ const navItems: NavItemType[] = [
       { label: "Collections", href: "/admin/collections" },
       { label: "Tags", href: "/admin/tags" },
       { label: "Attributes", href: "/admin/attributes" },
+      { label: "Variants", href: "/admin/variants" },
       { label: "Users", href: "/admin/users" },
     ],
   },
@@ -76,7 +78,7 @@ const NavItem = ({ item, depth = 0 }: { item: NavItemType; depth?: number }) => 
 
   return (
     <li className="space-y-0.5">
-      <a
+      <Link
         href={item.href || "#"}
         onClick={(e) => {
           if (hasChildren) {
@@ -114,7 +116,7 @@ const NavItem = ({ item, depth = 0 }: { item: NavItemType; depth?: number }) => 
             }`}
           />
         )}
-      </a>
+      </Link>
       {hasChildren && (
         <div
           className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
