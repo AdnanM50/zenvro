@@ -44,6 +44,14 @@ export type { Variant, VariantAttributes, CreateVariantPayload, UpdateVariantPay
 export type { CollectionItem, CreateCollectionPayload, UpdateCollectionPayload } from './collection';
 
 export type {
+  GalleryItem,
+  GallerySource,
+  CreateGalleryPayload,
+  UpdateGalleryPayload,
+  GalleryListParams,
+} from './gallery';
+
+export type {
   UserStatus,
   UserAddress,
   WishlistItem,

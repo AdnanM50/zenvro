@@ -158,7 +158,7 @@ export default function ProductTable() {
       render: (product) => (
         <div className="flex items-center justify-end gap-1">
           <Link
-            href={`/admin/products/edit-product/${product._id}`}
+            href={`/admin/products/edit/${product._id}`}
             className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             title="Edit"
           >

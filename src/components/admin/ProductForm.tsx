@@ -17,6 +17,7 @@ import { getProduct, createProduct, updateProduct } from '@/services/product.ser
 import Stepper, { StepperStep } from '@/components/ui/Stepper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import GalleryPickerButton from './GalleryPickerButton';
 
 const productQueryKeys = createQueryKeys('admin-products');
 
@@ -435,6 +436,13 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                       value={featuredImage}
                       onChange={(e) => setFeaturedImage(e.target.value)}
                     />
+                    <GalleryPickerButton
+                      onSelect={(urls) => {
+                        if (urls[0]) setFeaturedImage(urls[0]);
+                      }}
+                      selectedUrls={featuredImage ? [featuredImage] : []}
+                      label="Browse Gallery"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="product-video">Video URL</Label>
@@ -452,6 +460,21 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                       placeholder="Comma separated image URLs"
                       value={gallery}
                       onChange={(e) => setGallery(e.target.value)}
+                    />
+                    <GalleryPickerButton
+                      multiple
+                      onSelect={(urls) => {
+                        setGallery((prev) => {
+                          const existing = splitCsv(prev);
+                          const merged = [...existing];
+                          urls.forEach((u) => {
+                            if (!merged.includes(u)) merged.push(u);
+                          });
+                          return merged.join(', ');
+                        });
+                      }}
+                      selectedUrls={splitCsv(gallery)}
+                      label="Browse Gallery (multi-select)"
                     />
                   </div>
                 </div>
@@ -727,6 +750,13 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                       placeholder="https://..."
                       value={seo.ogImage}
                       onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
+                    />
+                    <GalleryPickerButton
+                      onSelect={(urls) => {
+                        if (urls[0]) setSeo({ ...seo, ogImage: urls[0] });
+                      }}
+                      selectedUrls={seo.ogImage ? [seo.ogImage] : []}
+                      label="Browse Gallery"
                     />
                   </div>
                   <div className="space-y-2">

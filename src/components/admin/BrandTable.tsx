@@ -9,6 +9,7 @@ import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import GalleryPickerButton from './GalleryPickerButton';
 
 const brandQueryKeys = createQueryKeys('admin-brands');
 
@@ -292,6 +293,13 @@ export default function BrandTable() {
               placeholder="https://..."
               value={logo}
               onChange={(e) => setLogo(e.target.value)}
+            />
+            <GalleryPickerButton
+              onSelect={(urls) => {
+                if (urls[0]) setLogo(urls[0]);
+              }}
+              selectedUrls={logo ? [logo] : []}
+              label="Browse Gallery"
             />
           </div>
 

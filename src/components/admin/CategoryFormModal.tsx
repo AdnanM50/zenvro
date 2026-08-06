@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Loader2, Globe } from 'lucide-react';
 import type { Category } from '@/types';
 import ImageUpload from './ImageUpload';
+import GalleryPickerButton from './GalleryPickerButton';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -271,15 +272,22 @@ export default function CategoryFormModal({
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="seo.ogImage">OG Image</Label>
-              <Input
-                id="seo.ogImage"
-                {...register('seo.ogImage')}
-                placeholder="https://..."
-                autoComplete="off"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo.ogImage">OG Image</Label>
+            <Input
+              id="seo.ogImage"
+              {...register('seo.ogImage')}
+              placeholder="https://..."
+              autoComplete="off"
+            />
+            <GalleryPickerButton
+              onSelect={(urls) => {
+                if (urls[0]) setValue('seo.ogImage', urls[0]);
+              }}
+              selectedUrls={formValues.seo?.ogImage ? [formValues.seo.ogImage] : []}
+              label="Browse Gallery"
+            />
+          </div>
             <div className="space-y-1.5">
               <Label>Robots</Label>
               <Select

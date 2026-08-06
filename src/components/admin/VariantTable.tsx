@@ -9,6 +9,7 @@ import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import GalleryPickerButton from './GalleryPickerButton';
 
 const variantQueryKeys = createQueryKeys('admin-variants');
 
@@ -367,6 +368,13 @@ export default function VariantTable() {
                 placeholder="https://..."
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
+              />
+              <GalleryPickerButton
+                onSelect={(urls) => {
+                  if (urls[0]) setImage(urls[0]);
+                }}
+                selectedUrls={image ? [image] : []}
+                label="Browse Gallery"
               />
             </div>
           </div>

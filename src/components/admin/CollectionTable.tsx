@@ -9,6 +9,7 @@ import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import GalleryPickerButton from './GalleryPickerButton';
 
 const collectionQueryKeys = createQueryKeys('admin-collections');
 
@@ -318,6 +319,13 @@ export default function CollectionTable() {
               placeholder="https://..."
               value={banner}
               onChange={(e) => setBanner(e.target.value)}
+            />
+            <GalleryPickerButton
+              onSelect={(urls) => {
+                if (urls[0]) setBanner(urls[0]);
+              }}
+              selectedUrls={banner ? [banner] : []}
+              label="Browse Gallery"
             />
           </div>
 

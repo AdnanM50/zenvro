@@ -69,7 +69,7 @@ const navItems: NavItemType[] = [
     ],
   },
   { label: "Reports", icon: BarChart3, href: "#" },
-  { label: "Media Library", icon: Images, href: "#" },
+  { label: "Media Library", icon: Images, href: "/admin/gallery" },
   { label: "Settings", icon: Settings, href: "#" },
 ];
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon, LibraryBig } from 'lucide-react';
+import GalleryPicker from './GalleryPicker';
 
 interface ImageUploadProps {
   value: string;
@@ -20,6 +21,7 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const upload = async (file: File) => {
@@ -73,6 +75,13 @@ export default function ImageUpload({
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-2">
             <button
               type="button"
+              onClick={() => setPickerOpen(true)}
+              className="px-3 py-1.5 bg-white text-black text-xs font-medium rounded-lg hover:bg-gray-100"
+            >
+              Browse Library
+            </button>
+            <button
+              type="button"
               onClick={() => inputRef.current?.click()}
               className="px-3 py-1.5 bg-white text-black text-xs font-medium rounded-lg hover:bg-gray-100"
             >
@@ -108,12 +117,42 @@ export default function ImageUpload({
         </div>
       )}
 
+      {/* Library + upload actions */}
+      <div className="flex items-center gap-2 mt-2">
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          <LibraryBig className="h-3.5 w-3.5" /> Browse Library
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Upload className="h-3.5 w-3.5" /> Upload
+          </button>
+        )}
+      </div>
+
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
         onChange={handleFileChange}
         className="hidden"
+      />
+
+      <GalleryPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(urls) => {
+          if (urls[0]) onChange(urls[0]);
+        }}
+        folder={folder}
+        selectedUrls={value ? [value] : []}
       />
     </div>
   );
