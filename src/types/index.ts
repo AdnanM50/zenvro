@@ -77,6 +77,13 @@ export type {
 } from './inventory';
 
 export type {
+  Testimonial,
+  CreateTestimonialPayload,
+  UpdateTestimonialPayload,
+  TestimonialListParams,
+} from './testimonial';
+
+export type {
   ApiResponseMeta,
   ApiSuccessResponse,
   ApiErrorResponse,

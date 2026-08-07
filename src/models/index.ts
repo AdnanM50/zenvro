@@ -14,3 +14,4 @@ export { CollectionModel } from './collection.model';
 export { CouponModel } from './coupon.model';
 export { ReviewModel } from './review.model';
 export { InventoryModel } from './inventory.model';
+export { TestimonialModel } from './testimonial.model';

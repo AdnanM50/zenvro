@@ -255,7 +255,8 @@ export default function InventoryTable() {
       <DataTable
         columns={columns}
         data={logs}
-        isLoading={isLoading}
+        keyExtractor={(item) => item._id}
+        loading={isLoading}
         emptyMessage="No inventory movement records found."
         pagination={{
           page: meta.page,
@@ -323,7 +324,7 @@ export default function InventoryTable() {
               <select
                 id="movementType"
                 value={movementType}
-                onChange={(e) => setMovementType(e.target.value as any)}
+                onChange={(e) => setMovementType(e.target.value as 'in' | 'out' | 'adjustment' | 'return' | 'damage')}
                 required
                 className="w-full mt-1.5 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
               >

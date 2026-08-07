@@ -239,6 +239,13 @@ export function useApiPut<TData, TPayload>({
   });
 }
 
+/**
+ * Alias for `useApiPut` — convenience export so callers can use
+ * `useApiPatch` when issuing HTTP PATCH requests. The hook is identical.
+ */
+export const useApiPatch = useApiPut;
+export type UseApiPatchParams<TData, TPayload> = UseApiPutParams<TData, TPayload>;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 4. useApiDelete — Generic DELETE hook
 // ═══════════════════════════════════════════════════════════════════════════

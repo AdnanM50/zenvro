@@ -28,7 +28,7 @@ const Hero = () => {
       className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-hidden min-h-[calc(100vh-72px)] flex flex-col"
     >
       <main className="relative flex-1  pb-1 flex items-start justify-center">
-        <div className="w-full max-w-[1340px] mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
+        <div className="w-full max-w-335 mx-auto px-6 md:px-12 relative grid grid-cols-1 md:grid-cols-12 items-center gap-8 md:gap-0">
           {/* Left Side Text Content */}
           <motion.div
             className="col-span-full md:col-span-4 z-20 flex flex-col justify-between h-full py-10 md:py-20 overflow-hidden"
@@ -45,7 +45,7 @@ const Hero = () => {
 
               <div className="space-y-8 md:space-y-12">
                 <p className="font-mono text-[10px] md:text-xs tracking-widest text-secondary uppercase font-bold">{"// FASHION"}</p>
-                <p className="text-sm leading-relaxed max-w-[240px] text-secondary">
+                <p className="text-sm leading-relaxed max-w-60 text-secondary">
                   Explore curated collections, exclusive drops, and everyday essentials all thoughtfully designed in one stylish shopping destination.
                 </p>
                 <div className="flex flex-col gap-1">

@@ -7,6 +7,7 @@ export {
   useApiGet,
   useApiPost,
   useApiPut,
+  useApiPatch,
   useApiDelete,
   createQueryKeys,
 } from './use-api';
@@ -15,6 +16,7 @@ export type {
   UseApiGetParams,
   UseApiPostParams,
   UseApiPutParams,
+  UseApiPatchParams,
   UseApiDeleteParams,
 } from './use-api';
 
