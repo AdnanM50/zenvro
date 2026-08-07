@@ -9,7 +9,7 @@ import { useCart } from "@/contexts/CartContext";
 
 const sectionLinks = [
   { label: "Home", href: "/#home" },
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about" },
   { label: "Testimonials", href: "/#testimonials" },
   { label: "Featured Product", href: "/#products" },
   { label: "Collections", href: "/#collections-section" },

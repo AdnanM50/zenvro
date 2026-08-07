@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 const Footer = () => {
     return (
@@ -72,7 +73,7 @@ const Footer = () => {
                         <div>
                             <p className="text-xs text-gray-500 mb-4">MENU</p>
                             <ul className="space-y-2 text-sm text-gray-400">
-                                <li><a href="#" className="hover:text-white transition">About</a></li>
+                                <li><Link href="/about" className="hover:text-white transition">About</Link></li>
                                 <li><a href="#" className="hover:text-white transition">Industries</a></li>
                                 <li><a href="#" className="hover:text-white transition">Product</a></li>
                                 <li><a href="#" className="hover:text-white transition">Categories</a></li>
