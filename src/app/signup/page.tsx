@@ -88,7 +88,7 @@ export default function SignupPage() {
           <p className="font-label text-[10px] md:text-xs tracking-widest text-primary-fixed uppercase font-bold mb-3">
             {"// JOIN US"}
           </p>
-          <h1 className="hero-text text-black">
+          <h1 className="hero-text text-on-surface">
             {step === 1 ? 'Create\nAccount' : 'Verify\nEmail'}
           </h1>
           {step === 1 ? (
@@ -118,7 +118,7 @@ export default function SignupPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
+                className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
                 placeholder="Enter your name"
               />
             </div>
@@ -135,7 +135,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
+                className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
                 placeholder="Enter your email"
               />
             </div>
@@ -153,7 +153,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
-                className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
+                className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
                 placeholder="Enter your password"
               />
             </div>
@@ -167,7 +167,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary text-white font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-background font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Sending OTP...' : 'Send OTP'}
             </button>
@@ -188,7 +188,7 @@ export default function SignupPage() {
                 maxLength={6}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all text-center text-2xl tracking-[0.3em] font-headline font-black disabled:opacity-50"
+                className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all text-center text-2xl tracking-[0.3em] font-headline font-black disabled:opacity-50"
                 placeholder="000000"
                 disabled={otpExpired}
               />
@@ -209,7 +209,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading || otp.length !== 6 || otpExpired}
-              className="w-full bg-primary text-white font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-background font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Verifying...' : 'Verify & Create Account'}
             </button>

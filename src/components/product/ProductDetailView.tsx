@@ -63,7 +63,7 @@ export default function ProductDetailView({
             <div>
               <Link
                 href="/#products"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant bg-white transition hover:bg-black hover:text-white"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant bg-background text-on-surface transition hover:bg-primary hover:text-background"
                 aria-label="Back to products"
               >
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -84,7 +84,7 @@ export default function ProductDetailView({
                 initial="hidden"
                 animate="visible"
                 custom={0.15}
-                className="mt-5 max-w-[720px] font-headline text-5xl font-black leading-[0.9] tracking-tight text-black md:text-7xl lg:text-8xl"
+                className="mt-5 max-w-[720px] font-headline text-5xl font-black leading-[0.9] tracking-tight text-on-surface md:text-7xl lg:text-8xl"
               >
                 {product.name}
               </motion.h1>
@@ -140,7 +140,7 @@ export default function ProductDetailView({
                   </p>
                   <p className="mt-1 text-lg font-black">Velour Direct</p>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-background">
                   <span className="material-symbols-outlined text-[20px]">verified</span>
                 </div>
               </div>
@@ -175,8 +175,8 @@ export default function ProductDetailView({
                       onClick={() => setSelectedSize(size)}
                       className={`h-12 border text-xs font-black transition ${
                         selectedSize === size
-                          ? "border-black bg-black text-white"
-                          : "border-outline-variant bg-white hover:border-black hover:bg-black hover:text-white"
+                          ? "border-primary bg-primary text-background"
+                          : "border-outline-variant bg-background text-on-surface hover:border-primary hover:bg-primary hover:text-background"
                       }`}
                     >
                       {size}
@@ -206,7 +206,7 @@ export default function ProductDetailView({
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToBag}
-                className="flex h-14 w-full items-center justify-center gap-3 bg-black px-6 font-label text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-lg dark:bg-white dark:text-black"
+                className="flex h-14 w-full items-center justify-center gap-3 bg-primary px-6 font-label text-[11px] font-black uppercase tracking-[0.2em] text-background shadow-lg hover:bg-primary-fixed hover:text-white transition-colors"
               >
                 Add to Bag
                 <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
@@ -269,7 +269,7 @@ export default function ProductDetailView({
                       whileTap={{ scale: 0.98 }}
                       className={`relative aspect-square overflow-hidden bg-surface-container border-2 transition ${
                         selectedImage === index
-                          ? "border-black"
+                          ? "border-primary"
                           : "border-transparent hover:border-outline-variant"
                       }`}
                     >
@@ -294,7 +294,7 @@ export default function ProductDetailView({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
                     onClick={() => setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-12 w-12 items-center justify-center rounded-full bg-white border border-outline-variant shadow-lg hidden lg:flex hover:bg-black hover:text-white transition"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-12 w-12 items-center justify-center rounded-full bg-background text-on-surface border border-outline-variant shadow-lg hidden lg:flex hover:bg-primary hover:text-background transition"
                     aria-label="Previous image"
                   >
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
@@ -305,7 +305,7 @@ export default function ProductDetailView({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
                     onClick={() => setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 h-12 w-12 items-center justify-center rounded-full bg-white border border-outline-variant shadow-lg hidden lg:flex hover:bg-black hover:text-white transition"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 h-12 w-12 items-center justify-center rounded-full bg-background text-on-surface border border-outline-variant shadow-lg hidden lg:flex hover:bg-primary hover:text-background transition"
                     aria-label="Next image"
                   >
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
@@ -318,7 +318,7 @@ export default function ProductDetailView({
       </section>
 
       {/* Rest of the sections remain the same */}
-      <section className="border-y border-outline-variant bg-white px-5 py-12 md:px-10 lg:px-16">
+      <section className="border-y border-outline-variant bg-background px-5 py-12 md:px-10 lg:px-16">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-10 lg:grid-cols-12">
           <motion.div
             variants={fadeUp}
@@ -382,11 +382,11 @@ export default function ProductDetailView({
 
               <form className="mt-6 space-y-3">
                 <textarea
-                  className="min-h-28 w-full resize-none border border-outline-variant bg-surface px-4 py-3 text-sm outline-none transition focus:border-black"
+                  className="min-h-28 w-full resize-none border border-outline-variant bg-surface px-4 py-3 text-sm text-on-surface placeholder:text-secondary outline-none transition focus:border-primary"
                   placeholder="Write a comment"
                   aria-label="Write a comment"
                 />
-                <button className="flex h-11 w-full items-center justify-center gap-2 bg-black font-label text-[11px] font-black uppercase tracking-[0.18em] text-white">
+                <button className="flex h-11 w-full items-center justify-center gap-2 bg-primary font-label text-[11px] font-black uppercase tracking-[0.18em] text-background hover:bg-primary-fixed hover:text-white transition-colors">
                   Post Comment
                   <span className="material-symbols-outlined text-[16px]">send</span>
                 </button>
@@ -428,7 +428,7 @@ export default function ProductDetailView({
           >
             {relatedProducts.map((related) => (
               <motion.article key={related.slug} variants={staggerItem}>
-                <Link href={`/products/${related.slug}`} className="group block border border-outline-variant bg-white">
+                <Link href={`/products/${related.slug}`} className="group block border border-outline-variant bg-background">
                   <div className="aspect-[4/5] overflow-hidden bg-surface-container">
                     <img
                       src={related.image}

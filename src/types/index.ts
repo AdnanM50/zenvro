@@ -71,6 +71,12 @@ export type {
 } from './review';
 
 export type {
+  InventoryItem,
+  CreateInventoryPayload,
+  InventoryListParams,
+} from './inventory';
+
+export type {
   ApiResponseMeta,
   ApiSuccessResponse,
   ApiErrorResponse,

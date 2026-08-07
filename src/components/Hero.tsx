@@ -23,6 +23,7 @@ const Hero = () => {
 
   return (
     <div
+      id="home"
       ref={heroRef}
       className="bg-background font-sans text-on-surface selection:bg-primary-fixed selection:text-white overflow-hidden min-h-[calc(100vh-72px)] flex flex-col"
     >

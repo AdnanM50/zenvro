@@ -13,7 +13,7 @@ import {
 
 const Testimonial = () => {
   return (
-    <section className="min-h-screen pt-24 pb-12 px-6 md:px-12 max-w-[1600px] mx-auto relative overflow-hidden">
+    <section id="testimonials" className="min-h-screen pt-24 pb-12 px-6 md:px-12 max-w-[1600px] mx-auto relative overflow-hidden">
       {/* Header Indicators */}
       <motion.div
         className="flex justify-between items-start mb-16"

@@ -36,7 +36,7 @@ export default function LoginPage() {
           <p className="font-label text-[10px] md:text-xs tracking-widest text-primary-fixed uppercase font-bold mb-3">
             {"// SIGN IN"}
           </p>
-          <h1 className="hero-text text-black">
+          <h1 className="hero-text text-on-surface">
             Welcome<br />Back
           </h1>
           <p className="font-body text-sm text-secondary mt-4">
@@ -60,7 +60,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
+              className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
               placeholder="Enter your email"
             />
           </div>
@@ -77,7 +77,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
+              className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:border-primary-fixed rounded-xl text-sm transition-all"
               placeholder="Enter your password"
             />
           </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary text-white font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-background font-label text-[11px] font-black uppercase tracking-[0.2em] py-3.5 rounded-xl hover:bg-primary-fixed hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Signing in...' : 'Sign in'}
           </button>

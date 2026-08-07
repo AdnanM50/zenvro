@@ -45,7 +45,7 @@ function RevealHeading({ text, className }: { text: string; className?: string }
 
 const About = () => {
   return (
-    <section className="pt-12 md:pt-24 pb-12 px-6 max-w-[1440px] mx-auto min-h-screen">
+    <section id="about" className="pt-12 md:pt-24 pb-12 px-6 max-w-[1440px] mx-auto min-h-screen">
       {/* Hero Editorial Section */}
       <div className="editorial-grid md:min-h-[870px]">
         {/* Left Editorial Column */}

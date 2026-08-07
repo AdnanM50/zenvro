@@ -50,7 +50,7 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white overflow-x-hidden bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200">
+      <body className="min-h-full flex flex-col font-sans selection:bg-[#ff5c00] selection:text-white overflow-x-hidden bg-background text-foreground transition-colors duration-200">
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
