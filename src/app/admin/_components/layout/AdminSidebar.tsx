@@ -58,7 +58,7 @@ const navItems: NavItemType[] = [
   { label: "Coupons", icon: TicketPercent, href: "/admin/coupons" },
   { label: "Inventory", icon: Boxes, href: "/admin/inventory" },
   { label: "Marketing", icon: Megaphone, href: "#" },
-  { label: "CMS", icon: FileText, href: "#" },
+  { label: "CMS", icon: FileText, href: "/admin/cms/pages" },
   {
     label: "SEO",
     icon: Search,

@@ -84,9 +84,21 @@ export type {
 } from './testimonial';
 
 export type {
+  Page,
+  PageSection,
+  PageSEO,
+  PageStatus,
+  SectionType,
+  CreatePagePayload,
+  UpdatePagePayload,
+  PageListParams,
+} from './page';
+
+export type {
   ApiResponseMeta,
   ApiSuccessResponse,
   ApiErrorResponse,
   ApiResponseEnvelope,
 } from './api';
 export { ApiError } from './api';
+

@@ -92,10 +92,10 @@ const Footer = () => {
                     <div className="mt-8">
                         <p className="text-xs text-gray-500 mb-4">CART</p>
                         <ul className="space-y-2 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                            <li><a href="#" className="hover:text-white transition">Contact</a></li>
-                            <li><a href="#" className="hover:text-white transition">Terms</a></li>
-                            <li><a href="#" className="hover:text-white transition">Tutorials</a></li>
+                            <li><Link href="/contact" className="hover:text-white transition">Contact</Link></li>
+                            <li><Link href="/terms" className="hover:text-white transition">Terms</Link></li>
+                            <li><Link href="/privacy" className="hover:text-white transition">Privacy</Link></li>
+                            <li><Link href="/about" className="hover:text-white transition">About</Link></li>
                         </ul>
                     </div>
                 </div>
@@ -104,8 +104,8 @@ const Footer = () => {
             {/* Bottom Bar */}
             <div className="max-w-7xl mx-auto mt-24 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
                 <div className="flex gap-8 mb-4 md:mb-0">
-                    <a href="#" className="hover:text-white transition">Terms & Conditions</a>
-                    <a href="#" className="hover:text-white transition">Privacy Policy</a>
+                    <Link href="/terms" className="hover:text-white transition">Terms & Conditions</Link>
+                    <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
                 </div>
                 <p>© 2026 Velour. All rights reserved.</p>
             </div>
