@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
-import CategoryTable from '@/components/admin/CategoryTable';
+import CategoryTable from '@/app/admin/categories/_component/CategoryTable';
 import type { Category } from '@/types';
 
 function makeCategory(overrides: Partial<Category> = {}): Category {

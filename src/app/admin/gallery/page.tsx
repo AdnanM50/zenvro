@@ -1,4 +1,4 @@
-import GalleryTable from '@/components/admin/GalleryTable';
+import GalleryTable from '@/app/admin/gallery/_components/GalleryTable';
 
 export default function AdminGalleryPage() {
   return (

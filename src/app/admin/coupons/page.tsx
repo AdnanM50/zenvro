@@ -1,4 +1,4 @@
-import CouponTable from '@/components/admin/CouponTable';
+import CouponTable from '@/app/admin/coupons/_components/CouponTable';
 
 export default function AdminCouponsPage() {
   return (

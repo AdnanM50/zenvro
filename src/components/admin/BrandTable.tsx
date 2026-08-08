@@ -6,10 +6,10 @@ import type { Brand } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getBrands, createBrand, updateBrand, deleteBrand } from '@/services/brand.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
-import Modal from '@/components/ui/Modal';
+import Modal from '@/app/admin/_components/common/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import GalleryPickerButton from './GalleryPickerButton';
+import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
 
 const brandQueryKeys = createQueryKeys('admin-brands');
 

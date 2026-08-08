@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import GalleryPicker from '@/components/admin/GalleryPicker';
+import GalleryPicker from '@/app/admin/gallery/_components/GalleryPicker';
 import { getGallery, createGalleryItem } from '@/services/gallery.service';
 import toast from 'react-hot-toast';
 

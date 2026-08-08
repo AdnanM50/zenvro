@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { Category } from '@/types';
 import { useApiGet, createQueryKeys } from '@/hooks';
 import { getCategories } from '@/services/category.service';
-import CategoryTable from '@/components/admin/CategoryTable';
+import CategoryTable from '@/app/admin/categories/_component/CategoryTable';
 
 const PAGE_SIZE = 20;
 

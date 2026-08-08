@@ -1,4 +1,4 @@
-import AttributeTable from '@/components/admin/AttributeTable';
+import AttributeTable from '@/app/admin/attributes/_components/AttributeTable';
 
 export default function AdminAttributesPage() {
   return (

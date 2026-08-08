@@ -12,7 +12,7 @@ import {
   type UpdateCategoryPayload,
 } from '@/services/category.service';
 import CategoryRow from './CategoryRow';
-import Pagination from '@/components/ui/pagination';
+import Pagination from '@/app/admin/_components/common/pagination';
 import CategoryFormModal from './CategoryFormModal';
 
 interface CategoryFormData {

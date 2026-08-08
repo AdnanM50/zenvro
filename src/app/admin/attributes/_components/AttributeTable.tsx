@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Sliders, Plus, Edit3, Trash2 } from 'lucide-react';
-import type { Attribute } from '@/types';
+import type { Attribute, CreateAttributePayload } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getAttributes, createAttribute, updateAttribute, deleteAttribute } from '@/services/attribute.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
-import Modal from '@/components/ui/Modal';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import Modal from '@/app/admin/_components/common/Modal';
+import AttributeForm, { AttributeFormHandle } from './AttributeForm';
 
 const attributeQueryKeys = createQueryKeys('admin-attributes');
 
@@ -19,9 +18,8 @@ export default function AttributeTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<Attribute | null>(null);
-  const [name, setName] = useState('');
-  const [valuesInput, setValuesInput] = useState('');
-  const [isVariant, setIsVariant] = useState(true);
+
+  const formRef = useRef<AttributeFormHandle>(null);
 
   // Fetch Attributes using generic React Query hook
   const { data: attributeResponse, isLoading, refetch } = useApiGet<Attribute[]>({
@@ -70,43 +68,20 @@ export default function AttributeTable() {
 
   const openCreateModal = () => {
     setEditingAttribute(null);
-    setName('');
-    setValuesInput('');
-    setIsVariant(true);
     setModalOpen(true);
   };
 
   const openEditModal = (attr: Attribute) => {
     setEditingAttribute(attr);
-    setName(attr.name);
-    setValuesInput(attr.values ? attr.values.join(', ') : '');
-    setIsVariant(attr.isVariant);
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setEditingAttribute(null);
-    setName('');
-    setValuesInput('');
-    setIsVariant(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    const parsedValues = valuesInput
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const payload = {
-      name,
-      values: parsedValues,
-      isVariant,
-    };
-
+  const handleSubmit = (payload: CreateAttributePayload) => {
     if (editingAttribute) {
       updateMutation.mutate({ _id: editingAttribute._id, ...payload });
     } else {
@@ -249,7 +224,7 @@ export default function AttributeTable() {
             </button>
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={() => formRef.current?.submit()}
               disabled={createMutation.isPending || updateMutation.isPending}
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
             >
@@ -258,40 +233,12 @@ export default function AttributeTable() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="attr-name">Attribute Name</Label>
-            <Input
-              id="attr-name"
-              placeholder="e.g. Size, Color, Ram"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="attr-values">Option Values (Comma separated)</Label>
-            <Input
-              id="attr-values"
-              placeholder="e.g. Small, Medium, Large, XL"
-              value={valuesInput}
-              onChange={(e) => setValuesInput(e.target.value)}
-            />
-            <p className="text-[11px] text-gray-400">Separate each option with a comma.</p>
-          </div>
-
-          <div className="flex items-center gap-2 pt-2">
-            <input
-              type="checkbox"
-              id="attr-variant"
-              checked={isVariant}
-              onChange={(e) => setIsVariant(e.target.checked)}
-              className="rounded text-black focus:ring-0"
-            />
-            <Label htmlFor="attr-variant">Use for Product Variants</Label>
-          </div>
-        </form>
+        <AttributeForm
+          key={editingAttribute?._id ?? 'create'}
+          ref={formRef}
+          attribute={editingAttribute}
+          onSubmit={handleSubmit}
+        />
       </Modal>
     </>
   );

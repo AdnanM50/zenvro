@@ -3,8 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Images, Upload, Link2, Loader2, Search, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Modal from '@/components/ui/Modal';
-import Pagination from '@/components/ui/pagination';
+import Modal from '@/app/admin/_components/common/Modal';
+import Pagination from '@/app/admin/_components/common/pagination';
 import type { GalleryItem } from '@/types';
 import { useApiGet, useApiPost, createQueryKeys } from '@/hooks';
 import { getGallery, createGalleryItem } from '@/services/gallery.service';

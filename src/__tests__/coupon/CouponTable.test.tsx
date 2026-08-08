@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
-import CouponTable from '@/components/admin/CouponTable';
+import CouponTable from '@/app/admin/coupons/_components/CouponTable';
 import {
   getCoupons,
   createCoupon,

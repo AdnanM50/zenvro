@@ -6,10 +6,10 @@ import type { Variant } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getVariants, createVariant, updateVariant, deleteVariant } from '@/services/variant.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
-import Modal from '@/components/ui/Modal';
+import Modal from '@/app/admin/_components/common/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import GalleryPickerButton from './GalleryPickerButton';
+import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
 
 const variantQueryKeys = createQueryKeys('admin-variants');
 

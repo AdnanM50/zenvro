@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, LibraryBig } from 'lucide-react';
-import GalleryPicker from './GalleryPicker';
+import GalleryPicker from '../../app/admin/gallery/_components/GalleryPicker';
 
 interface ImageUploadProps {
   value: string;

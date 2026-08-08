@@ -17,7 +17,7 @@ import { getProduct, createProduct, updateProduct } from '@/services/product.ser
 import Stepper, { StepperStep } from '@/components/ui/Stepper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import GalleryPickerButton from './GalleryPickerButton';
+import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
 
 const productQueryKeys = createQueryKeys('admin-products');
 

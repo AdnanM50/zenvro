@@ -7,7 +7,7 @@ import { useApiGet, useApiPost, useApiDelete, createQueryKeys } from '@/hooks';
 import { getInventoryLogs, createInventoryLog, deleteInventoryLog } from '@/services/inventory.service';
 import { getProducts } from '@/services/product.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
-import Modal from '@/components/ui/Modal';
+import Modal from '@/app/admin/_components/common/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 

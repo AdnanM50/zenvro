@@ -11,10 +11,10 @@ import {
   deleteTestimonial,
 } from '@/services/testimonial.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
-import Modal from '@/components/ui/Modal';
+import Modal from '@/app/admin/_components/common/Modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import GalleryPickerButton from './GalleryPickerButton';
+import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
 
 const testimonialQueryKeys = createQueryKeys('admin-testimonials');
 

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import CategoryRow from '@/components/admin/CategoryRow';
+import CategoryRow from '@/app/admin/categories/_component/CategoryRow';
 import type { Category } from '@/types';
 
 function makeCategory(overrides: Partial<Category> = {}): Category {
