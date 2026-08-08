@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Images, Upload, Link2, Search, Loader2, Copy, Check, Pencil, Trash2 } from 'lucide-react';
+import { Images, Upload, Link2, Search, Loader2, Eye, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '@/app/admin/_components/common/Modal';
 import Pagination from '@/app/admin/_components/common/pagination';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { GalleryItem } from '@/types';
-import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
-import { getGallery, createGalleryItem, updateGalleryItem, deleteGalleryItem } from '@/services/gallery.service';
-
-const galleryQueryKeys = createQueryKeys('admin-gallery');
+import {
+  useGetGalleryItems,
+  useCreateGalleryItem,
+  useUpdateGalleryItem,
+  useDeleteGalleryItem,
+} from '@/hooks';
 
 function isValidUrl(value: string): boolean {
   try {
@@ -27,51 +29,37 @@ export default function GalleryTable() {
   const [limit, setLimit] = useState(24);
   const [search, setSearch] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [urlModalOpen, setUrlModalOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+
+  const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editAlt, setEditAlt] = useState('');
 
-  const { data: galleryResponse, isLoading, refetch } = useApiGet<GalleryItem[]>({
-    queryKey: galleryQueryKeys.list({ search, page, limit }),
-    queryFn: () => getGallery({ page, limit, search }),
+  const { data: galleryResponse, isLoading } = useGetGalleryItems({
+    params: { search, page, limit },
   });
 
   const items = galleryResponse?.data || [];
   const meta = galleryResponse?.meta || { page: 1, limit: 24, total: 0, totalPages: 1 };
 
-  const createMutation = useApiPost<GalleryItem, { url: string; publicId?: string; source: 'upload' | 'url' }>({
-    mutationFn: createGalleryItem,
-    invalidateKeys: [galleryQueryKeys.all, galleryQueryKeys.lists()],
-    successMessage: 'Image added to gallery',
-    options: { onSuccess: () => refetch() },
-  });
+  const createMutation = useCreateGalleryItem();
 
-  const updateMutation = useApiPut({
-    mutationFn: updateGalleryItem,
-    invalidateKeys: [galleryQueryKeys.all, galleryQueryKeys.lists()],
-    successMessage: 'Image details updated',
+  const updateMutation = useUpdateGalleryItem({
     options: {
       onSuccess: () => {
         setEditModalOpen(false);
         setEditingItem(null);
-        refetch();
       },
     },
   });
 
-  const deleteMutation = useApiDelete({
-    mutationFn: deleteGalleryItem,
-    invalidateKeys: [galleryQueryKeys.all, galleryQueryKeys.lists()],
-    successMessage: 'Image deleted from gallery',
-    options: { onSuccess: () => refetch() },
-  });
+  const deleteMutation = useDeleteGalleryItem();
 
   const upload = async (file: File) => {
     setUploading(true);
@@ -121,13 +109,8 @@ export default function GalleryTable() {
     );
   };
 
-  const handleCopy = (item: GalleryItem) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(item.url).then(() => {
-        setCopiedId(item._id);
-        setTimeout(() => setCopiedId(null), 1500);
-      });
-    }
+  const openPreview = (item: GalleryItem) => {
+    setPreviewItem(item);
   };
 
   const openEditModal = (item: GalleryItem) => {
@@ -242,11 +225,11 @@ export default function GalleryTable() {
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => handleCopy(item)}
-                      title="Copy URL"
+                      onClick={() => openPreview(item)}
+                      title="Preview"
                       className="p-1.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                      {copiedId === item._id ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      <Eye className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
@@ -328,6 +311,55 @@ export default function GalleryTable() {
             />
           </div>
         </div>
+      </Modal>
+
+      {/* Preview modal */}
+      <Modal
+        isOpen={Boolean(previewItem)}
+        onClose={() => setPreviewItem(null)}
+        title="Preview Image"
+        maxWidth="4xl"
+        footer={
+          previewItem && (
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const item = previewItem;
+                  setPreviewItem(null);
+                  openEditModal(item);
+                }}
+                className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200"
+              >
+                Edit
+              </button>
+            </div>
+          )
+        }
+      >
+        {previewItem && (
+          <div className="flex flex-col gap-4">
+            <img
+              src={previewItem.url}
+              alt={previewItem.altText || previewItem.title || 'Gallery image'}
+              className="w-full max-h-[60vh] object-contain rounded-xl border border-gray-200 dark:border-gray-800 bg-black/5 dark:bg-black/20"
+            />
+            <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="font-medium text-gray-700 dark:text-gray-200">
+                {previewItem.title || 'Untitled'}
+              </p>
+              <p>{previewItem.altText || 'No alt text'}</p>
+              <p className="truncate">{previewItem.url}</p>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Edit modal */}

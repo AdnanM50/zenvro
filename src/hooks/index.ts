@@ -58,6 +58,15 @@ export {
   wishlistKeys,
 } from './use-wishlist';
 
+// ── Gallery-specific hooks (pre-built convenience hooks) ───────────────────
+export {
+  useGetGalleryItems,
+  useCreateGalleryItem,
+  useUpdateGalleryItem,
+  useDeleteGalleryItem,
+  galleryKeys,
+} from './use-gallery';
+
 // ── User-specific hooks (pre-built convenience hooks) ──────────────────────
 export {
   useGetUsers,
