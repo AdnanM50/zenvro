@@ -7,7 +7,7 @@ import { getPages, createPage, updatePage, deletePage } from '@/services/page.se
 import PageListSidebar from './_components/PageListSidebar';
 import PageEditor from './_components/PageEditor';
 import CreatePageModal from './_components/CreatePageModal';
-import { FileText, Sparkles } from 'lucide-react';
+import { FileText, Sparkles, ChevronDown, PanelLeftClose, PanelLeftOpen, Layers } from 'lucide-react';
 
 const pageQueryKeys = createQueryKeys('admin-cms-pages');
 
@@ -15,6 +15,8 @@ export default function AdminCmsPagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activePageId, setActivePageId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
 
   // Fetch all CMS pages
   const { data: pagesResponse, isLoading, refetch } = useApiGet<Page[]>({
@@ -95,19 +97,59 @@ export default function AdminCmsPagesPage() {
   };
 
   return (
-    <div className="flex-1 p-4 sm:p-6 flex flex-col h-[calc(100vh-70px)] overflow-hidden">
-      {/* Top Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">CMS Page & Section Control</h1>
-          <p className="text-xs text-gray-500">
-            Dynamically configure page sections, content blocks, and SEO metadata.
-          </p>
+    <div className="flex-1 flex flex-col space-y-4">
+      {/* Top Header Card with Collapse Features */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-xs flex items-center justify-between transition-all duration-300">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-sm shrink-0">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+              CMS Page & Section Control
+            </h1>
+            {!isHeaderCollapsed && (
+              <p className="text-xs text-gray-500 transition-all duration-300">
+                Dynamically configure page sections, content blocks, and SEO metadata.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Toggle Sidebar Collapse */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl transition border border-gray-200"
+            title={isSidebarCollapsed ? 'Expand Page Sidebar' : 'Collapse Page Sidebar'}
+          >
+            {isSidebarCollapsed ? (
+              <PanelLeftOpen className="w-4 h-4 text-orange-600" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4 text-gray-500" />
+            )}
+            <span className="hidden sm:inline">
+              {isSidebarCollapsed ? 'Show Pages' : 'Hide Pages'}
+            </span>
+          </button>
+
+          {/* Toggle Header Subtitle Collapse */}
+          <button
+            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition"
+            title={isHeaderCollapsed ? 'Expand Header Info' : 'Collapse Header Info'}
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-300 ${
+                isHeaderCollapsed ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </button>
         </div>
       </div>
 
       {/* Main Content Layout */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-5 min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-5">
         {/* Left Sub-Sidebar */}
         <PageListSidebar
           pages={pages}
@@ -117,6 +159,8 @@ export default function AdminCmsPagesPage() {
           onSearchChange={setSearchQuery}
           onOpenCreateModal={() => setIsCreateModalOpen(true)}
           isLoading={isLoading}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
         {/* Right Main Editor Workspace */}

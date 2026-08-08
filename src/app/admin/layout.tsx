@@ -12,9 +12,9 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <div className="h-screen w-full bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-200 overflow-hidden">
       <div
-        className="max-w-[1440px] mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-hidden flex min-h-[calc(100vh-2rem)] lg:min-h-[900px] border-x border-gray-200 dark:border-gray-800 shadow-sm"
+        className="max-w-[1440px] mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-hidden flex h-full border-x border-gray-200 dark:border-gray-800 shadow-sm relative"
       >
         {/* Mobile Overlay */}
         {sidebarOpen && (
@@ -27,11 +27,11 @@ export default function AdminLayout({
         <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col min-w-0 min-h-[calc(100vh-2rem)] lg:min-h-0">
+        <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
           <AdminHeader onOpenSidebar={() => setSidebarOpen(true)} />
 
           {/* Page Content */}
-          <div className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" data-lenis-prevent>
             {children}
           </div>
         </main>

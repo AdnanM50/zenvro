@@ -6,7 +6,7 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
   return (
-    <header className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8 pb-0 lg:pb-0">
+    <header className="sticky top-0 z-30 shrink-0 flex items-center gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-800/80">
       {/* Mobile hamburger */}
       <button
         className="lg:hidden text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white p-2 -ml-2 shrink-0"

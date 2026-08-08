@@ -152,15 +152,16 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
 
   return (
     <aside
+      data-lenis-prevent
       className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800
+        fixed inset-y-0 left-0 z-50 w-72 h-full bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800
         flex flex-col justify-between p-5
         transform transition-transform duration-300 ease-in-out
-        lg:static lg:translate-x-0 lg:w-64 lg:p-6 lg:shrink-0
+        lg:static lg:translate-x-0 lg:w-64 lg:h-full lg:p-6 lg:shrink-0
         ${open ? "translate-x-0" : "-translate-x-full"}
       `}
     >
-      <div className="overflow-y-auto flex-1 -mr-2 pr-2">
+      <div className="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2" data-lenis-prevent>
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8 lg:mb-10">
           <div className="w-9 h-9 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center font-bold text-lg shrink-0">

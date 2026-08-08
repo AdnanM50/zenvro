@@ -112,18 +112,23 @@
 }
 
 @layer base {
+  *, *::before, *::after {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
   html, body {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   html {
     scroll-behavior: smooth;
-  }
-  
-  html::-webkit-scrollbar, body::-webkit-scrollbar {
-    display: none;
   }
 
   body {

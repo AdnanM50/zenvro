@@ -320,7 +320,7 @@ export default function PageEditor({
       </div>
 
       {/* Workspace Area */}
-      <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-gray-50/40">
+      <div className="flex-1 p-4 sm:p-6 bg-gray-50/40">
         {/* SECTIONS TAB */}
         {activeTab === 'sections' && (
           <div className="space-y-4 max-w-4xl mx-auto">
