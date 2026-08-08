@@ -226,7 +226,7 @@ export default function GalleryTable() {
               {items.map((item) => (
                 <div
                   key={item._id}
-                  className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800"
+                  className="group relative aspect-square rounded-sm overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800"
                 >
                   <img
                     src={item.url}
