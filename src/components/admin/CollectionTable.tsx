@@ -7,6 +7,7 @@ import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from 
 import { getCollections, createCollection, updateCollection, deleteCollection } from '@/services/collection.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
@@ -20,6 +21,7 @@ export default function CollectionTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<CollectionItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [banner, setBanner] = useState('');
@@ -131,8 +133,13 @@ export default function CollectionTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this collection?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -372,6 +379,13 @@ export default function CollectionTable() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this collection? This action cannot be undone."
+      />
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
 } from '@/services/testimonial.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
@@ -25,6 +26,7 @@ export default function TestimonialTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // Form Fields
   const [name, setName] = useState('');
@@ -140,8 +142,13 @@ export default function TestimonialTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this testimonial?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -444,6 +451,13 @@ export default function TestimonialTable() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this testimonial? This action cannot be undone."
+      />
     </div>
   );
 }

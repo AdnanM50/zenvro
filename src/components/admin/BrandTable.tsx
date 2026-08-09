@@ -7,6 +7,7 @@ import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from 
 import { getBrands, createBrand, updateBrand, deleteBrand } from '@/services/brand.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
@@ -20,6 +21,7 @@ export default function BrandTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [logo, setLogo] = useState('');
@@ -121,8 +123,13 @@ export default function BrandTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this brand?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -325,6 +332,13 @@ export default function BrandTable() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this brand? This action cannot be undone."
+      />
     </>
   );
 }

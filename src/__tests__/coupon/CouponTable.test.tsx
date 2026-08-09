@@ -253,11 +253,13 @@ describe('CouponTable', () => {
   describe('delete flow', () => {
     it('calls deleteCoupon after confirmation', async () => {
       mockedDeleteCoupon.mockResolvedValue({ success: true, message: 'ok', data: null });
-      window.confirm = jest.fn(() => true);
       renderWithClient(<CouponTable />);
 
       await screen.findByText('Summer Sale');
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      const confirmButtons = screen.getAllByRole('button', { name: 'Delete' });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
 
       await waitFor(() => {
         expect(mockedDeleteCoupon).toHaveBeenCalledWith('c-1', expect.anything());
@@ -265,11 +267,12 @@ describe('CouponTable', () => {
     });
 
     it('does not call deleteCoupon when confirmation is cancelled', async () => {
-      window.confirm = jest.fn(() => false);
       renderWithClient(<CouponTable />);
 
       await screen.findByText('Summer Sale');
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
       await waitFor(() => {
         expect(mockedDeleteCoupon).not.toHaveBeenCalled();

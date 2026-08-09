@@ -7,6 +7,7 @@ import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from 
 import { getVariants, createVariant, updateVariant, deleteVariant } from '@/services/variant.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
@@ -30,6 +31,7 @@ export default function VariantTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [sku, setSku] = useState('');
   const [attributeRows, setAttributeRows] = useState<AttributeRow[]>([emptyAttributeRow()]);
   const [price, setPrice] = useState('');
@@ -171,8 +173,13 @@ export default function VariantTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this variant?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -473,6 +480,13 @@ export default function VariantTable() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this variant? This action cannot be undone."
+      />
     </>
   );
 }

@@ -14,6 +14,7 @@ import {
 import CategoryRow from './CategoryRow';
 import Pagination from '@/app/admin/_components/common/pagination';
 import CategoryFormModal from './CategoryFormModal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 
 interface CategoryFormData {
   name: string;
@@ -93,6 +94,7 @@ export default function CategoryTable({
   const [initialData, setInitialData] = useState<Partial<CategoryFormData> | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const invalidateKeys = [categoryKeys.lists()];
 
@@ -187,9 +189,14 @@ export default function CategoryTable({
   };
 
   const handleDelete = (_id: string) => {
-    if (onDelete) { onDelete(_id); return; }
-    if (!confirm('Delete this category and all its subcategories?')) return;
-    deleteMutation.mutate(_id);
+    setDeleteTarget(_id);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    if (onDelete) { onDelete(deleteTarget); }
+    else { deleteMutation.mutate(deleteTarget); }
+    setDeleteTarget(null);
   };
 
   const handleToggleActive = (_id: string) => {
@@ -312,6 +319,13 @@ export default function CategoryTable({
         saving={saving}
         error={error}
         categories={categories}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Delete this category and all its subcategories? This action cannot be undone."
       />
     </div>
   );

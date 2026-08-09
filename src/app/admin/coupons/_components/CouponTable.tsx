@@ -17,6 +17,7 @@ import {
 } from '@/services/coupon.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import CouponForm, { CouponFormHandle } from './CouponForm';
 
 const couponQueryKeys = createQueryKeys('admin-coupons');
@@ -39,6 +40,7 @@ export default function CouponTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const formRef = useRef<CouponFormHandle>(null);
 
@@ -109,8 +111,13 @@ export default function CouponTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this coupon?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -290,6 +297,13 @@ export default function CouponTable() {
           onSubmit={handleSubmit}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this coupon? This action cannot be undone."
+      />
     </>
   );
 }

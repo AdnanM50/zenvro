@@ -199,11 +199,13 @@ describe('ProductTable', () => {
   describe('delete flow', () => {
     it('calls deleteProduct after confirmation', async () => {
       mockedDeleteProduct.mockResolvedValue({ success: true, message: 'ok', data: null });
-      window.confirm = jest.fn(() => true);
       renderWithClient(<ProductTable />);
 
       await screen.findByText('Classic Tee');
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      const confirmButtons = screen.getAllByRole('button', { name: 'Delete' });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
 
       await waitFor(() => {
         expect(mockedDeleteProduct).toHaveBeenCalledWith('p-1', expect.anything());
@@ -211,11 +213,12 @@ describe('ProductTable', () => {
     });
 
     it('does not call deleteProduct when confirmation is cancelled', async () => {
-      window.confirm = jest.fn(() => false);
       renderWithClient(<ProductTable />);
 
       await screen.findByText('Classic Tee');
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
       await waitFor(() => {
         expect(mockedDeleteProduct).not.toHaveBeenCalled();

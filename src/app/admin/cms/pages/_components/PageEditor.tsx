@@ -22,6 +22,7 @@ import {
 import type { Page, PageSection, PageSEO, SectionType, PageStatus } from '@/types';
 import SectionItemEditor from './SectionItemEditor';
 import PageSeoForm from './PageSeoForm';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 
 interface PageEditorProps {
   page: Page;
@@ -49,6 +50,7 @@ export default function PageEditor({
   const [sections, setSections] = useState<PageSection[]>(page.sections || []);
   const [seo, setSeo] = useState<PageSEO>(page.seo || { metaTitle: '', metaDescription: '' });
   const [isAddSectionMenuOpen, setIsAddSectionMenuOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Sync internal state when active page prop changes
   useEffect(() => {
@@ -462,11 +464,7 @@ export default function PageEditor({
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm(`Are you sure you want to delete "${title}"?`)) {
-                    onDeletePage(page._id);
-                  }
-                }}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="px-3.5 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl transition shadow-sm"
               >
                 Delete Page
@@ -475,6 +473,16 @@ export default function PageEditor({
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteConfirm(false);
+          onDeletePage(page._id);
+        }}
+        description={`Are you sure you want to delete "${title}"? This action cannot be undone.`}
+      />
     </div>
   );
 }

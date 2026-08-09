@@ -221,11 +221,13 @@ describe('VariantTable', () => {
   describe('delete flow', () => {
     it('calls deleteVariant after confirmation', async () => {
       mockedDeleteVariant.mockResolvedValue({ success: true, message: 'ok', data: null });
-      window.confirm = jest.fn(() => true);
       renderWithClient(<VariantTable />);
 
       await screen.findByText('TSH-BLK-XL');
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      const confirmButtons = screen.getAllByRole('button', { name: 'Delete' });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
 
       await waitFor(() => {
         expect(mockedDeleteVariant).toHaveBeenCalledWith('v-1', expect.anything());
@@ -233,11 +235,12 @@ describe('VariantTable', () => {
     });
 
     it('does not call deleteVariant when confirmation is cancelled', async () => {
-      window.confirm = jest.fn(() => false);
       renderWithClient(<VariantTable />);
 
       await screen.findByText('TSH-BLK-XL');
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
       await waitFor(() => {
         expect(mockedDeleteVariant).not.toHaveBeenCalled();

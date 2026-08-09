@@ -7,6 +7,7 @@ import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from 
 import { getAttributes, createAttribute, updateAttribute, deleteAttribute } from '@/services/attribute.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import AttributeForm, { AttributeFormHandle } from './AttributeForm';
 
 const attributeQueryKeys = createQueryKeys('admin-attributes');
@@ -18,6 +19,7 @@ export default function AttributeTable() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<Attribute | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const formRef = useRef<AttributeFormHandle>(null);
 
@@ -90,8 +92,13 @@ export default function AttributeTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this attribute?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -240,6 +247,13 @@ export default function AttributeTable() {
           onSubmit={handleSubmit}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this attribute? This action cannot be undone."
+      />
     </>
   );
 }

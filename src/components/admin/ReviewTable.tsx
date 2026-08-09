@@ -11,6 +11,7 @@ import {
 } from '@/services/review.service';
 import { useUpdateReviewApproval, useDeleteReview } from '@/hooks';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 
 const statusTones: Record<ReviewStatus, string> = {
   pending: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
@@ -34,6 +35,7 @@ export default function ReviewTable() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: response, isLoading, refetch } = useApiGet<Review[]>({
     queryKey: ['admin-reviews', 'list', { search, page, limit }],
@@ -67,8 +69,13 @@ export default function ReviewTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this review?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -172,32 +179,41 @@ export default function ReviewTable() {
   ];
 
   return (
-    <DataTable
-      title="Reviews"
-      description="Moderate customer reviews, approve or reject submissions."
-      columns={columns}
-      data={reviews}
-      keyExtractor={(r) => r._id}
-      loading={isLoading}
-      emptyMessage="No reviews found"
-      emptyIcon={<MessageSquare className="h-10 w-10 mb-2 text-gray-400 opacity-50" />}
-      search={{
-        value: search,
-        onChange: setSearch,
-        placeholder: 'Search reviews...',
-      }}
-      pagination={{
-        page: meta.page,
-        limit: meta.limit,
-        total: meta.total,
-        totalPages: meta.totalPages,
-        onPageChange: setPage,
-        onLimitChange: (newLimit) => {
-          setLimit(newLimit);
-          setPage(1);
-        },
-        itemUnitName: 'reviews',
-      }}
-    />
+    <>
+      <DataTable
+        title="Reviews"
+        description="Moderate customer reviews, approve or reject submissions."
+        columns={columns}
+        data={reviews}
+        keyExtractor={(r) => r._id}
+        loading={isLoading}
+        emptyMessage="No reviews found"
+        emptyIcon={<MessageSquare className="h-10 w-10 mb-2 text-gray-400 opacity-50" />}
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: 'Search reviews...',
+        }}
+        pagination={{
+          page: meta.page,
+          limit: meta.limit,
+          total: meta.total,
+          totalPages: meta.totalPages,
+          onPageChange: setPage,
+          onLimitChange: (newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          },
+          itemUnitName: 'reviews',
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this review? This action cannot be undone."
+      />
+    </>
   );
 }

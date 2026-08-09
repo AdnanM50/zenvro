@@ -5,6 +5,7 @@ import { Images, Upload, Link2, Search, Loader2, Eye, Pencil, Trash2 } from 'luc
 import toast from 'react-hot-toast';
 import Modal from '@/app/admin/_components/common/Modal';
 import Pagination from '@/app/admin/_components/common/pagination';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { GalleryItem } from '@/types';
@@ -40,6 +41,8 @@ export default function GalleryTable() {
   const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editAlt, setEditAlt] = useState('');
+
+  const [deleteTarget, setDeleteTarget] = useState<GalleryItem | null>(null);
 
   const { data: galleryResponse, isLoading } = useGetGalleryItems({
     params: { search, page, limit },
@@ -130,8 +133,13 @@ export default function GalleryTable() {
   };
 
   const handleDelete = (item: GalleryItem) => {
-    if (confirm('Are you sure you want to delete this image from the gallery?')) {
-      deleteMutation.mutate(item._id);
+    setDeleteTarget(item);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget._id);
+      setDeleteTarget(null);
     }
   };
 
@@ -415,6 +423,13 @@ export default function GalleryTable() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this image from the gallery? This action cannot be undone."
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { getInventoryLogs, createInventoryLog, deleteInventoryLog } from '@/serv
 import { getProducts } from '@/services/product.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -27,6 +28,7 @@ export default function InventoryTable() {
   const [limit, setLimit] = useState(10);
   const [movementFilter, setMovementFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // Form State
   const [productId, setProductId] = useState('');
@@ -111,8 +113,13 @@ export default function InventoryTable() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this inventory log record?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -380,6 +387,13 @@ export default function InventoryTable() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this inventory log record? This action cannot be undone."
+      />
     </div>
   );
 }

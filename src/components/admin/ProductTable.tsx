@@ -7,6 +7,7 @@ import type { Product, ProductStatus } from '@/types';
 import { useApiGet, useApiDelete, createQueryKeys } from '@/hooks';
 import { getProducts, deleteProduct } from '@/services/product.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 
 const productQueryKeys = createQueryKeys('admin-products');
 
@@ -17,6 +18,7 @@ export default function ProductTable() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: productResponse, isLoading, refetch } = useApiGet<Product[]>({
     queryKey: productQueryKeys.list({ search, page, limit }),
@@ -38,8 +40,13 @@ export default function ProductTable() {
   });
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -177,40 +184,48 @@ export default function ProductTable() {
   ];
 
   return (
-    <DataTable
-      title="Products"
-      description="Manage your product catalog, pricing, inventory and SEO."
-      columns={columns}
-      data={products}
-      keyExtractor={(product) => product._id}
-      loading={isLoading}
-      emptyMessage="No products found. Add your first product!"
-      emptyIcon={<Package className="h-10 w-10 mb-2 text-gray-400 opacity-50" />}
-      search={{
-        value: search,
-        onChange: setSearch,
-        placeholder: 'Search products...',
-      }}
-      headerActions={
-        <Link
-          href="/admin/products/create-product"
-          className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-xs"
-        >
-          <Plus className="h-4 w-4" /> Add Product
-        </Link>
-      }
-      pagination={{
-        page: meta.page,
-        limit: meta.limit,
-        total: meta.total,
-        totalPages: meta.totalPages,
-        onPageChange: setPage,
-        onLimitChange: (newLimit) => {
-          setLimit(newLimit);
-          setPage(1);
-        },
-        itemUnitName: 'products',
-      }}
-    />
+    <>
+      <DataTable
+        title="Products"
+        description="Manage your product catalog, pricing, inventory and SEO."
+        columns={columns}
+        data={products}
+        keyExtractor={(product) => product._id}
+        loading={isLoading}
+        emptyMessage="No products found. Add your first product!"
+        emptyIcon={<Package className="h-10 w-10 mb-2 text-gray-400 opacity-50" />}
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: 'Search products...',
+        }}
+        headerActions={
+          <Link
+            href="/admin/products/create-product"
+            className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-xs"
+          >
+            <Plus className="h-4 w-4" /> Add Product
+          </Link>
+        }
+        pagination={{
+          page: meta.page,
+          limit: meta.limit,
+          total: meta.total,
+          totalPages: meta.totalPages,
+          onPageChange: setPage,
+          onLimitChange: (newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          },
+          itemUnitName: 'products',
+        }}
+      />
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        description="Are you sure you want to delete this product? This action cannot be undone."
+      />
+    </>
   );
 }

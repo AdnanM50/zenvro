@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import UserTable from '@/components/admin/UserTable';
 import type { UserTableItem } from '@/components/admin/UserTable';
+import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 
 function StatCard({
   icon,
@@ -45,6 +46,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: userResponse, isLoading, refetch } = useGetUsers({ params: { page, limit, search } });
   const { data: statsResponse } = useGetUserStats();
@@ -64,8 +66,13 @@ export default function AdminUsersPage() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-      deleteMutation.mutate(userId);
+    setDeleteTarget(userId);
+  };
+
+  const confirmDeleteUser = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
@@ -135,6 +142,13 @@ export default function AdminUsersPage() {
         onRoleChange={handleRoleChange}
         onDeleteUser={handleDeleteUser}
         currentUserId={currentUser?._id}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteUser}
+        description="Are you sure you want to delete this user? This action cannot be undone."
       />
     </div>
   );

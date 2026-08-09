@@ -81,7 +81,6 @@ export default function DataTable<T>({
           </div>
         </div>
       )}
-
       {/* Main Table Container */}
       <div className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">

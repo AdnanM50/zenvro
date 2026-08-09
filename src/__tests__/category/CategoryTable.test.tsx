@@ -269,10 +269,14 @@ describe('CategoryTable', () => {
   });
 
   describe('callback props', () => {
-    it('calls onDelete when category delete is triggered', () => {
+    it('calls onDelete when category delete is confirmed', () => {
       const onDelete = jest.fn();
       renderWithClient(<CategoryTable categories={sampleCategories} onDelete={onDelete} />);
       fireEvent.click(screen.getAllByTitle('Delete')[0]);
+
+      const confirmButtons = screen.getAllByRole('button', { name: 'Delete' });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
+
       expect(onDelete).toHaveBeenCalledWith('cat-1');
     });
 
