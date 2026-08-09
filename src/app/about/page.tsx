@@ -600,8 +600,10 @@ export default function AboutPage() {
               <motion.article
                 key={value.tag}
                 variants={staggerItem}
-                className="group relative flex min-h-[280px] flex-col justify-between border border-outline-variant bg-background p-8 transition-colors duration-500 hover:bg-primary hover:text-white"
+                className="group relative flex min-h-[320px] flex-col justify-between border border-outline-variant bg-background p-8 [clip-path:polygon(0_0,calc(100%_-_28px)_0,100%_28px,100%_100%,28px_100%,0_calc(100%_-_28px))] transition-[clip-path,background-color,color] duration-500 hover:bg-primary hover:text-white hover:[clip-path:polygon(0_0,calc(100%_-_52px)_0,100%_52px,100%_100%,52px_100%,0_calc(100%_-_52px))]"
               >
+                <span className="pointer-events-none absolute -left-14 top-1/2 h-px w-48 -rotate-45 bg-outline-variant/70 transition-colors duration-500 group-hover:bg-white/20" />
+
                 <div className="flex items-start justify-between">
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-container transition-colors duration-500 group-hover:bg-white/15">
                     <span className="material-symbols-outlined text-2xl text-primary-fixed transition-colors duration-500 group-hover:text-white">
@@ -633,7 +635,7 @@ export default function AboutPage() {
           SECTION 04 — NUMBERS / CTA
       ═══════════════════════════════════════════════════════════════ */}
       <section className="relative bg-background py-20 md:py-32 overflow-hidden">
-        <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <div className="mx-auto max-w-360 px-6 md:px-12 lg:px-16">
           {/* Stats */}
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
             {STATS.map((stat, index) => (
