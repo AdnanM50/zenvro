@@ -129,6 +129,7 @@ interface UseCreateCouponParams {
  */
 export function useCreateCoupon({ options }: UseCreateCouponParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<Coupon>,
@@ -140,15 +141,15 @@ export function useCreateCoupon({ options }: UseCreateCouponParams = {}) {
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Coupon created successfully');
       queryClient.invalidateQueries({ queryKey: couponKeys.lists() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to create coupon');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -178,6 +179,7 @@ interface UseUpdateCouponParams {
  */
 export function useUpdateCoupon({ options }: UseUpdateCouponParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<Coupon>,
@@ -188,19 +190,20 @@ export function useUpdateCoupon({ options }: UseUpdateCouponParams = {}) {
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Coupon updated successfully');
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to update coupon');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    onSettled: () => {
+    onSettled: (data, error, variables, context, fnContext) => {
       queryClient.invalidateQueries({ queryKey: couponKeys.lists() });
+      onSettled?.(data, error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -230,24 +233,26 @@ interface UseDeleteCouponParams {
  */
 export function useDeleteCoupon({ options }: UseDeleteCouponParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<null>, ApiError, string>({
     mutationFn: (id) => couponApi.deleteCoupon(id),
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Coupon deleted successfully');
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to delete coupon');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    onSettled: () => {
+    onSettled: (data, error, variables, context, fnContext) => {
       queryClient.invalidateQueries({ queryKey: couponKeys.all });
+      onSettled?.(data, error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }

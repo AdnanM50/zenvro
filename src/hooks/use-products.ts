@@ -164,6 +164,7 @@ interface UseCreateProductParams {
  */
 export function useCreateProduct({ options }: UseCreateProductParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<Product>,
@@ -175,15 +176,15 @@ export function useCreateProduct({ options }: UseCreateProductParams = {}) {
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Product created successfully');
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to create product');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -213,6 +214,7 @@ interface UseUpdateProductParams {
  */
 export function useUpdateProduct({ options }: UseUpdateProductParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<Product>,
@@ -223,19 +225,20 @@ export function useUpdateProduct({ options }: UseUpdateProductParams = {}) {
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Product updated successfully');
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to update product');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    onSettled: () => {
+    onSettled: (data, error, variables, context, fnContext) => {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      onSettled?.(data, error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -265,24 +268,26 @@ interface UseDeleteProductParams {
  */
 export function useDeleteProduct({ options }: UseDeleteProductParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<null>, ApiError, string>({
     mutationFn: (id) => productApi.deleteProduct(id),
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Product deleted successfully');
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to delete product');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    onSettled: () => {
+    onSettled: (data, error, variables, context, fnContext) => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
+      onSettled?.(data, error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }

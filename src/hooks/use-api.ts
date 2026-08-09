@@ -135,6 +135,7 @@ export function useApiPost<TData, TPayload>({
   options,
 }: UseApiPostParams<TData, TPayload>) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<TData>, ApiError, TPayload>({
     mutationFn,
@@ -150,16 +151,16 @@ export function useApiPost<TData, TPayload>({
       });
 
       // Forward to caller's onSuccess if provided.
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       // ❌ Show error toast from the API error or the custom override.
       toast.error(errorMessage || error.serverMessage || 'Operation failed');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -205,6 +206,7 @@ export function useApiPut<TData, TPayload>({
   options,
 }: UseApiPutParams<TData, TPayload>) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<TData>, ApiError, TPayload>({
     mutationFn,
@@ -218,12 +220,12 @@ export function useApiPut<TData, TPayload>({
         queryClient.refetchQueries({ queryKey: key });
       });
 
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(errorMessage || error.serverMessage || 'Update failed');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
     // Always revalidate so cache converges to server truth.
@@ -232,10 +234,10 @@ export function useApiPut<TData, TPayload>({
         queryClient.invalidateQueries({ queryKey: key });
         queryClient.refetchQueries({ queryKey: key });
       });
-      options?.onSettled?.(_data, _error, variables, context, fnContext);
+      onSettled?.(_data, _error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -288,6 +290,7 @@ export function useApiDelete<TPayload = string>({
   options,
 }: UseApiDeleteParams<TPayload>) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<null>, ApiError, TPayload>({
     mutationFn,
@@ -301,12 +304,12 @@ export function useApiDelete<TPayload = string>({
         queryClient.refetchQueries({ queryKey: key });
       });
 
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(errorMessage || error.serverMessage || 'Delete failed');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
     // Always revalidate on settle (whether success or failure).
@@ -315,10 +318,10 @@ export function useApiDelete<TPayload = string>({
         queryClient.invalidateQueries({ queryKey: key });
         queryClient.refetchQueries({ queryKey: key });
       });
-      options?.onSettled?.(_data, _error, variables, context, fnContext);
+      onSettled?.(_data, _error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 

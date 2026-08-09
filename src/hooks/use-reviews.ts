@@ -141,6 +141,7 @@ interface UseUpdateReviewApprovalParams {
 
 export function useUpdateReviewApproval({ options }: UseUpdateReviewApprovalParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<null>,
@@ -152,15 +153,15 @@ export function useUpdateReviewApproval({ options }: UseUpdateReviewApprovalPara
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Review updated');
       queryClient.invalidateQueries({ queryKey: reviewKeys.admin() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to update review');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -177,6 +178,7 @@ interface UseDeleteReviewParams {
 
 export function useDeleteReview({ options }: UseDeleteReviewParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<null>, ApiError, string>({
     mutationFn: (id) => reviewApi.deleteReview(id),
@@ -185,14 +187,14 @@ export function useDeleteReview({ options }: UseDeleteReviewParams = {}) {
       toast.success(response.message || 'Review deleted');
       queryClient.invalidateQueries({ queryKey: reviewKeys.admin() });
       queryClient.invalidateQueries({ queryKey: reviewKeys.all });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to delete review');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }

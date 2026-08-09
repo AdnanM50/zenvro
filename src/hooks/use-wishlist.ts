@@ -55,6 +55,7 @@ export function useAddToWishlist({
   >;
 } = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<WishlistItem[]>, ApiError, AddWishlistPayload>({
     mutationFn: (payload) => wishlistApi.addToWishlist(payload),
@@ -62,15 +63,15 @@ export function useAddToWishlist({
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Added to wishlist');
       queryClient.invalidateQueries({ queryKey: wishlistKeys.list() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to add to wishlist');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -87,6 +88,7 @@ export function useRemoveFromWishlist({
   >;
 } = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<WishlistItem[]>, ApiError, string>({
     mutationFn: (product) => wishlistApi.removeFromWishlist(product),
@@ -95,14 +97,14 @@ export function useRemoveFromWishlist({
       toast.success(response.message || 'Removed from wishlist');
       queryClient.invalidateQueries({ queryKey: wishlistKeys.list() });
       queryClient.invalidateQueries({ queryKey: wishlistKeys.check(variables) });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to remove from wishlist');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }

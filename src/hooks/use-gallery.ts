@@ -130,6 +130,7 @@ interface UseCreateGalleryItemParams {
  */
 export function useCreateGalleryItem({ options }: UseCreateGalleryItemParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<GalleryItem>,
@@ -141,15 +142,15 @@ export function useCreateGalleryItem({ options }: UseCreateGalleryItemParams = {
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Gallery item created successfully');
       queryClient.invalidateQueries({ queryKey: galleryKeys.lists() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to create gallery item');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -179,6 +180,7 @@ interface UseUpdateGalleryItemParams {
  */
 export function useUpdateGalleryItem({ options }: UseUpdateGalleryItemParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<GalleryItem>,
@@ -189,19 +191,20 @@ export function useUpdateGalleryItem({ options }: UseUpdateGalleryItemParams = {
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Gallery item updated successfully');
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to update gallery item');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    onSettled: () => {
+    onSettled: (data, error, variables, context, fnContext) => {
       queryClient.invalidateQueries({ queryKey: galleryKeys.lists() });
+      onSettled?.(data, error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -231,24 +234,26 @@ interface UseDeleteGalleryItemParams {
  */
 export function useDeleteGalleryItem({ options }: UseDeleteGalleryItemParams = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<null>, ApiError, string>({
     mutationFn: (id) => galleryApi.deleteGalleryItem(id),
 
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'Gallery item deleted successfully');
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to delete gallery item');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    onSettled: () => {
+    onSettled: (data, error, variables, context, fnContext) => {
       queryClient.invalidateQueries({ queryKey: galleryKeys.all });
+      onSettled?.(data, error, variables, context, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }

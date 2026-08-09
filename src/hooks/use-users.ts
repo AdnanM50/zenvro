@@ -81,6 +81,7 @@ export function useUpdateUserRole({
   >;
 } = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<null>,
@@ -92,15 +93,15 @@ export function useUpdateUserRole({
     onSuccess: (response, variables, onMutateResult, fnContext) => {
       toast.success(response.message || 'User role updated');
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to update user role');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -121,6 +122,7 @@ export function useUpdateUserStatus({
   >;
 } = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<
     ApiSuccessResponse<null>,
@@ -133,15 +135,15 @@ export function useUpdateUserStatus({
       toast.success(response.message || 'User status updated');
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.stats() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to update user status');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }
 
@@ -158,6 +160,7 @@ export function useDeleteUser({
   >;
 } = {}) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
 
   return useMutation<ApiSuccessResponse<null>, ApiError, string>({
     mutationFn: (userId) => userApi.deleteUser(userId),
@@ -166,14 +169,14 @@ export function useDeleteUser({
       toast.success(response.message || 'User deleted');
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.stats() });
-      options?.onSuccess?.(response, variables, onMutateResult, fnContext);
+      onSuccess?.(response, variables, onMutateResult, fnContext);
     },
 
     onError: (error, variables, onMutateResult, fnContext) => {
       toast.error(error.serverMessage || 'Failed to delete user');
-      options?.onError?.(error, variables, onMutateResult, fnContext);
+      onError?.(error, variables, onMutateResult, fnContext);
     },
 
-    ...options,
+    ...restOptions,
   });
 }

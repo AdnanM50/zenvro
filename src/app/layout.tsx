@@ -23,7 +23,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CartProvider } from "@/contexts/CartContext";
 import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
 import QueryProvider from "@/components/QueryProvider";
-import { Toaster } from "react-hot-toast";
+import CustomToaster from "@/components/common/CustomToaster";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -60,7 +60,7 @@ export default function RootLayout({
                 </SmoothScrollProvider>
               </CartProvider>
             </AuthProvider>
-            <Toaster position="top-right" />
+            <CustomToaster />
           </QueryProvider>
         </ThemeProvider>
       </body>
