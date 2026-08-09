@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { lenisStore } from "@/lib/lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,6 +34,7 @@ export default function SmoothScrollProvider({
     });
 
     lenisRef.current = lenis;
+    lenisStore.instance = lenis;
 
     // Keep GSAP ScrollTrigger in sync with Lenis' smooth scroll
     lenis.on("scroll", ScrollTrigger.update);
@@ -47,6 +49,7 @@ export default function SmoothScrollProvider({
       gsap.ticker.remove(tick);
       lenis.destroy();
       lenisRef.current = null;
+      lenisStore.instance = null;
     };
   }, [pathname]);
 

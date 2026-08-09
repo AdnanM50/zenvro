@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/Footer"
+import PageTransition from "@/components/PageTransition"
+import { isPublicRoute } from "@/lib/routes"
 
 export default function PublicLayoutWrapper({
   children,
@@ -10,14 +12,14 @@ export default function PublicLayoutWrapper({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const hideLayout = pathname.startsWith("/admin") || pathname.startsWith("/user-dashboard")
+  const isPublic = isPublicRoute(pathname)
 
-  if (hideLayout) return <>{children}</>
+  if (!isPublic) return <>{children}</>
 
   return (
     <>
       <Navbar />
-      {children}
+      <PageTransition>{children}</PageTransition>
       <Footer />
     </>
   )
