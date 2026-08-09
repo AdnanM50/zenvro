@@ -243,6 +243,15 @@
   transform: scaleX(1);
 }
 
+/* Added by AboutValues after the GSAP clip-path reveal completes, so the
+   hover deepening of the clipped silhouette still transitions smoothly. */
+.values-card-ready {
+  transition:
+    clip-path 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+    background-color 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+    color 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
 /* ─── VELOUR Toast Animations ─── */
 @keyframes toast-slide-in {
   0% {
