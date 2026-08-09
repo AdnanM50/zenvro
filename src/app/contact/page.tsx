@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { useCreateContactMessage } from "@/hooks";
 import {
   fadeUp,
   fadeIn,
@@ -155,7 +156,8 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
-  const [submitting, setSubmitting] = useState(false);
+  const createMessageMutation = useCreateContactMessage();
+  const submitting = createMessageMutation.isPending;
 
   const setField = (key: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
@@ -166,12 +168,19 @@ export default function ContactPage() {
       toast.error("Please fill in your name, email, and message.");
       return;
     }
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setForm({ name: "", email: "", subject: "", message: "" });
-      toast.success("Message sent — we will get back to you within one working day.");
-    }, 900);
+    createMessageMutation.mutate(
+      {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+      },
+      {
+        onSuccess: () => {
+          setForm({ name: "", email: "", subject: "", message: "" });
+        },
+      }
+    );
   };
 
   return (

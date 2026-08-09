@@ -118,9 +118,11 @@ export const defaultPagesList: Array<CreatePagePayload> = [
     slug: 'contact-us',
     status: 'published',
     seo: {
-      metaTitle: 'Contact Us | Zenvro Help Center',
-      metaDescription: 'Get in touch with the Zenvro support team. We are available 24/7 to answer your queries.',
-      metaKeywords: 'contact us, customer service, support, email, phone',
+      metaTitle: 'Contact Us | Zenvro Store',
+      metaDescription: 'Questions, sizing advice, or a collaboration in mind? Drop us a line — a real human from the Zenvro team replies within one working day.',
+      metaKeywords: 'contact us, contact zenvro, customer service, support, email, phone, say hello',
+      ogImage: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=1200',
+      canonicalUrl: 'https://zenvro.com/contact',
     },
     sections: [
       {
@@ -159,9 +161,11 @@ export const defaultPagesList: Array<CreatePagePayload> = [
     slug: 'privacy-policy',
     status: 'published',
     seo: {
-      metaTitle: 'Privacy Policy | Zenvro',
-      metaDescription: 'Learn how Zenvro collects, uses, and safeguards your personal information.',
-      metaKeywords: 'privacy policy, data protection, security, cookies',
+      metaTitle: 'Privacy Policy | Zenvro Store',
+      metaDescription: 'Your data deserves the same care as our craft. Learn how Zenvro collects, uses, and safeguards your personal information.',
+      metaKeywords: 'privacy policy, data protection, security, cookies, personal information, gdpr',
+      ogImage: 'https://images.unsplash.com/photo-1516387938699-a93567ec168e?auto=format&fit=crop&q=80&w=1200',
+      canonicalUrl: 'https://zenvro.com/privacy',
     },
     sections: [
       {
@@ -196,9 +200,11 @@ export const defaultPagesList: Array<CreatePagePayload> = [
     slug: 'terms-conditions',
     status: 'published',
     seo: {
-      metaTitle: 'Terms & Conditions | Zenvro',
-      metaDescription: 'Review the rules and guidelines governing the use of Zenvro website and services.',
-      metaKeywords: 'terms of service, terms and conditions, user agreement, legal',
+      metaTitle: 'Terms & Conditions | Zenvro Store',
+      metaDescription: 'The fine print behind the fabric. Review the rules and guidelines governing your use of the Zenvro website and services.',
+      metaKeywords: 'terms of service, terms and conditions, user agreement, legal, refunds, shipping policy',
+      ogImage: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',
+      canonicalUrl: 'https://zenvro.com/terms',
     },
     sections: [
       {

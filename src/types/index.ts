@@ -95,6 +95,15 @@ export type {
 } from './page';
 
 export type {
+  ContactMessage,
+  ContactMessageStatus,
+  CreateContactMessagePayload,
+  UpdateContactMessagePayload,
+  ContactMessageListParams,
+  ContactMessageStats,
+} from './contact-message';
+
+export type {
   ApiResponseMeta,
   ApiSuccessResponse,
   ApiErrorResponse,

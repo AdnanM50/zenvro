@@ -76,3 +76,13 @@ export {
   useDeleteUser,
   userKeys,
 } from './use-users';
+
+// ── Contact message hooks (contact form / admin inbox) ─────────────────────
+export {
+  useGetContactMessages,
+  useGetContactMessageStats,
+  useCreateContactMessage,
+  useUpdateContactMessage,
+  useDeleteContactMessage,
+  contactKeys,
+} from './use-contact-messages';
