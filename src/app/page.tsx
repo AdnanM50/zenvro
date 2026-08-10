@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import type { Testimonial } from "@/types";
 import { PageModel } from "@/models/page.model";
+import { TestimonialModel } from "@/models/testimonial.model";
 import { buildPageMetadata } from "@/lib/pageMetadata";
 import HomeClientView from "@/app/_components/home/HomeClientView";
 import Product from "@/components/Product";
@@ -29,12 +31,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   let initialPage = null;
+  let initialTestimonials: Testimonial[] | null = null;
 
   try {
     await PageModel.seedDefaults();
     initialPage = await PageModel.findBySlug("home");
     if (initialPage) {
       initialPage = JSON.parse(JSON.stringify(initialPage));
+    }
+
+    initialTestimonials = await TestimonialModel.findAllActive();
+    if (initialTestimonials) {
+      initialTestimonials = JSON.parse(JSON.stringify(initialTestimonials));
     }
   } catch (error) {
     console.error("Server fetch home page error:", error);
@@ -85,7 +93,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClientView initialPage={initialPage} />
+      <HomeClientView initialPage={initialPage} initialTestimonials={initialTestimonials} />
       <Product />
       <Collections />
     </main>

@@ -353,7 +353,7 @@ export default function TestimonialTable() {
               onChange={(e) => setQuote(e.target.value)}
               placeholder="Everything is absolutely perfect! From the fabric quality to the flawless fit every piece feels premium..."
               required
-              className="w-full mt-1.5 p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+              className="w-full mt-1.5 p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>
 

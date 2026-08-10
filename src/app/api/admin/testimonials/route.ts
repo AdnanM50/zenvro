@@ -3,6 +3,7 @@ import { verifyAccessToken } from '@/lib/auth';
 import { UserModel } from '@/models/user.model';
 import { TestimonialModel } from '@/models/testimonial.model';
 import { api } from '@/lib/api-response';
+import { revalidatePublicTestimonials } from '@/lib/revalidate-page';
 
 async function requireAdmin(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
@@ -93,6 +94,8 @@ export async function POST(request: NextRequest) {
       status: status || 'active',
     });
 
+    await revalidatePublicTestimonials();
+
     return api.created(testimonial, 'Testimonial created');
   } catch (error) {
     console.error('Create testimonial error:', error);
@@ -164,6 +167,8 @@ export async function PATCH(request: NextRequest) {
     const updated = await TestimonialModel.update(_id, updateData);
     if (!updated) return api.notFound('Testimonial not found');
 
+    await revalidatePublicTestimonials();
+
     return api.ok(null, 'Testimonial updated');
   } catch (error) {
     console.error('Update testimonial error:', error);
@@ -183,6 +188,8 @@ export async function DELETE(request: NextRequest) {
 
     const deleted = await TestimonialModel.delete(_id);
     if (!deleted) return api.notFound('Testimonial not found');
+
+    await revalidatePublicTestimonials();
 
     return api.ok(null, 'Testimonial deleted');
   } catch (error) {

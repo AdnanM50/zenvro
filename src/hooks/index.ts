@@ -89,3 +89,6 @@ export {
 
 // ── Public CMS page hooks (public pages: about / contact / privacy / terms) ─
 export { usePublicPage, publicPageKeys } from './use-public-page';
+
+// ── Public testimonials hook (homepage, ISR-seeded from admin data) ─────────
+export { usePublicTestimonials, publicTestimonialKeys } from './use-public-testimonials';

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { Page, PageSection } from "@/types";
+import type { Page, PageSection, Testimonial } from "@/types";
 import { usePublicPage } from "@/hooks";
 import HomeHero from "@/app/_components/home/HomeHero";
 import HomeAbout from "@/app/_components/home/HomeAbout";
@@ -9,9 +9,10 @@ import HomeTestimonial from "@/app/_components/home/HomeTestimonial";
 
 interface HomeClientViewProps {
   initialPage?: Page | null;
+  initialTestimonials?: Testimonial[] | null;
 }
 
-export default function HomeClientView({ initialPage }: HomeClientViewProps) {
+export default function HomeClientView({ initialPage, initialTestimonials }: HomeClientViewProps) {
   const { data, isError } = usePublicPage({ slug: "home", initialPage });
   const page = data?.data ?? null;
 
@@ -29,7 +30,7 @@ export default function HomeClientView({ initialPage }: HomeClientViewProps) {
       case "homeAbout":
         return <HomeAbout key={sec.id} section={sec} />;
       case "homeTestimonial":
-        return <HomeTestimonial key={sec.id} section={sec} />;
+        return <HomeTestimonial key={sec.id} section={sec} initialTestimonials={initialTestimonials} />;
       default:
         return null;
     }
@@ -51,7 +52,7 @@ export default function HomeClientView({ initialPage }: HomeClientViewProps) {
         <>
           <HomeHero section={heroSec} />
           <HomeAbout section={aboutSec} />
-          <HomeTestimonial section={testimonialSec} />
+          <HomeTestimonial section={testimonialSec} initialTestimonials={initialTestimonials} />
         </>
       )}
     </>

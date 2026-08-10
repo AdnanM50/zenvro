@@ -177,6 +177,24 @@ describe('Testimonials API Route Handlers', () => {
       expect(status).toBe(200);
       expect(body.message).toBe('Testimonial updated');
     });
+
+    it('updates a seeded testimonial (24-hex ObjectId _id) without a 404', async () => {
+      const seededId = '507f1f77bcf86cd799439011';
+      (TestimonialModel.update as jest.Mock).mockResolvedValue(true);
+      const req = makeRequest({
+        method: 'PATCH',
+        body: { _id: seededId, avatar: 'https://img.com/avatar.png', name: 'Sophia Anderson' },
+      });
+      const res = await PATCH(req);
+      const { status, body } = await parseResponse(res);
+
+      expect(status).toBe(200);
+      expect(body.message).toBe('Testimonial updated');
+      expect(TestimonialModel.update).toHaveBeenCalledWith(
+        seededId,
+        expect.objectContaining({ avatar: 'https://img.com/avatar.png' }),
+      );
+    });
   });
 
   describe('DELETE /api/admin/testimonials', () => {
@@ -207,6 +225,18 @@ describe('Testimonials API Route Handlers', () => {
 
       expect(status).toBe(200);
       expect(body.message).toBe('Testimonial deleted');
+    });
+
+    it('deletes a seeded testimonial (24-hex ObjectId _id) without a 404', async () => {
+      const seededId = '507f1f77bcf86cd799439011';
+      (TestimonialModel.delete as jest.Mock).mockResolvedValue(true);
+      const req = makeRequest({ method: 'DELETE', url: `http://localhost/api/admin/testimonials?_id=${seededId}` });
+      const res = await DELETE(req);
+      const { status, body } = await parseResponse(res);
+
+      expect(status).toBe(200);
+      expect(body.message).toBe('Testimonial deleted');
+      expect(TestimonialModel.delete).toHaveBeenCalledWith(seededId);
     });
   });
 });
