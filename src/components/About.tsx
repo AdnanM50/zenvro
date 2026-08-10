@@ -13,6 +13,7 @@ import {
   staggerItem,
   VIEWPORT_CONFIG,
 } from "@/lib/animations";
+import Achievement from "@/components/Achievement";
 
 // ─── Staggered Word Reveal Component ────────────────────────────────
 function RevealHeading({ text, className }: { text: string; className?: string }) {
@@ -198,43 +199,8 @@ const About = () => {
         </motion.div>
       </div>
 
-      {/* Product Highlight Bento Section */}
-      <motion.div
-        className="mt-16 md:mt-32 grid grid-cols-1 md:grid-cols-3 gap-6"
-        variants={staggerContainer(0.15, 0.1)}
-        initial="hidden"
-        whileInView="visible"
-        viewport={VIEWPORT_CONFIG}
-      >
-        <motion.div
-          className="bg-surface-container-low p-8 md:p-12 flex flex-col justify-between h-[300px] md:h-[400px]"
-          variants={staggerItem}
-        >
-          <h3 className="font-headline text-3xl font-bold tracking-tighter">THE ARCHIVE</h3>
-          <p className="font-body text-sm text-secondary uppercase leading-relaxed">
-            Curated selections from the last decade of street culture evolution.
-          </p>
-          <div className="flex gap-2">
-            <div className="w-12 h-1 bg-primary"></div>
-            <div className="w-12 h-1 bg-outline-variant"></div>
-            <div className="w-12 h-1 bg-outline-variant"></div>
-          </div>
-        </motion.div>
-        <motion.div
-          className="md:col-span-2 bg-surface-container p-0 overflow-hidden relative group"
-          variants={staggerItem}
-        >
-          <img
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-            alt="Editorial fashion photography of high-end accessories"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1RoW5cBcoqT10u7JT7K7anHFGjv3NTjr8_mysaiCsk27iFErOxdP6goslnhBKFrJAC_iy8B-WQiIX7V9Tfq3ZQQ0DbKX0r3VZWRvRL8rx9a5vZ6yrB9wQOagG01U8I61_Y8LQ3h4X_uq6u5aA3yI1A8TPHK0I6FEbFTGhj8IPMtbCubZDYHng1tq9dl0pwI8nDdjwgiNLq4eIJQQwAMDg4xcvoJK2t1TVCM5VYhXT2E4qhkIg7Sq7cXGPMSQGBTsIMkBZr007K2R_"
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-12">
-            <span className="text-white font-label tracking-[0.3em] uppercase text-xs mb-2">Exclusive Look</span>
-            <h3 className="text-white font-headline text-3xl md:text-5xl font-black tracking-tighter">SS/26 ACCESSORIES</h3>
-          </div>
-        </motion.div>
-      </motion.div>
+      {/* Product Highlight GSAP Achievement Section */}
+      <Achievement />
     </section>
   );
 };
