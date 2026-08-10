@@ -6,6 +6,10 @@ process.env.JWT_ACCESS_EXPIRES_IN = '15m';
 process.env.JWT_REFRESH_EXPIRES_IN = '7d';
 
 const nodeCrypto = require('crypto');
+const { TextEncoder, TextDecoder } = require('util');
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 Object.defineProperty(globalThis, 'crypto', {
   value: {

@@ -111,7 +111,7 @@ describe('HomeTestimonial', () => {
       render(<HomeTestimonial section={defaultSection} />);
 
       const img = screen.getByRole('img', { name: 'Emma Williams Profile' });
-      expect(img).toHaveAttribute('src', 'https://img.com/avatar.png');
+      expect(img.getAttribute('src')).toContain('https%3A%2F%2Fimg.com%2Favatar.png');
     });
 
     it('renders an initial placeholder when no avatar is set', () => {

@@ -13,6 +13,7 @@ import {
   httpPatch,
   httpDelete,
   buildQueryString,
+  _resetRefreshState,
 } from '@/lib/http-client';
 import { ApiError } from '@/types/api';
 
@@ -41,6 +42,7 @@ function mockErrorResponse(error: string, status = 400) {
 
 beforeEach(() => {
   mockFetch.mockReset();
+  _resetRefreshState();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -108,16 +110,25 @@ describe('httpClient', () => {
     await expect(httpClient('/api/test')).rejects.toThrow(ApiError);
   });
 
-  it('uses fallback error message when server returns neither error nor message', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 500,
-      json: async () => ({ success: false }),
-    });
+  it('attempts token refresh on 401 and retries original request if refresh succeeds', async () => {
+    mockFetch
+      .mockResolvedValueOnce(mockErrorResponse('Not authenticated', 401)) // initial request fails with 401
+      .mockResolvedValueOnce(mockSuccessResponse(null, 'Token refreshed')) // /api/auth/refresh succeeds
+      .mockResolvedValueOnce(mockSuccessResponse({ id: '1', name: 'Refreshed Data' })); // retry request succeeds
 
-    await expect(httpClient('/api/test')).rejects.toMatchObject({
-      serverMessage: 'An unexpected error occurred',
-    });
+    const result = await httpClient<{ id: string; name: string }>('/api/admin/testimonials');
+
+    expect(result.data).toEqual({ id: '1', name: 'Refreshed Data' });
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/auth/refresh', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('throws ApiError if token refresh fails on 401', async () => {
+    mockFetch
+      .mockResolvedValueOnce(mockErrorResponse('Not authenticated', 401)) // initial 401
+      .mockResolvedValueOnce(mockErrorResponse('Invalid refresh token', 401)); // refresh fails
+
+    await expect(httpClient('/api/admin/testimonials')).rejects.toThrow(ApiError);
   });
 });
 

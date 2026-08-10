@@ -15,14 +15,22 @@
 import type { ApiSuccessResponse } from '@/types/api';
 import { ApiError } from '@/types/api';
 
+let refreshPromise: Promise<boolean> | null = null;
+
+export function _resetRefreshState() {
+  refreshPromise = null;
+}
+
 /**
  * Core fetch wrapper.
  * Returns the full ApiSuccessResponse envelope so hooks can read both
- * `data` (for cache) and `message` (for toasts).
+ * `data` (for cache) and `message` (for toasts). Automatically attempts
+ * token refresh on 401 responses.
  */
 export async function httpClient<T>(
   url: string,
   options: RequestInit = {},
+  isRetry = false
 ): Promise<ApiSuccessResponse<T>> {
   const { headers: customHeaders, ...restOptions } = options;
 
@@ -35,7 +43,38 @@ export async function httpClient<T>(
     },
   });
 
-  const json = await response.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let json: any = {};
+  try {
+    json = await response.json();
+  } catch {
+    json = {};
+  }
+
+  // Attempt automatic token refresh on 401 (if not already retrying or requesting auth route)
+  if (response.status === 401 && !isRetry && !url.includes('/api/auth/')) {
+    if (!refreshPromise) {
+      refreshPromise = fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then(async (res) => {
+          const refreshJson = await res.json().catch(() => ({}));
+          return res.ok && refreshJson.success === true;
+        })
+        .catch(() => false)
+        .finally(() => {
+          refreshPromise = null;
+        });
+    }
+
+    const refreshSuccess = await refreshPromise;
+
+    if (refreshSuccess) {
+      return httpClient<T>(url, options, true);
+    }
+  }
 
   if (!response.ok || json.success === false) {
     throw new ApiError(
