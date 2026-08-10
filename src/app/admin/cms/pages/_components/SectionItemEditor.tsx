@@ -131,7 +131,7 @@ function ImageFieldWithPreview({
               setHasError(false);
               onChange(e.target.value);
             }}
-            className="h-9 flex-1 rounded-xl bg-white px-2.5 font-mono text-[11px] focus:bg-white focus:border-orange-500"
+            className="h-9 flex-1 rounded-md bg-white px-2.5 font-mono text-[11px] focus:bg-white focus:border-orange-500"
             placeholder={placeholder}
           />
           <GalleryPickerButton
@@ -287,7 +287,7 @@ export default function SectionItemEditor({
                 type="text"
                 value={section.title}
                 onChange={(e) => updateField('title', e.target.value)}
-                className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                 placeholder="Enter section heading..."
               />
             </div>
@@ -297,14 +297,14 @@ export default function SectionItemEditor({
                 type="text"
                 value={section.subtitle || ''}
                 onChange={(e) => updateField('subtitle', e.target.value)}
-                className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                 placeholder="Enter section subtitle..."
               />
             </div>
           </div>
 
           {/* Type-Specific Data Fields */}
-          <div className="bg-gray-50/70 p-3.5 rounded-xl border border-gray-100 space-y-3">
+          <div className="bg-gray-50/70 p-3.5 rounded-md border border-gray-100 space-y-3">
             {/* HERO SECTION */}
             {section.type === 'hero' && (
               <div className="space-y-3">
@@ -315,7 +315,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.tag || '// About Velour'}
                       onChange={(e) => updateDataField('tag', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="// About Velour"
                     />
                   </div>
@@ -325,7 +325,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.estText || 'Est. MMXVIII'}
                       onChange={(e) => updateDataField('estText', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="Est. MMXVIII"
                     />
                   </div>
@@ -335,7 +335,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.volText || '(VOL.01)'}
                       onChange={(e) => updateDataField('volText', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="(VOL.01)"
                     />
                   </div>
@@ -345,7 +345,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.sideText || 'Where elegance meets sustainability'}
                       onChange={(e) => updateDataField('sideText', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="Where elegance meets sustainability"
                     />
                   </div>
@@ -391,7 +391,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.seasonTag || '(SS/26)'}
                       onChange={(e) => updateDataField('seasonTag', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="(SS/26)"
                     />
                   </div>
@@ -401,7 +401,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.copyrightText || '©International - going distance 2026'}
                       onChange={(e) => updateDataField('copyrightText', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="©International..."
                     />
                   </div>
@@ -411,7 +411,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.ctaLabel || 'Scroll to begin'}
                       onChange={(e) => updateDataField('ctaLabel', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="e.g. Scroll to begin"
                     />
                   </div>
@@ -421,7 +421,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.ctaLink || '#story'}
                       onChange={(e) => updateDataField('ctaLink', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="#story"
                     />
                   </div>
@@ -454,7 +454,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.tag || '// Our Story'}
                       onChange={(e) => updateDataField('tag', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                     />
                   </div>
                   <div>
@@ -463,7 +463,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.metaCode || 'PROJECT_STORY_V02'}
                       onChange={(e) => updateDataField('metaCode', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                     />
                   </div>
                  </div>
@@ -504,7 +504,7 @@ export default function SectionItemEditor({
                               newItems[tIdx] = { ...newItems[tIdx], year: e.target.value };
                               updateDataField('items', newItems);
                             }}
-                            className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs font-bold text-orange-600 sm:w-24 focus:bg-white focus:border-orange-500"
+                            className="h-9 w-full rounded-md bg-gray-50 px-2.5 text-xs font-bold text-orange-600 sm:w-24 focus:bg-white focus:border-orange-500"
                             placeholder="Year (2026)"
                           />
                           <Input
@@ -515,7 +515,7 @@ export default function SectionItemEditor({
                               newItems[tIdx] = { ...newItems[tIdx], title: e.target.value };
                               updateDataField('items', newItems);
                             }}
-                            className="h-9 min-w-0 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
+                            className="h-9 min-w-0 flex-1 rounded-md bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                             placeholder="Milestone Title"
                           />
                           <button
@@ -556,7 +556,7 @@ export default function SectionItemEditor({
                     type="email"
                     value={section.data?.email || ''}
                     onChange={(e) => updateDataField('email', e.target.value)}
-                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                   />
                 </div>
                 <div>
@@ -565,7 +565,7 @@ export default function SectionItemEditor({
                     type="text"
                     value={section.data?.phone || ''}
                     onChange={(e) => updateDataField('phone', e.target.value)}
-                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                   />
                 </div>
                 <div>
@@ -574,7 +574,7 @@ export default function SectionItemEditor({
                     type="text"
                     value={section.data?.address || ''}
                     onChange={(e) => updateDataField('address', e.target.value)}
-                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                   />
                 </div>
                 <div>
@@ -583,7 +583,7 @@ export default function SectionItemEditor({
                     type="text"
                     value={section.data?.workingHours || ''}
                     onChange={(e) => updateDataField('workingHours', e.target.value)}
-                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                   />
                 </div>
                 <div className="md:col-span-2 flex items-center gap-2 pt-1">
@@ -631,7 +631,7 @@ export default function SectionItemEditor({
                             newClauses[cIdx] = { ...newClauses[cIdx], title: e.target.value };
                             updateDataField('clauses', newClauses);
                           }}
-                          className="h-9 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
+                          className="h-9 flex-1 rounded-md bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                           placeholder="Clause Title"
                         />
                         <button
@@ -671,7 +671,7 @@ export default function SectionItemEditor({
                     type="text"
                     value={section.data?.tag || '// The Craft'}
                     onChange={(e) => updateDataField('tag', e.target.value)}
-                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                     placeholder="// The Craft"
                   />
                 </div>
@@ -703,7 +703,7 @@ export default function SectionItemEditor({
                             newItems[fIdx] = { ...newItems[fIdx], title: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="h-9 min-w-0 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
+                          className="h-9 min-w-0 flex-1 rounded-md bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                           placeholder="Feature Title"
                         />
                         <div className="flex items-center gap-2">
@@ -715,7 +715,7 @@ export default function SectionItemEditor({
                               newItems[fIdx] = { ...newItems[fIdx], tag: e.target.value };
                               updateDataField('items', newItems);
                             }}
-                            className="h-9 w-24 rounded-none bg-gray-50 px-2.5 font-mono text-xs focus:bg-white focus:border-orange-500"
+                            className="h-9 w-24 rounded-md bg-gray-50 px-2.5 font-mono text-xs focus:bg-white focus:border-orange-500"
                             placeholder="CRAFT_01"
                           />
                           <button
@@ -738,7 +738,7 @@ export default function SectionItemEditor({
                           newItems[fIdx] = { ...newItems[fIdx], icon: e.target.value };
                           updateDataField('items', newItems);
                         }}
-                        className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs focus:bg-white focus:border-orange-500"
+                        className="h-9 w-full rounded-md bg-gray-50 px-2.5 text-xs focus:bg-white focus:border-orange-500"
                         placeholder="Material Symbol / Icon Name (e.g. auto_awesome, recycling, handshake, inventory_2)"
                       />
                       <textarea
@@ -789,7 +789,7 @@ export default function SectionItemEditor({
                             newItems[sIdx] = { ...newItems[sIdx], value: Number(e.target.value) };
                             updateDataField('items', newItems);
                           }}
-                          className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs font-bold sm:w-20 focus:bg-white focus:border-orange-500"
+                          className="h-9 w-full rounded-md bg-gray-50 px-2.5 text-xs font-bold sm:w-20 focus:bg-white focus:border-orange-500"
                           placeholder="Value"
                         />
                         <Input
@@ -800,7 +800,7 @@ export default function SectionItemEditor({
                             newItems[sIdx] = { ...newItems[sIdx], suffix: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs font-semibold sm:w-16 focus:bg-white focus:border-orange-500"
+                          className="h-9 w-full rounded-md bg-gray-50 px-2.5 text-xs font-semibold sm:w-16 focus:bg-white focus:border-orange-500"
                           placeholder="Suffix (K)"
                         />
                         <Input
@@ -811,7 +811,7 @@ export default function SectionItemEditor({
                             newItems[sIdx] = { ...newItems[sIdx], label: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="h-9 min-w-0 flex-1 rounded-none bg-gray-50 px-2.5 text-xs focus:bg-white focus:border-orange-500"
+                          className="h-9 min-w-0 flex-1 rounded-md bg-gray-50 px-2.5 text-xs focus:bg-white focus:border-orange-500"
                           placeholder="Stat Label"
                         />
                         <button
@@ -840,7 +840,7 @@ export default function SectionItemEditor({
                         type="text"
                         value={section.data?.ctaLabel || 'Explore the edit'}
                         onChange={(e) => updateDataField('ctaLabel', e.target.value)}
-                        className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                        className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                         placeholder="Explore the edit"
                       />
                     </div>
@@ -850,7 +850,7 @@ export default function SectionItemEditor({
                         type="text"
                         value={section.data?.ctaLink || '/products'}
                         onChange={(e) => updateDataField('ctaLink', e.target.value)}
-                        className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                        className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                         placeholder="/products"
                       />
                     </div>
@@ -869,7 +869,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.tag || '// FAQ'}
                       onChange={(e) => updateDataField('tag', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="// FAQ"
                     />
                   </div>
@@ -879,7 +879,7 @@ export default function SectionItemEditor({
                       type="text"
                       value={section.data?.metaCode || 'PROJECT_SUPPORT_V01'}
                       onChange={(e) => updateDataField('metaCode', e.target.value)}
-                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="PROJECT_SUPPORT_V01"
                     />
                   </div>
@@ -912,7 +912,7 @@ export default function SectionItemEditor({
                             newItems[qIdx] = { ...newItems[qIdx], q: e.target.value, question: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="h-9 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
+                          className="h-9 flex-1 rounded-md bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                           placeholder="Question?"
                         />
                         <button

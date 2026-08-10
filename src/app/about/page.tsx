@@ -27,9 +27,17 @@ export async function generateMetadata(): Promise<Metadata> {
     if (page?.seo) {
       if (page.seo.metaTitle) title = page.seo.metaTitle;
       if (page.seo.metaDescription) description = page.seo.metaDescription;
+      if (page.seo.focusKeyword) keywords.unshift(page.seo.focusKeyword);
       if (page.seo.metaKeywords) {
-        keywords = page.seo.metaKeywords.split(',').map((k) => k.trim());
+        keywords.push(...page.seo.metaKeywords.split(',').map((k) => k.trim()).filter(Boolean));
       }
+      if (page.seo.additionalKeywords?.length) {
+        keywords.push(...page.seo.additionalKeywords);
+      }
+      if (page.seo.searchPhrases?.length) {
+        keywords.push(...page.seo.searchPhrases);
+      }
+      keywords = [...new Set(keywords.map((k) => k.toLowerCase()))];
       if (page.seo.ogImage) ogImage = page.seo.ogImage;
     }
   } catch (error) {

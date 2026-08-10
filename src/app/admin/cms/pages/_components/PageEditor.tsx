@@ -312,7 +312,7 @@ export default function PageEditor({
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 px-4 pt-3 border-b border-gray-100 bg-white overflow-x-auto">
+      <div className="flex items-center gap-1 px-4 pt-3 border-b border-gray-100 bg-white overflow-x-auto colorful-scrollbar pb-1">
         <button
           onClick={() => setActiveTab('sections')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition shrink-0 ${
@@ -544,7 +544,7 @@ export default function PageEditor({
 
         {/* SEO TAB */}
         {activeTab === 'seo' && (
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <PageSeoForm seo={seo} onChange={setSeo} />
           </div>
         )}

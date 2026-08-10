@@ -25,6 +25,9 @@ export interface PageSEO {
   metaTitle: string;
   metaDescription: string;
   metaKeywords?: string;
+  focusKeyword?: string;
+  additionalKeywords?: string[];
+  searchPhrases?: string[];
   ogImage?: string;
   canonicalUrl?: string;
 }

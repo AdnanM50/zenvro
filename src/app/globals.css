@@ -196,6 +196,23 @@
   }
 }
 
+/* Colorful Small Scrollbar for horizontal scrollable containers on mobile */
+.colorful-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.colorful-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+.colorful-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #f97316, #fb923c, #ea580c);
+  border-radius: 9999px;
+}
+.colorful-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #f97316 #f1f5f9;
+}
+
 .collections-image-clip {
   clip-path: polygon(18% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20%);
 }

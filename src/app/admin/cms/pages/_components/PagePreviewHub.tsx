@@ -150,7 +150,7 @@ export default function PagePreviewHub({ page }: PagePreviewHubProps) {
       </div>
 
       {/* Frame Canvas */}
-      <div className="bg-gray-900/90 rounded-2xl p-4 sm:p-6 flex justify-center items-start min-h-[680px] overflow-x-auto shadow-inner">
+      <div className="bg-gray-900/90 rounded-2xl p-4 sm:p-6 flex justify-center items-start min-h-[680px] overflow-x-auto colorful-scrollbar shadow-inner">
         <div
           className={`bg-white rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 border border-gray-700 flex flex-col ${
             device === 'desktop'
