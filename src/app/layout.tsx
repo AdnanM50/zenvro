@@ -174,6 +174,24 @@ export default async function RootLayout({
           />
         )}
 
+        {/* Snapchat Pixel */}
+        {analytics?.snapchatPixelId && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');snaptr('init', '${analytics.snapchatPixelId}');snaptr('track', 'PAGE_VIEW');`,
+            }}
+          />
+        )}
+
+        {/* LinkedIn Insight Tag */}
+        {analytics?.linkedInInsightId && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `_linkedin_partner_id = "${analytics.linkedInInsightId}"; window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || []; window._linkedin_data_partner_ids.push(_linkedin_partner_id); (function(l) { if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]} var s = document.getElementsByTagName("script")[0]; var b = document.createElement("script"); b.type = "text/javascript";b.async = true; b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js"; s.parentNode.insertBefore(b, s);})(window.lintrk);`,
+            }}
+          />
+        )}
+
         {/* Custom Head Scripts */}
         {analytics?.customScriptsHead && (
           <div dangerouslySetInnerHTML={{ __html: analytics.customScriptsHead }} />
@@ -218,6 +236,11 @@ export default async function RootLayout({
             <CustomToaster />
           </QueryProvider>
         </ThemeProvider>
+
+        {/* Custom Footer Scripts */}
+        {analytics?.customScriptsFooter && (
+          <div dangerouslySetInnerHTML={{ __html: analytics.customScriptsFooter }} />
+        )}
       </body>
     </html>
   );
