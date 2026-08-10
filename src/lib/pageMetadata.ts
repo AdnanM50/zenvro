@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { PageModel } from '@/models/page.model';
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://zenvro.com';
+import { SeoSettingsModel } from '@/models/seo-settings.model';
 
 export interface PageMetadataFallback {
   title: string;
@@ -31,10 +30,25 @@ export async function buildPageMetadata(
   path: string,
   fallback: PageMetadataFallback
 ): Promise<Metadata> {
+  let seoSettings;
+  try {
+    seoSettings = await SeoSettingsModel.get();
+  } catch {
+    seoSettings = null;
+  }
+
+  const BASE_URL = seoSettings?.canonicalDomain || process.env.NEXT_PUBLIC_SITE_URL || 'https://zenvro.com';
+  const siteName = seoSettings?.siteName || 'VELOUR';
+
   let title = fallback.title;
   let description = fallback.description;
-  let keywords = normalizeKeywords(undefined, undefined, fallback.keywords, undefined);
-  let ogImage = fallback.ogImage || '';
+  let keywords = normalizeKeywords(
+    undefined,
+    undefined,
+    fallback.keywords || seoSettings?.defaultKeywords,
+    undefined
+  );
+  let ogImage = fallback.ogImage || seoSettings?.defaultOgImage || '';
   let canonicalUrl = `${BASE_URL}${path}`;
 
   try {
@@ -80,8 +94,8 @@ export async function buildPageMetadata(
     title,
     description,
     keywords,
-    authors: [{ name: 'VELOUR Atelier', url: BASE_URL }],
-    publisher: 'VELOUR International',
+    authors: [{ name: `${siteName} Atelier`, url: BASE_URL }],
+    publisher: `${siteName} International`,
     alternates: {
       canonical: canonicalUrl,
     },
@@ -99,7 +113,7 @@ export async function buildPageMetadata(
       title,
       description,
       url: canonicalUrl,
-      siteName: 'VELOUR',
+      siteName,
       locale: 'en_US',
       type: 'website',
       images,
@@ -109,7 +123,6 @@ export async function buildPageMetadata(
       title,
       description,
       images: images ? images.map((img) => img.url) : undefined,
-      creator: '@velour_official',
     },
   };
 }

@@ -111,3 +111,18 @@ export type {
 } from './api';
 export { ApiError } from './api';
 
+export type {
+  SeoSettings,
+  RobotsConfig,
+  SitemapConfig,
+  SitemapItem,
+  Redirect,
+  RedirectType,
+  AnalyticsSettings,
+  UpdateSeoSettingsPayload,
+  UpdateRobotsPayload,
+  UpdateSitemapConfigPayload,
+  UpdateAnalyticsSettingsPayload,
+  CreateRedirectPayload,
+  UpdateRedirectPayload,
+} from './seo';
