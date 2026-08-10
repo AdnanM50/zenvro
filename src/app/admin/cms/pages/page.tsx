@@ -6,6 +6,7 @@ import { useApiGet, useApiPost, useApiPatch, useApiDelete, createQueryKeys } fro
 import { getPages, createPage, updatePage, deletePage } from '@/services/page.service';
 import PageListSidebar from './_components/PageListSidebar';
 import PageEditor from './_components/PageEditor';
+import PagePreviewHub from './_components/PagePreviewHub';
 import CreatePageModal from './_components/CreatePageModal';
 import { FileText, Sparkles, ChevronDown, PanelLeftClose, PanelLeftOpen, Layers } from 'lucide-react';
 
@@ -163,14 +164,12 @@ export default function AdminCmsPagesPage() {
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
-        {/* Right Main Editor Workspace */}
+        {/* Right Main Preview Workspace */}
         {activePage ? (
-          <PageEditor
+          <PagePreviewHub
             key={activePage._id}
             page={activePage}
-            onSave={handleSavePage}
             onDeletePage={handleDeletePage}
-            isSaving={updateMutation.isPending}
           />
         ) : (
           <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-12 flex flex-col items-center justify-center text-center">

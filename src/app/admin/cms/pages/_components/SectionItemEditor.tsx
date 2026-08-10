@@ -16,9 +16,13 @@ import {
   FileText,
   Grid,
   HelpCircle,
+  BarChart3,
+  Pencil,
 } from 'lucide-react';
 import type { PageSection, SectionType } from '@/types';
 import GalleryPickerButton from '@/app/admin/gallery/_components/GalleryPickerButton';
+import GalleryPicker from '@/app/admin/gallery/_components/GalleryPicker';
+import { Input } from '@/components/ui/input';
 
 interface SectionItemEditorProps {
   section: PageSection;
@@ -28,6 +32,132 @@ interface SectionItemEditorProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDelete: () => void;
+}
+
+function ImageFieldWithPreview({
+  label,
+  value,
+  onChange,
+  onGallerySelect,
+  placeholder = 'https://...',
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  onGallerySelect?: (urls: string[]) => void;
+  placeholder?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+
+  const hasValue = Boolean(value && value.trim());
+
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-gray-700 font-medium text-xs">{label}</label>
+
+      {hasValue && !isEditingUrl ? (
+        <div className="relative w-full aspect-square sm:aspect-[4/5] max-w-[200px] rounded-xl overflow-hidden bg-gray-100 group border border-gray-200 shadow-sm flex items-center justify-center">
+          {!hasError ? (
+            <img
+              src={value}
+              alt="Selected preview"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              onError={() => setHasError(true)}
+            />
+          ) : (
+            <span className="text-[10px] text-gray-400 font-mono text-center px-2">Invalid Image URL</span>
+          )}
+
+          {/* Dark Overlay on Hover */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+          {/* Action Buttons Container */}
+          <div className="absolute inset-0 flex items-center justify-center gap-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+            {/* View / Change */}
+            <button
+              type="button"
+              onClick={() => setIsGalleryOpen(true)}
+              className="w-10 h-10 rounded-full bg-white text-slate-700 hover:text-slate-900 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              title="Change Image (Gallery)"
+            >
+              <Eye className="w-4 h-4 stroke-[2.5]" />
+            </button>
+            
+            {/* Edit URL */}
+            <button
+              type="button"
+              onClick={() => setIsEditingUrl(true)}
+              className="w-10 h-10 rounded-full bg-white text-slate-700 hover:text-slate-900 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              title="Edit URL Manually"
+            >
+              <Pencil className="w-4 h-4 stroke-[2.5]" />
+            </button>
+
+            {/* Remove */}
+            <button
+              type="button"
+              onClick={() => {
+                setHasError(false);
+                onChange('');
+              }}
+              className="w-10 h-10 rounded-full bg-white text-red-500 hover:text-red-600 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              title="Remove Image"
+            >
+              <Trash2 className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          </div>
+          
+          <GalleryPicker
+            open={isGalleryOpen}
+            onClose={() => setIsGalleryOpen(false)}
+            onSelect={(urls) => {
+              setHasError(false);
+              setIsGalleryOpen(false);
+              if (onGallerySelect) onGallerySelect(urls);
+              else if (urls[0]) onChange(urls[0]);
+            }}
+            multiple={false}
+          />
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => {
+              setHasError(false);
+              onChange(e.target.value);
+            }}
+            className="flex-1 px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-orange-500 font-mono text-[11px]"
+            placeholder={placeholder}
+          />
+          <GalleryPickerButton
+            onSelect={(urls) => {
+              setHasError(false);
+              setIsEditingUrl(false);
+              if (onGallerySelect) {
+                onGallerySelect(urls);
+              } else if (urls[0]) {
+                onChange(urls[0]);
+              }
+            }}
+            label="Choose"
+          />
+          {isEditingUrl && (
+            <button
+              type="button"
+              onClick={() => setIsEditingUrl(false)}
+              className="px-2 py-1 text-xs text-gray-500 hover:text-gray-800"
+            >
+              Done
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function SectionItemEditor({
@@ -67,6 +197,8 @@ export default function SectionItemEditor({
         return { label: 'Policy Clauses', icon: FileText, color: 'bg-amber-50 text-amber-600 border-amber-200' };
       case 'featuresGrid':
         return { label: 'Features Grid', icon: Grid, color: 'bg-indigo-50 text-indigo-600 border-indigo-200' };
+      case 'stats':
+        return { label: 'Stats & Numbers CTA', icon: BarChart3, color: 'bg-teal-50 text-teal-600 border-teal-200' };
       case 'faq':
         return { label: 'FAQ Accordion', icon: HelpCircle, color: 'bg-rose-50 text-rose-600 border-rose-200' };
       default:
@@ -79,12 +211,12 @@ export default function SectionItemEditor({
 
   return (
     <div
-      className={`bg-white rounded-2xl border transition-all duration-200 shadow-sm ${
+      className={`bg-white rounded-2xl border transition-all w-full duration-200 shadow-sm ${
         section.isActive ? 'border-gray-200' : 'border-gray-200 opacity-60 bg-gray-50/50'
       }`}
     >
       {/* Section Header */}
-      <div className="p-4 flex items-center justify-between border-b border-gray-100 bg-gray-50/40 rounded-t-2xl">
+      <div className="p-3 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/40 rounded-t-2xl">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center gap-1">
             <button
@@ -150,21 +282,21 @@ export default function SectionItemEditor({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-gray-700 font-medium mb-1">Section Heading</label>
-              <input
+              <Input
                 type="text"
                 value={section.title}
                 onChange={(e) => updateField('title', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+                className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                 placeholder="Enter section heading..."
               />
             </div>
             <div>
               <label className="block text-gray-700 font-medium mb-1">Section Subheading / Subtitle</label>
-              <input
+              <Input
                 type="text"
                 value={section.subtitle || ''}
                 onChange={(e) => updateField('subtitle', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+                className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                 placeholder="Enter section subtitle..."
               />
             </div>
@@ -175,61 +307,121 @@ export default function SectionItemEditor({
             {/* HERO SECTION */}
             {section.type === 'hero' && (
               <div className="space-y-3">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-1">Background Image URL</label>
-                  <div className="flex items-center gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Tag (Top Left)</label>
                     <input
                       type="text"
-                      value={section.data?.bgImage || ''}
-                      onChange={(e) => updateDataField('bgImage', e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500"
-                      placeholder="https://images.unsplash.com/..."
+                      value={section.data?.tag || '// About Velour'}
+                      onChange={(e) => updateDataField('tag', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="// About Velour"
                     />
-                    <GalleryPickerButton
-                      onSelect={(urls) => updateDataField('bgImage', urls[0] || '')}
-                      label="Choose Image"
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Est. Text (Center)</label>
+                    <input
+                      type="text"
+                      value={section.data?.estText || 'Est. MMXVIII'}
+                      onChange={(e) => updateDataField('estText', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="Est. MMXVIII"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Volume Tag (Top Right)</label>
+                    <input
+                      type="text"
+                      value={section.data?.volText || '(VOL.01)'}
+                      onChange={(e) => updateDataField('volText', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="(VOL.01)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Sideways Subtext</label>
+                    <input
+                      type="text"
+                      value={section.data?.sideText || 'Where elegance meets sustainability'}
+                      onChange={(e) => updateDataField('sideText', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="Where elegance meets sustainability"
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                {/* 3 Hero Images Controls */}
+                <div className="border border-purple-100 bg-purple-50/40 p-3.5 rounded-xl space-y-3">
+                  <div className="font-semibold text-purple-900 text-[11px] uppercase tracking-wider">
+                    Hero Editorial Strip Images (3 Images)
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <ImageFieldWithPreview
+                      label="Image 1 (Left Close-Up)"
+                      value={section.data?.image1 || section.data?.bgImage || ''}
+                      onChange={(val) => {
+                        updateDataField('image1', val);
+                        updateDataField('bgImage', val);
+                      }}
+                      onGallerySelect={(urls) => {
+                        updateDataField('image1', urls[0] || '');
+                        updateDataField('bgImage', urls[0] || '');
+                      }}
+                    />
+
+                    <ImageFieldWithPreview
+                      label="Image 2 (Center Main)"
+                      value={section.data?.image2 || ''}
+                      onChange={(val) => updateDataField('image2', val)}
+                    />
+
+                    <ImageFieldWithPreview
+                      label="Image 3 (Right Detail)"
+                      value={section.data?.image3 || ''}
+                      onChange={(val) => updateDataField('image3', val)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-1">Primary CTA Label</label>
+                    <label className="block text-gray-700 font-medium mb-1">Season Tag</label>
                     <input
                       type="text"
-                      value={section.data?.ctaLabel || ''}
+                      value={section.data?.seasonTag || '(SS/26)'}
+                      onChange={(e) => updateDataField('seasonTag', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="(SS/26)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Copyright Text</label>
+                    <input
+                      type="text"
+                      value={section.data?.copyrightText || '©International - going distance 2026'}
+                      onChange={(e) => updateDataField('copyrightText', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="©International..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">CTA Button Label</label>
+                    <input
+                      type="text"
+                      value={section.data?.ctaLabel || 'Scroll to begin'}
                       onChange={(e) => updateDataField('ctaLabel', e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
-                      placeholder="e.g. Shop Now"
+                      placeholder="e.g. Scroll to begin"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-1">Primary CTA Link</label>
+                    <label className="block text-gray-700 font-medium mb-1">CTA Button Link</label>
                     <input
                       type="text"
-                      value={section.data?.ctaLink || ''}
+                      value={section.data?.ctaLink || '#story'}
                       onChange={(e) => updateDataField('ctaLink', e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
-                      placeholder="/products"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-1">Secondary CTA Label</label>
-                    <input
-                      type="text"
-                      value={section.data?.secondaryCtaLabel || ''}
-                      onChange={(e) => updateDataField('secondaryCtaLabel', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
-                      placeholder="e.g. Learn More"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-1">Secondary CTA Link</label>
-                    <input
-                      type="text"
-                      value={section.data?.secondaryCtaLink || ''}
-                      onChange={(e) => updateDataField('secondaryCtaLink', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
-                      placeholder="/about-us"
+                      placeholder="#story"
                     />
                   </div>
                 </div>
@@ -250,82 +442,103 @@ export default function SectionItemEditor({
               </div>
             )}
 
-            {/* MISSION & VISION */}
+            {/* MISSION & VISION / STORY */}
             {section.type === 'missionVision' && (
               <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-1">Mission Heading</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                 <div className='col-span-2'>
+                   <div>
+                    <label className="block text-gray-700 font-medium mb-1">Tag (Top Header)</label>
                     <input
                       type="text"
-                      value={section.data?.missionHeading || 'Mission'}
-                      onChange={(e) => updateDataField('missionHeading', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
-                    />
-                    <label className="block text-gray-700 font-medium mt-2 mb-1">Mission Description</label>
-                    <textarea
-                      rows={3}
-                      value={section.data?.missionText || ''}
-                      onChange={(e) => updateDataField('missionText', e.target.value)}
+                      value={section.data?.tag || '// Our Story'}
+                      onChange={(e) => updateDataField('tag', e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-1">Vision Heading</label>
+                    <label className="block text-gray-700 font-medium mb-1">Meta Code (Footer)</label>
                     <input
                       type="text"
-                      value={section.data?.visionHeading || 'Vision'}
-                      onChange={(e) => updateDataField('visionHeading', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
-                    />
-                    <label className="block text-gray-700 font-medium mt-2 mb-1">Vision Description</label>
-                    <textarea
-                      rows={3}
-                      value={section.data?.visionText || ''}
-                      onChange={(e) => updateDataField('visionText', e.target.value)}
+                      value={section.data?.metaCode || 'PROJECT_STORY_V02'}
+                      onChange={(e) => updateDataField('metaCode', e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
                     />
                   </div>
+                 </div>
+                  <ImageFieldWithPreview
+                    label="Editorial Image URL"
+                    value={section.data?.image || ''}
+                    onChange={(val) => updateDataField('image', val)}
+                  />
                 </div>
 
-                {/* Values array */}
+                {/* Timeline items list */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-gray-700 font-medium">Core Values List</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-gray-700 font-medium">Timeline Milestones List</label>
                     <button
                       type="button"
                       onClick={() => {
-                        const vals = section.data?.values || [];
-                        updateDataField('values', [...vals, 'New Value']);
+                        const items = section.data?.items || [];
+                        updateDataField('items', [
+                          ...items,
+                          { year: '2026', title: 'New Milestone', copy: 'Milestone description details...' },
+                        ]);
                       }}
                       className="text-orange-600 hover:text-orange-700 font-semibold text-[11px] flex items-center gap-1"
                     >
-                      <Plus className="w-3 h-3" /> Add Value
+                      <Plus className="w-3 h-3" /> Add Timeline Item
                     </button>
                   </div>
-                  <div className="space-y-1.5">
-                    {(section.data?.values || []).map((val: string, vIdx: number) => (
-                      <div key={vIdx} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={val}
+                  <div className="space-y-2">
+                    {(section.data?.items || []).map((item: any, tIdx: number) => (
+                      <div key={tIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                          <input
+                            type="text"
+                            value={item.year || ''}
+                            onChange={(e) => {
+                              const newItems = [...(section.data?.items || [])];
+                              newItems[tIdx] = { ...newItems[tIdx], year: e.target.value };
+                              updateDataField('items', newItems);
+                            }}
+                            className="w-full sm:w-24 font-bold text-orange-600 px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                            placeholder="Year (2026)"
+                          />
+                          <input
+                            type="text"
+                            value={item.title || ''}
+                            onChange={(e) => {
+                              const newItems = [...(section.data?.items || [])];
+                              newItems[tIdx] = { ...newItems[tIdx], title: e.target.value };
+                              updateDataField('items', newItems);
+                            }}
+                            className="flex-1 min-w-0 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                            placeholder="Milestone Title"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newItems = (section.data?.items || []).filter((_: any, i: number) => i !== tIdx);
+                              updateDataField('items', newItems);
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={item.copy || item.description || ''}
                           onChange={(e) => {
-                            const newVals = [...(section.data?.values || [])];
-                            newVals[vIdx] = e.target.value;
-                            updateDataField('values', newVals);
+                            const newItems = [...(section.data?.items || [])];
+                            newItems[tIdx] = { ...newItems[tIdx], copy: e.target.value, description: e.target.value };
+                            updateDataField('items', newItems);
                           }}
-                          className="flex-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                          className="w-full p-2 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          placeholder="Milestone description..."
                         />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newVals = (section.data?.values || []).filter((_: any, i: number) => i !== vIdx);
-                            updateDataField('values', newVals);
-                          }}
-                          className="p-1 text-gray-400 hover:text-red-600"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -408,7 +621,7 @@ export default function SectionItemEditor({
                 </div>
                 <div className="space-y-2">
                   {(section.data?.clauses || []).map((clause: any, cIdx: number) => (
-                    <div key={cIdx} className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
+                    <div key={cIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           type="text"
@@ -418,7 +631,7 @@ export default function SectionItemEditor({
                             newClauses[cIdx] = { ...newClauses[cIdx], title: e.target.value };
                             updateDataField('clauses', newClauses);
                           }}
-                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
                           placeholder="Clause Title"
                         />
                         <button
@@ -440,7 +653,7 @@ export default function SectionItemEditor({
                           newClauses[cIdx] = { ...newClauses[cIdx], content: e.target.value };
                           updateDataField('clauses', newClauses);
                         }}
-                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-none text-xs"
                         placeholder="Clause details..."
                       />
                     </div>
@@ -449,18 +662,28 @@ export default function SectionItemEditor({
               </div>
             )}
 
-            {/* FEATURES GRID */}
+            {/* FEATURES GRID / CRAFT VALUES */}
             {section.type === 'featuresGrid' && (
               <div className="space-y-3">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Tag (Top Left Header)</label>
+                  <input
+                    type="text"
+                    value={section.data?.tag || '// The Craft'}
+                    onChange={(e) => updateDataField('tag', e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                    placeholder="// The Craft"
+                  />
+                </div>
                 <div className="flex items-center justify-between">
-                  <label className="block text-gray-700 font-medium">Feature Cards</label>
+                  <label className="block text-gray-700 font-medium">Feature Cards / Craft Values</label>
                   <button
                     type="button"
                     onClick={() => {
                       const items = section.data?.items || [];
                       updateDataField('items', [
                         ...items,
-                        { icon: 'Sparkles', title: 'New Feature', description: 'Feature description details' },
+                        { icon: 'auto_awesome', title: 'New Feature', copy: 'Feature description details...', tag: `CRAFT_0${items.length + 1}` },
                       ]);
                     }}
                     className="text-orange-600 hover:text-orange-700 font-semibold text-[11px] flex items-center gap-1"
@@ -470,8 +693,8 @@ export default function SectionItemEditor({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {(section.data?.items || []).map((item: any, fIdx: number) => (
-                    <div key={fIdx} className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
+                    <div key={fIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <input
                           type="text"
                           value={item.title || ''}
@@ -480,40 +703,53 @@ export default function SectionItemEditor({
                             newItems[fIdx] = { ...newItems[fIdx], title: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                          className="flex-1 min-w-0 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
                           placeholder="Feature Title"
                         />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newItems = (section.data?.items || []).filter((_: any, i: number) => i !== fIdx);
-                            updateDataField('items', newItems);
-                          }}
-                          className="p-1 text-gray-400 hover:text-red-600"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={item.tag || ''}
+                            onChange={(e) => {
+                              const newItems = [...(section.data?.items || [])];
+                              newItems[fIdx] = { ...newItems[fIdx], tag: e.target.value };
+                              updateDataField('items', newItems);
+                            }}
+                            className="w-24 font-mono px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                            placeholder="CRAFT_01"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newItems = (section.data?.items || []).filter((_: any, i: number) => i !== fIdx);
+                              updateDataField('items', newItems);
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <input
                         type="text"
-                        value={item.icon || 'Sparkles'}
+                        value={item.icon || 'auto_awesome'}
                         onChange={(e) => {
                           const newItems = [...(section.data?.items || [])];
                           newItems[fIdx] = { ...newItems[fIdx], icon: e.target.value };
                           updateDataField('items', newItems);
                         }}
-                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs"
-                        placeholder="Lucide Icon Name (e.g. ShieldCheck, Truck, Sparkles)"
+                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                        placeholder="Material Symbol / Icon Name (e.g. auto_awesome, recycling, handshake, inventory_2)"
                       />
                       <textarea
                         rows={2}
-                        value={item.description || ''}
+                        value={item.copy || item.description || ''}
                         onChange={(e) => {
                           const newItems = [...(section.data?.items || [])];
-                          newItems[fIdx] = { ...newItems[fIdx], description: e.target.value };
+                          newItems[fIdx] = { ...newItems[fIdx], copy: e.target.value, description: e.target.value };
                           updateDataField('items', newItems);
                         }}
-                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-none text-xs"
                         placeholder="Feature Description"
                       />
                     </div>
@@ -522,9 +758,132 @@ export default function SectionItemEditor({
               </div>
             )}
 
+            {/* STATS SECTION */}
+            {section.type === 'stats' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-gray-700 font-medium">Statistics Counter Items</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const items = section.data?.items || [];
+                      updateDataField('items', [
+                        ...items,
+                        { value: 100, suffix: 'K', label: 'Happy Customers' },
+                      ]);
+                    }}
+                    className="text-orange-600 hover:text-orange-700 font-semibold text-[11px] flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Add Stat Item
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {(section.data?.items || []).map((stat: any, sIdx: number) => (
+                    <div key={sIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <input
+                          type="number"
+                          value={stat.value ?? 0}
+                          onChange={(e) => {
+                            const newItems = [...(section.data?.items || [])];
+                            newItems[sIdx] = { ...newItems[sIdx], value: Number(e.target.value) };
+                            updateDataField('items', newItems);
+                          }}
+                          className="w-full sm:w-20 font-bold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          placeholder="Value"
+                        />
+                        <input
+                          type="text"
+                          value={stat.suffix || ''}
+                          onChange={(e) => {
+                            const newItems = [...(section.data?.items || [])];
+                            newItems[sIdx] = { ...newItems[sIdx], suffix: e.target.value };
+                            updateDataField('items', newItems);
+                          }}
+                          className="w-full sm:w-16 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          placeholder="Suffix (K)"
+                        />
+                        <input
+                          type="text"
+                          value={stat.label || ''}
+                          onChange={(e) => {
+                            const newItems = [...(section.data?.items || [])];
+                            newItems[sIdx] = { ...newItems[sIdx], label: e.target.value };
+                            updateDataField('items', newItems);
+                          }}
+                          className="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          placeholder="Stat Label"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newItems = (section.data?.items || []).filter((_: any, i: number) => i !== sIdx);
+                            updateDataField('items', newItems);
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-600"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-gray-200 pt-3 space-y-3">
+                  <div className="font-semibold text-gray-800 text-[11px] uppercase tracking-wider">
+                    Call To Action Banner Settings
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-1">CTA Button Label</label>
+                      <input
+                        type="text"
+                        value={section.data?.ctaLabel || 'Explore the edit'}
+                        onChange={(e) => updateDataField('ctaLabel', e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                        placeholder="Explore the edit"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-1">CTA Button Link</label>
+                      <input
+                        type="text"
+                        value={section.data?.ctaLink || '/products'}
+                        onChange={(e) => updateDataField('ctaLink', e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                        placeholder="/products"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* FAQ SECTION */}
             {section.type === 'faq' && (
               <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Tag (Top Header)</label>
+                    <input
+                      type="text"
+                      value={section.data?.tag || '// FAQ'}
+                      onChange={(e) => updateDataField('tag', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="// FAQ"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Meta Code (Footer)</label>
+                    <input
+                      type="text"
+                      value={section.data?.metaCode || 'PROJECT_SUPPORT_V01'}
+                      onChange={(e) => updateDataField('metaCode', e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      placeholder="PROJECT_SUPPORT_V01"
+                    />
+                  </div>
+                </div>
                 <div className="flex items-center justify-between">
                   <label className="block text-gray-700 font-medium">FAQ Questions & Answers</label>
                   <button
@@ -533,7 +892,7 @@ export default function SectionItemEditor({
                       const items = section.data?.items || [];
                       updateDataField('items', [
                         ...items,
-                        { question: 'What is your question?', answer: 'Answer details here.' },
+                        { q: 'What is your question?', a: 'Answer details here.' },
                       ]);
                     }}
                     className="text-orange-600 hover:text-orange-700 font-semibold text-[11px] flex items-center gap-1"
@@ -543,17 +902,17 @@ export default function SectionItemEditor({
                 </div>
                 <div className="space-y-2">
                   {(section.data?.items || []).map((faq: any, qIdx: number) => (
-                    <div key={qIdx} className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
+                    <div key={qIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           type="text"
-                          value={faq.question || ''}
+                          value={faq.q || faq.question || ''}
                           onChange={(e) => {
                             const newItems = [...(section.data?.items || [])];
-                            newItems[qIdx] = { ...newItems[qIdx], question: e.target.value };
+                            newItems[qIdx] = { ...newItems[qIdx], q: e.target.value, question: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
                           placeholder="Question?"
                         />
                         <button
@@ -569,13 +928,13 @@ export default function SectionItemEditor({
                       </div>
                       <textarea
                         rows={2}
-                        value={faq.answer || ''}
+                        value={faq.a || faq.answer || ''}
                         onChange={(e) => {
                           const newItems = [...(section.data?.items || [])];
-                          newItems[qIdx] = { ...newItems[qIdx], answer: e.target.value };
+                          newItems[qIdx] = { ...newItems[qIdx], a: e.target.value, answer: e.target.value };
                           updateDataField('items', newItems);
                         }}
-                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-none text-xs"
                         placeholder="Answer details..."
                       />
                     </div>

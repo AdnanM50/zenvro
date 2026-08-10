@@ -3,11 +3,26 @@
 import { useRef } from "react";
 import { gsap, useGsap } from "../../../components/about/useGsap";
 import RevealHeading from "../../../components/about/RevealHeading";
-import { VALUES } from "../../../components/about/data";
+import type { PageSection } from "@/types";
 
 // ─── Section 03: The Craft / Values ──────────────────────────────────
-export default function AboutValues() {
+interface AboutValuesProps {
+  section?: PageSection;
+}
+
+export default function AboutValues({ section }: AboutValuesProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
+
+  const tag = section?.data?.tag || "// The Craft";
+  const title = section?.title || "What we\nstand for";
+  const description = section?.subtitle || section?.data?.description || "Six principles, non-negotiable. They shape every cut, every fabric, and every piece we let out the door.";
+  const valueItems: Array<{ icon: string; title: string; copy: string; tag: string }> =
+    (section?.data?.items || []).map((it: any, idx: number) => ({
+      icon: it.icon || "auto_awesome",
+      title: it.title || "Craft Value",
+      copy: it.copy || it.description || "",
+      tag: it.tag || `CRAFT_0${idx + 1}`,
+    }));
 
   useGsap(sectionRef, () => {
     gsap.from("[data-values-label]", {
@@ -64,22 +79,22 @@ export default function AboutValues() {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div data-values-label>
             <p className="font-label text-[11px] font-black uppercase tracking-[0.28em] text-secondary">
-              {"// The Craft"}
+              {tag}
             </p>
             <RevealHeading
-              text={"What we\nstand for"}
+              text={title}
               className="mt-6 font-headline text-4xl sm:text-6xl font-black tracking-tighter leading-[0.9] uppercase"
             />
           </div>
           <p data-values-copy className="max-w-[300px] font-body text-sm leading-[1.8] text-secondary md:text-right">
-            Six principles, non-negotiable. They shape every cut, every fabric, and every piece we let out the door.
+            {description}
           </p>
         </div>
 
         <div data-values-grid className="mt-14 md:mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {VALUES.map((value) => (
+          {valueItems.map((value, idx) => (
             <article
-              key={value.tag}
+              key={value.tag || idx}
               data-values-card
               className="group relative flex min-h-[320px] flex-col justify-between border border-outline-variant bg-background p-8 [clip-path:polygon(0_0,calc(100%_-_28px)_0,100%_28px,100%_100%,28px_100%,0_calc(100%_-_28px))] transition-colors duration-500 hover:bg-primary hover:text-white hover:[clip-path:polygon(0_0,calc(100%_-_52px)_0,100%_52px,100%_100%,52px_100%,0_calc(100%_-_52px))]"
             >

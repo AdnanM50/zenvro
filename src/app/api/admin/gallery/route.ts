@@ -30,6 +30,9 @@ export async function GET(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
+    // Ensure default images exist in gallery database
+    await GalleryModel.seedDefaults();
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || undefined;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));

@@ -1,13 +1,28 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import { gsap, useGsap } from "../../../components/about/useGsap";
 import RevealHeading from "../../../components/about/RevealHeading";
-import { TIMELINE, IMG } from "../../../components/about/data";
+import type { PageSection } from "@/types";
+
+const FALLBACK_EDITORIAL = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=1200";
 
 // ─── Section 02: Our Story / Timeline ────────────────────────────────
-export default function AboutStory() {
+interface AboutStoryProps {
+  section?: PageSection;
+}
+
+export default function AboutStory({ section }: AboutStoryProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
+
+  const tag = section?.data?.tag || "// Our Story";
+  const title = section?.title || "Eight years\nin the making";
+  const description = section?.subtitle || section?.data?.description || "What began as a single sewing table in a tiny studio is now a house with one obsession: clothes that feel like they were made for you, and made to last. No seasons to chase. No trends to obey. Just craft, cut, and intention.";
+  const image = section?.data?.image || section?.data?.bgImage || FALLBACK_EDITORIAL;
+  const metaCode = section?.data?.metaCode || "PROJECT_STORY_V02";
+  const timelineItems: Array<{ year: string; title: string; copy: string }> =
+    section?.data?.items || section?.data?.timeline || [];
 
   useGsap(sectionRef, () => {
     gsap.from("[data-story-label]", {
@@ -69,36 +84,36 @@ export default function AboutStory() {
           <div className="lg:sticky lg:top-28">
             <div data-story-label>
               <p className="font-label text-[11px] font-black uppercase tracking-[0.28em] text-secondary">
-                {"// Our Story"}
+                {tag}
               </p>
               <RevealHeading
-                text={"Eight years\nin the making"}
+                text={title}
                 className="mt-6 font-headline text-4xl sm:text-5xl font-black tracking-tighter leading-[0.9] uppercase"
               />
             </div>
 
             <p data-story-copy className="mt-8 max-w-[360px] font-body text-sm leading-[1.8] text-secondary">
-              What began as a single sewing table in a tiny studio is now a
-              house with one obsession: clothes that feel like they were made
-              for you, and made to last. No seasons to chase. No trends to
-              obey. Just craft, cut, and intention.
+              {description}
             </p>
 
             {/* Parallax image */}
             <div
               data-story-img-frame
-              className="relative mt-12 hidden lg:block overflow-hidden bg-surface-container collections-image-clip"
+              className="relative mt-12 hidden lg:block aspect-[3/4] overflow-hidden bg-surface-container collections-image-clip"
             >
-              <img
+              <Image
                 data-story-img
-                className="w-full h-full object-cover scale-125"
-                alt="Editorial fashion photography of high-end accessories"
-                src={IMG.editorial}
+                className="object-cover scale-125"
+                alt="Editorial fashion photography"
+                src={image}
+                fill
+                sizes="(max-width: 1024px) 100vw, 40vw"
+                unoptimized
               />
             </div>
 
             <div data-story-meta className="mt-8 flex items-end gap-4">
-              <span className="font-label text-xs font-mono text-secondary">PROJECT_STORY_V02</span>
+              <span className="font-label text-xs font-mono text-secondary">{metaCode}</span>
               <div className="flex gap-2">
                 <span className="w-8 h-1 bg-primary rounded-full" />
                 <span className="w-4 h-1 bg-outline-variant rounded-full" />
@@ -110,9 +125,9 @@ export default function AboutStory() {
 
         {/* Timeline */}
         <div data-timeline-list className="lg:col-span-7 flex flex-col">
-          {TIMELINE.map((item) => (
+          {timelineItems.map((item, idx) => (
             <div
-              key={item.year}
+              key={item.year || idx}
               data-timeline-item
               className="group relative border-l border-outline-variant pl-8 md:pl-14 pb-12 last:pb-0"
             >
@@ -126,7 +141,7 @@ export default function AboutStory() {
                 </h3>
               </div>
               <p className="mt-4 max-w-[520px] font-body text-sm leading-[1.8] text-secondary">
-                {item.copy}
+                {item.copy || (item as any).description}
               </p>
             </div>
           ))}

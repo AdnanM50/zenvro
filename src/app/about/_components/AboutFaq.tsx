@@ -5,18 +5,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EASE_LUXURY } from "@/lib/animations";
 import { gsap, useGsap } from "../../../components/about/useGsap";
 import RevealHeading from "../../../components/about/RevealHeading";
-import { FAQS } from "../../../components/about/data";
+
+import type { PageSection } from "@/types";
 
 // ─── Accordion ───────────────────────────────────────────────────────
-function FaqAccordion() {
+function FaqAccordion({ items }: { items: Array<{ q: string; a: string }> }) {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
     <div className="border-t border-outline-variant">
-      {FAQS.map((faq, index) => {
+      {items.map((faq, index) => {
         const isOpen = open === index;
         return (
-          <div key={faq.q} className="collections-accordion-item border-b border-outline-variant">
+          <div key={faq.q || index} className="collections-accordion-item border-b border-outline-variant">
             <button
               type="button"
               aria-expanded={isOpen}
@@ -65,8 +66,22 @@ function FaqAccordion() {
 }
 
 // ─── Section 05: FAQ ─────────────────────────────────────────────────
-export default function AboutFaq() {
+interface AboutFaqProps {
+  section?: PageSection;
+}
+
+export default function AboutFaq({ section }: AboutFaqProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
+
+  const tag = section?.data?.tag || "// FAQ";
+  const title = section?.title || "Questions,\nanswered";
+  const description = section?.subtitle || section?.data?.description || "Everything you need to know before your first drop. Still curious? Our team replies within one working day.";
+  const metaCode = section?.data?.metaCode || "PROJECT_SUPPORT_V01";
+  const displayFaqs: Array<{ q: string; a: string }> =
+    (section?.data?.items || []).map((it: any) => ({
+      q: it.q || it.question || "",
+      a: it.a || it.answer || "",
+    }));
 
   useGsap(sectionRef, () => {
     gsap.from("[data-faq-label]", {
@@ -110,20 +125,20 @@ export default function AboutFaq() {
           <div className="lg:sticky lg:top-28">
             <div data-faq-label>
               <p className="font-label text-[11px] font-black uppercase tracking-[0.28em] text-secondary">
-                {"// FAQ"}
+                {tag}
               </p>
               <RevealHeading
-                text={"Questions,\nanswered"}
+                text={title}
                 className="mt-6 font-headline text-4xl sm:text-6xl font-black tracking-tighter leading-[0.9] uppercase"
               />
             </div>
 
             <p data-faq-copy className="mt-8 max-w-[340px] font-body text-sm leading-[1.8] text-secondary">
-              Everything you need to know before your first drop. Still curious? Our team replies within one working day.
+              {description}
             </p>
 
             <div data-faq-meta className="mt-10 hidden items-end gap-4 lg:flex">
-              <span className="font-label text-xs font-mono text-secondary">PROJECT_SUPPORT_V01</span>
+              <span className="font-label text-xs font-mono text-secondary">{metaCode}</span>
               <div className="flex gap-2">
                 <span className="w-8 h-1 bg-primary rounded-full" />
                 <span className="w-4 h-1 bg-outline-variant rounded-full" />
@@ -135,7 +150,7 @@ export default function AboutFaq() {
 
         {/* Accordion */}
         <div data-faq-accordion className="lg:col-span-7">
-          <FaqAccordion />
+          <FaqAccordion items={displayFaqs} />
         </div>
       </div>
     </section>

@@ -4,6 +4,7 @@ import React from 'react';
 import type { PageSEO } from '@/types';
 import GalleryPickerButton from '@/app/admin/gallery/_components/GalleryPickerButton';
 import { Search, Image as ImageIcon, Link as LinkIcon, FileText } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface PageSeoFormProps {
   seo: PageSEO;
@@ -36,11 +37,11 @@ export default function PageSeoForm({ seo, onChange }: PageSeoFormProps) {
             <FileText className="w-3.5 h-3.5 text-gray-400" />
             Meta Title
           </label>
-          <input
+          <Input
             type="text"
             value={seo?.metaTitle || ''}
             onChange={(e) => handleChange('metaTitle', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+            className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
             placeholder="Page title displayed on search engines..."
           />
           <div className="mt-1 flex justify-between text-[11px] text-gray-400">
@@ -60,7 +61,7 @@ export default function PageSeoForm({ seo, onChange }: PageSeoFormProps) {
             rows={3}
             value={seo?.metaDescription || ''}
             onChange={(e) => handleChange('metaDescription', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
             placeholder="Brief snippet describing this page for search engine results..."
           />
           <div className="mt-1 flex justify-between text-[11px] text-gray-400">
@@ -73,11 +74,11 @@ export default function PageSeoForm({ seo, onChange }: PageSeoFormProps) {
 
         <div>
           <label className="block font-medium text-gray-700 mb-1">Meta Keywords</label>
-          <input
+          <Input
             type="text"
             value={seo?.metaKeywords || ''}
             onChange={(e) => handleChange('metaKeywords', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+            className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
             placeholder="Comma-separated keywords (e.g. about us, zenvro, store)"
           />
         </div>
@@ -88,11 +89,11 @@ export default function PageSeoForm({ seo, onChange }: PageSeoFormProps) {
             Open Graph (OG) Preview Image URL
           </label>
           <div className="flex items-center gap-2">
-            <input
+            <Input
               type="text"
               value={seo?.ogImage || ''}
               onChange={(e) => handleChange('ogImage', e.target.value)}
-              className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+              className="flex-1 bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
               placeholder="https://..."
             />
             <GalleryPickerButton
@@ -107,11 +108,11 @@ export default function PageSeoForm({ seo, onChange }: PageSeoFormProps) {
             <LinkIcon className="w-3.5 h-3.5 text-gray-400" />
             Canonical URL
           </label>
-          <input
+          <Input
             type="text"
             value={seo?.canonicalUrl || ''}
             onChange={(e) => handleChange('canonicalUrl', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 transition-colors"
+            className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
             placeholder="https://zenvro.com/..."
           />
         </div>

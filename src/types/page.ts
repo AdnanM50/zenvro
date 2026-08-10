@@ -7,6 +7,7 @@ export type SectionType =
   | 'contactInfo'
   | 'policyClauses'
   | 'featuresGrid'
+  | 'stats'
   | 'faq';
 
 export interface PageSection {

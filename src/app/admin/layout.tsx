@@ -31,7 +31,7 @@ export default function AdminLayout({
           <AdminHeader onOpenSidebar={() => setSidebarOpen(true)} />
 
           {/* Page Content */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" data-lenis-prevent>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 " data-lenis-prevent>
             {children}
           </div>
         </main>

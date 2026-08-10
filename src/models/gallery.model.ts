@@ -10,7 +10,44 @@ async function col(): Promise<any> {
   return db.collection(COLLECTION);
 }
 
+export const defaultGalleryList: Array<CreateGalleryPayload> = [
+  {
+    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf',
+    title: 'About Hero Image 1 - Streetwear Jacket',
+    altText: 'Close-up of a colorful streetwear jacket',
+    source: 'url',
+  },
+  {
+    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve',
+    title: 'About Hero Image 2 - Tan Model Jacket',
+    altText: 'Model posing in a tan and black luxury streetwear jacket',
+    source: 'url',
+  },
+  {
+    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq',
+    title: 'About Hero Image 3 - Back Detail',
+    altText: 'Back detail of a jacket with artistic graphic design',
+    source: 'url',
+  },
+  {
+    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1RoW5cBcoqT10u7JT7K7anHFGjv3NTjr8_mysaiCsk27iFErOxdP6goslnhBKFrJAC_iy8B-WQiIX7V9Tfq3ZQQ0DbKX0r3VZWRvRL8rx9a5vZ6yrB9wQOagG01U8I61_Y8LQ3h4X_uq6u5aA3yI1A8TPHK0I6FEbFTGhj8IPMtbCubZDYHng1tq9dl0pwI8nDdjwgiNLq4eIJQQwAMDg4xcvoJK2t1TVCM5VYhXT2E4qhkIg7Sq7cXGPMSQGBTsIMkBZr007K2R_',
+    title: 'About Story Image - Editorial Fashion',
+    altText: 'Editorial fashion photography of high-end accessories',
+    source: 'url',
+  },
+];
+
 export const GalleryModel = {
+  async seedDefaults(): Promise<void> {
+    const c = await col();
+    for (const def of defaultGalleryList) {
+      const existing = await c.findOne({ url: def.url });
+      if (!existing) {
+        await this.create(def);
+      }
+    }
+  },
+
   async create(data: CreateGalleryPayload): Promise<GalleryItem> {
     const c = await col();
     const _id = generateObjectId();

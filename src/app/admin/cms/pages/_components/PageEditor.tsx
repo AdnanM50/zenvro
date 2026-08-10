@@ -18,6 +18,11 @@ import {
   Globe,
   Settings as SettingsIcon,
   Layers,
+  Eye,
+  Monitor,
+  Tablet,
+  Smartphone,
+  RefreshCw,
 } from 'lucide-react';
 import type { Page, PageSection, PageSEO, SectionType, PageStatus } from '@/types';
 import SectionItemEditor from './SectionItemEditor';
@@ -43,7 +48,10 @@ export default function PageEditor({
   onDeletePage,
   isSaving = false,
 }: PageEditorProps) {
-  const [activeTab, setActiveTab] = useState<'sections' | 'seo' | 'settings'>('sections');
+  const [activeTab, setActiveTab] = useState<'sections' | 'preview' | 'seo' | 'settings'>('sections');
+  const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewKey, setPreviewKey] = useState(0);
+
   const [title, setTitle] = useState(page.title);
   const [slug, setSlug] = useState(page.slug);
   const [status, setStatus] = useState<PageStatus>(page.status);
@@ -51,6 +59,8 @@ export default function PageEditor({
   const [seo, setSeo] = useState<PageSEO>(page.seo || { metaTitle: '', metaDescription: '' });
   const [isAddSectionMenuOpen, setIsAddSectionMenuOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const previewPath = slug === 'about-us' ? '/about' : slug === 'contact-us' ? '/contact' : `/${slug.replace(/^\//, '')}`;
 
   // Sync internal state when active page prop changes
   useEffect(() => {
@@ -142,6 +152,24 @@ export default function PageEditor({
           },
         };
         break;
+      case 'stats':
+        newSection = {
+          id: newId,
+          type: 'stats',
+          title: 'Become part of the story',
+          subtitle: 'Every drop is a small chapter.',
+          isActive: true,
+          order: sections.length + 1,
+          data: {
+            items: [
+              { value: 8, suffix: '', label: 'Years of craft' },
+              { value: 45, suffix: '', label: 'Signature collections' },
+            ],
+            ctaLabel: 'Explore the edit',
+            ctaLink: '/products',
+          },
+        };
+        break;
       case 'faq':
         newSection = {
           id: newId,
@@ -151,7 +179,7 @@ export default function PageEditor({
           isActive: true,
           order: sections.length + 1,
           data: {
-            items: [{ question: 'Sample Question?', answer: 'Sample answer details.' }],
+            items: [{ q: 'Sample Question?', a: 'Sample answer details.' }],
           },
         };
         break;
@@ -216,12 +244,13 @@ export default function PageEditor({
   };
 
   const sectionTypeOptions: { type: SectionType; label: string; icon: any; desc: string }[] = [
-    { type: 'hero', label: 'Hero Banner', icon: Layout, desc: 'Header banner with CTA buttons & background' },
+    { type: 'hero', label: 'Hero Banner', icon: Layout, desc: 'Header banner with 3 editorial images & CTA buttons' },
     { type: 'richText', label: 'Rich Text / Paragraph', icon: Type, desc: 'General text content block' },
-    { type: 'missionVision', label: 'Mission & Vision', icon: Target, desc: 'Mission, vision, and core values cards' },
+    { type: 'missionVision', label: 'Story & Timeline', icon: Target, desc: 'Our story intro with timeline milestones' },
+    { type: 'featuresGrid', label: 'Craft & Values', icon: Grid, desc: 'Grid of 6 craft value cards with icons' },
+    { type: 'stats', label: 'Stats & Numbers CTA', icon: Sparkles, desc: 'Counter stats numbers with call-to-action banner' },
     { type: 'contactInfo', label: 'Contact Info & Form', icon: Mail, desc: 'Email, phone, address, and inquiry form' },
     { type: 'policyClauses', label: 'Policy Clauses', icon: FileText, desc: 'Terms & conditions or privacy policy list' },
-    { type: 'featuresGrid', label: 'Features Grid', icon: Grid, desc: 'Grid of highlights with custom icons' },
     { type: 'faq', label: 'FAQ Accordion', icon: HelpCircle, desc: 'Expandable Q&A accordion list' },
   ];
 
@@ -283,22 +312,34 @@ export default function PageEditor({
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 px-4 pt-3 border-b border-gray-100 bg-white">
+      <div className="flex items-center gap-1 px-4 pt-3 border-b border-gray-100 bg-white overflow-x-auto">
         <button
           onClick={() => setActiveTab('sections')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition shrink-0 ${
             activeTab === 'sections'
               ? 'border-orange-500 text-orange-600'
               : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <Layers className="w-4 h-4" />
-          Page Sections ({sections.length})
+          Edit Sections ({sections.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('preview')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition shrink-0 ${
+            activeTab === 'preview'
+              ? 'border-orange-500 text-orange-600'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <Eye className="w-4 h-4" />
+          Live Preview
         </button>
 
         <button
           onClick={() => setActiveTab('seo')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition shrink-0 ${
             activeTab === 'seo'
               ? 'border-orange-500 text-orange-600'
               : 'border-transparent text-gray-500 hover:text-gray-800'
@@ -310,7 +351,7 @@ export default function PageEditor({
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition shrink-0 ${
             activeTab === 'settings'
               ? 'border-orange-500 text-orange-600'
               : 'border-transparent text-gray-500 hover:text-gray-800'
@@ -322,10 +363,104 @@ export default function PageEditor({
       </div>
 
       {/* Workspace Area */}
-      <div className="flex-1 p-4 sm:p-6 bg-gray-50/40">
+      <div className="flex-1 p-1 sm:p-2.5 bg-gray-50/40">
+        {/* LIVE PREVIEW TAB */}
+        {activeTab === 'preview' && (
+          <div className="space-y-4 max-w-6xl mx-auto">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-700 uppercase tracking-wider px-2">Viewport:</span>
+                <button
+                  type="button"
+                  onClick={() => setDevice('desktop')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+                    device === 'desktop'
+                      ? 'bg-orange-50 text-orange-600 border-orange-200 shadow-2xs'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <Monitor className="w-3.5 h-3.5" /> Desktop (100%)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDevice('tablet')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+                    device === 'tablet'
+                      ? 'bg-orange-50 text-orange-600 border-orange-200 shadow-2xs'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <Tablet className="w-3.5 h-3.5" /> Tablet (768px)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDevice('mobile')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+                    device === 'mobile'
+                      ? 'bg-orange-50 text-orange-600 border-orange-200 shadow-2xs'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" /> Mobile (375px)
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewKey((k) => k + 1)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Reload Preview
+                </button>
+                <a
+                  href={previewPath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-black hover:bg-gray-800 rounded-xl transition shadow-2xs"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Open Public Page
+                </a>
+              </div>
+            </div>
+
+            {/* Frame Canvas */}
+            <div className="bg-gray-900/90 rounded-2xl p-4 sm:p-8 flex justify-center items-start min-h-[700px] overflow-x-auto shadow-inner">
+              <div
+                className={`bg-white rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 border border-gray-700 flex flex-col ${
+                  device === 'desktop'
+                    ? 'w-full max-w-[1280px] h-[750px]'
+                    : device === 'tablet'
+                    ? 'w-[768px] h-[750px]'
+                    : 'w-[375px] h-[667px]'
+                }`}
+              >
+                <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-400 inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />
+                  </div>
+                  <div className="flex-1 bg-white px-3 py-1 rounded-lg border border-gray-200 text-gray-500 font-mono text-[11px] truncate flex items-center justify-between">
+                    <span>https://zenvro.com{previewPath}</span>
+                    <span className="text-[10px] text-emerald-600 font-semibold uppercase">LIVE PREVIEW</span>
+                  </div>
+                </div>
+
+                <iframe
+                  key={previewKey}
+                  src={previewPath}
+                  title="Live Preview Page"
+                  className="w-full flex-1 border-none bg-white"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* SECTIONS TAB */}
         {activeTab === 'sections' && (
-          <div className="space-y-4 max-w-4xl mx-auto">
+          <div className="space-y-4 max-w-5xl mx-auto">
             {/* Top Toolbar */}
             <div className="flex items-center justify-between">
               <div>

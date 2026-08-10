@@ -5,11 +5,24 @@ import Link from "next/link";
 import { gsap, useGsap } from "../../../components/about/useGsap";
 import RevealHeading from "../../../components/about/RevealHeading";
 import TickerBar from "../../../components/about/TickerBar";
-import { STATS } from "../../../components/about/data";
+
+import type { PageSection } from "@/types";
 
 // ─── Section 04: Numbers / CTA ───────────────────────────────────────
-export default function AboutStats() {
+interface AboutStatsProps {
+  section?: PageSection;
+}
+
+export default function AboutStats({ section }: AboutStatsProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
+
+  const displayStats: Array<{ value: number; suffix: string; label: string }> =
+    section?.data?.items || section?.data?.stats || [];
+
+  const ctaTitle = section?.title || section?.data?.ctaTitle || "Become part\nof the story";
+  const ctaDescription = section?.subtitle || section?.data?.ctaDescription || "Every drop is a small chapter. Join the community and be first to the next one.";
+  const ctaLabel = section?.data?.ctaLabel || "Explore the edit";
+  const ctaLink = section?.data?.ctaLink || "/products";
 
   useGsap(sectionRef, () => {
     gsap.from("[data-stat]", {
@@ -71,8 +84,8 @@ export default function AboutStats() {
       <div className="mx-auto max-w-360 px-6 md:px-12 lg:px-16">
         {/* Stats */}
         <div data-stats-grid className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {STATS.map((stat) => (
-            <div key={stat.label} data-stat className="border-t border-outline-variant pt-6">
+          {displayStats.map((stat, idx) => (
+            <div key={stat.label || idx} data-stat className="border-t border-outline-variant pt-6">
               <p className="font-headline text-6xl md:text-7xl font-black tracking-tighter text-primary-fixed">
                 <span
                   data-stat-value
@@ -94,21 +107,21 @@ export default function AboutStats() {
         <div data-stats-cta className="mt-24 md:mt-40 grid grid-cols-1 items-center gap-12 lg:grid-cols-12">
           <div className="lg:col-span-8">
             <RevealHeading
-              text={"Become part\nof the story"}
+              text={ctaTitle}
               className="font-headline text-[clamp(2.5rem,7vw,6.5rem)] font-black tracking-[-0.03em] leading-[0.9] uppercase"
             />
           </div>
 
           <div className="lg:col-span-4 flex flex-col items-start gap-8 lg:items-end">
             <p data-stats-copy className="max-w-[280px] font-body text-sm leading-[1.8] text-secondary lg:text-right">
-              Every drop is a small chapter. Join the community and be first to the next one.
+              {ctaDescription}
             </p>
             <Link
               data-stats-btn
-              href="/products"
+              href={ctaLink}
               className="group inline-flex items-center gap-4 rounded-full bg-primary text-white px-8 py-4 font-label text-xs font-bold tracking-widest transition-colors hover:bg-primary-fixed"
             >
-              Explore the edit
+              {ctaLabel}
               <span className="material-symbols-outlined text-[16px] transition-transform duration-300 group-hover:translate-x-1">
                 arrow_forward
               </span>
