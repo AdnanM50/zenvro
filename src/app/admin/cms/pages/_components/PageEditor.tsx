@@ -28,6 +28,7 @@ import type { Page, PageSection, PageSEO, SectionType, PageStatus } from '@/type
 import SectionItemEditor from './SectionItemEditor';
 import PageSeoForm from './PageSeoForm';
 import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
+import { getPagePublicPath } from '@/lib/pagePaths';
 
 interface PageEditorProps {
   page: Page;
@@ -60,7 +61,7 @@ export default function PageEditor({
   const [isAddSectionMenuOpen, setIsAddSectionMenuOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const previewPath = slug === 'about-us' ? '/about' : slug === 'contact-us' ? '/contact' : `/${slug.replace(/^\//, '')}`;
+  const previewPath = getPagePublicPath(slug);
 
   // Sync internal state when active page prop changes
   useEffect(() => {

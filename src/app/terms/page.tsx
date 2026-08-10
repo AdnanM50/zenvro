@@ -1,5 +1,26 @@
+import type { Metadata } from "next";
 import LegalLayout from "@/components/legal/LegalLayout";
 import type { LegalSection } from "@/components/legal/LegalLayout";
+import { buildPageMetadata } from "@/lib/pageMetadata";
+
+export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("terms-conditions", "/terms", {
+    title: "Terms & Conditions | Zenvro Store",
+    description:
+      "The fine print behind the fabric. Review the rules and guidelines governing your use of the VELOUR website and services.",
+    keywords: [
+      "terms of service",
+      "terms and conditions",
+      "user agreement",
+      "legal",
+      "refunds",
+      "shipping policy",
+    ],
+    ogImage: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200",
+  });
+}
 
 const SECTIONS: LegalSection[] = [
   {

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { PageModel } from "@/models/page.model";
+import { buildPageMetadata } from "@/lib/pageMetadata";
 import AboutClientView from "./_components/AboutClientView";
 
 // Incremental Static Revalidation (ISR) for super fast page loads
@@ -8,86 +9,20 @@ export const revalidate = 60;
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zenvro.com";
 
 export async function generateMetadata(): Promise<Metadata> {
-  let title = "About Us | VELOUR Independent Fashion House";
-  let description =
-    "Crafted in small runs. Worn for a lifetime. VELOUR is an independent fashion house chasing the perfect collision of comfort and design.";
-  let keywords = [
-    "velour fashion",
-    "independent fashion house",
-    "sustainable clothing",
-    "limited drop apparel",
-    "luxury streetwear",
-    "eco-friendly fashion",
-  ];
-  let ogImage = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=1200";
-
-  try {
-    await PageModel.seedDefaults();
-    const page = await PageModel.findBySlug("about-us");
-    if (page?.seo) {
-      if (page.seo.metaTitle) title = page.seo.metaTitle;
-      if (page.seo.metaDescription) description = page.seo.metaDescription;
-      if (page.seo.focusKeyword) keywords.unshift(page.seo.focusKeyword);
-      if (page.seo.metaKeywords) {
-        keywords.push(...page.seo.metaKeywords.split(',').map((k) => k.trim()).filter(Boolean));
-      }
-      if (page.seo.additionalKeywords?.length) {
-        keywords.push(...page.seo.additionalKeywords);
-      }
-      if (page.seo.searchPhrases?.length) {
-        keywords.push(...page.seo.searchPhrases);
-      }
-      keywords = [...new Set(keywords.map((k) => k.toLowerCase()))];
-      if (page.seo.ogImage) ogImage = page.seo.ogImage;
-    }
-  } catch (error) {
-    console.error("Error generating metadata for about page:", error);
-  }
-
-  return {
-    metadataBase: new URL(BASE_URL),
-    title,
-    description,
-    keywords,
-    authors: [{ name: "VELOUR Atelier", url: BASE_URL }],
-    publisher: "VELOUR International",
-    alternates: {
-      canonical: `${BASE_URL}/about`,
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
-    openGraph: {
-      title,
-      description,
-      url: `${BASE_URL}/about`,
-      siteName: "VELOUR",
-      locale: "en_US",
-      type: "website",
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: "VELOUR Fashion House Atelier",
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImage],
-      creator: "@velour_official",
-    },
-  };
+  return buildPageMetadata("about-us", "/about", {
+    title: "About Us | VELOUR Independent Fashion House",
+    description:
+      "Crafted in small runs. Worn for a lifetime. VELOUR is an independent fashion house chasing the perfect collision of comfort and design.",
+    keywords: [
+      "velour fashion",
+      "independent fashion house",
+      "sustainable clothing",
+      "limited drop apparel",
+      "luxury streetwear",
+      "eco-friendly fashion",
+    ],
+    ogImage: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=1200",
+  });
 }
 
 export default async function AboutPage() {

@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import type { Page } from '@/types';
+import { getPagePublicPath } from '@/lib/pagePaths';
 
 interface PagePreviewHubProps {
   page: Page;
@@ -25,12 +26,7 @@ export default function PagePreviewHub({ page }: PagePreviewHubProps) {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [previewKey, setPreviewKey] = useState(0);
 
-  const previewPath =
-    page.slug === 'about-us'
-      ? '/about'
-      : page.slug === 'contact-us'
-      ? '/contact'
-      : `/${page.slug.replace(/^\//, '')}`;
+  const previewPath = getPagePublicPath(page.slug);
 
   const activeSectionsCount = (page.sections || []).filter((s) => s.isActive).length;
   const hasSeo = Boolean(page.seo?.metaTitle && page.seo?.metaDescription);

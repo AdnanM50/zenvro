@@ -1,5 +1,26 @@
+import type { Metadata } from "next";
 import LegalLayout from "@/components/legal/LegalLayout";
 import type { LegalSection } from "@/components/legal/LegalLayout";
+import { buildPageMetadata } from "@/lib/pageMetadata";
+
+export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("privacy-policy", "/privacy", {
+    title: "Privacy Policy | Zenvro Store",
+    description:
+      "Your data deserves the same care as our craft. Learn how Zenvro collects, uses, and safeguards your personal information.",
+    keywords: [
+      "privacy policy",
+      "data protection",
+      "security",
+      "cookies",
+      "personal information",
+      "gdpr",
+    ],
+    ogImage: "https://images.unsplash.com/photo-1516387938699-a93567ec168e?auto=format&fit=crop&q=80&w=1200",
+  });
+}
 
 const SECTIONS: LegalSection[] = [
   {
