@@ -27,11 +27,11 @@ export function generateOtp(): string {
 export async function storeOtp(
   email: string,
   otp: string,
-  name: string,
-  password: string,
+  name: string = '',
+  password?: string,
 ): Promise<void> {
   const col = await collection();
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  const hashedPassword = password ? await bcrypt.hash(password, SALT_ROUNDS) : '';
   await col.updateOne(
     { email },
     {
@@ -39,7 +39,7 @@ export async function storeOtp(
         email,
         otp,
         name,
-        password: hashedPassword,
+        ...(hashedPassword ? { password: hashedPassword } : {}),
         expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
         attempts: 0,
       },

@@ -29,6 +29,7 @@ jest.mock('@/models/gallery.model', () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    seedDefaults: jest.fn().mockResolvedValue(undefined),
   },
 }));
 

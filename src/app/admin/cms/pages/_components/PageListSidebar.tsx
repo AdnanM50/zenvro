@@ -13,6 +13,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
+  Home,
 } from 'lucide-react';
 import type { Page } from '@/types';
 
@@ -43,6 +44,8 @@ export default function PageListSidebar({
 
   const getPageIcon = (slug: string) => {
     switch (slug) {
+      case 'home':
+        return Home;
       case 'about-us':
         return Info;
       case 'contact-us':

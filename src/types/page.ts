@@ -8,7 +8,10 @@ export type SectionType =
   | 'policyClauses'
   | 'featuresGrid'
   | 'stats'
-  | 'faq';
+  | 'faq'
+  | 'homeHero'
+  | 'homeAbout'
+  | 'homeTestimonial';
 
 export interface PageSection {
   id: string;

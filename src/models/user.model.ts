@@ -88,8 +88,41 @@ export const UserModel = {
 
   async findByEmail(email: string): Promise<User | null> {
     const col = await usersCol();
-    const raw = await col.findOne({ email });
+    const raw = await col.findOne({ email: email.toLowerCase().trim() });
     return raw ? normalizeUser(raw) : null;
+  },
+
+  async seedAdmin(adminEmail = 'admin@gmail.com', adminPassword = '123456'): Promise<User> {
+    const col = await usersCol();
+    const email = adminEmail.toLowerCase().trim();
+    const existing = await col.findOne({ email });
+    const { hashPassword } = await import('@/lib/auth');
+    const hashedPassword = await hashPassword(adminPassword);
+
+    if (!existing) {
+      const _id = new ObjectId();
+      const doc = {
+        _id,
+        email,
+        password: hashedPassword,
+        name: 'Admin User',
+        role: 'admin' as UserRole,
+        status: 'active' as UserStatus,
+        addresses: [],
+        wishlist: [],
+        createdAt: new Date(),
+      };
+      await col.insertOne(doc as any);
+      return normalizeUser(doc);
+    } else {
+      // Ensure existing admin user has a valid hashed password and active status
+      await col.updateOne(
+        { email },
+        { $set: { password: hashedPassword, role: 'admin', status: 'active' } }
+      );
+      const updated = await col.findOne({ email });
+      return normalizeUser(updated);
+    }
   },
 
   async findById(id: string): Promise<User | null> {

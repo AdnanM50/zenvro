@@ -1,4 +1,5 @@
 const PAGE_ROUTES: Record<string, string> = {
+  home: '/',
   'about-us': '/about',
   'contact-us': '/contact',
   'privacy-policy': '/privacy',

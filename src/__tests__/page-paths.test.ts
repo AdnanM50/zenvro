@@ -2,6 +2,7 @@ import { getPagePublicPath } from '@/lib/pagePaths';
 
 describe('getPagePublicPath()', () => {
   it('maps CMS slugs to their public routes', () => {
+    expect(getPagePublicPath('home')).toBe('/');
     expect(getPagePublicPath('about-us')).toBe('/about');
     expect(getPagePublicPath('contact-us')).toBe('/contact');
     expect(getPagePublicPath('privacy-policy')).toBe('/privacy');

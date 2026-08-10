@@ -30,6 +30,84 @@ export const defaultSeo = (title: string): PageSEO => ({
 
 export const defaultPagesList: Array<CreatePagePayload> = [
   {
+    title: 'Home Page',
+    slug: 'home',
+    status: 'published',
+    seo: {
+      metaTitle: 'VELOUR | Independent Fashion House',
+      metaDescription: 'Explore curated collections, exclusive drops, and everyday essentials all thoughtfully designed in one stylish shopping destination.',
+      metaKeywords: 'velour, fashion, urban fashion, streetwear, limited drops, sustainable fashion, luxury streetwear',
+      ogImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf',
+      canonicalUrl: 'https://zenvro.com/',
+    },
+    sections: [
+      {
+        id: 'home-hero',
+        type: 'homeHero',
+        title: 'Home Hero',
+        subtitle: 'Explore curated collections, exclusive drops, and everyday essentials all thoughtfully designed in one stylish shopping destination.',
+        isActive: true,
+        order: 1,
+        data: {
+          leftTitle: 'where\n- style',
+          tag: '// FASHION',
+          newText: '/ New',
+          newSubtext: 'Collection 2026',
+          rightTag: '// STYLED FOR\nLIFE.',
+          rightTitle: 'lives\n- now',
+          modelImage: '/hero/model-Photoroom.png',
+          avatar1: '/hero/avatar1.png',
+          avatar2: '/hero/avatar2.png',
+          peopleCount: '280K',
+          peopleLabel: 'PEOPLE WE INSPIRE',
+          marquee: 'T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE',
+        },
+      },
+      {
+        id: 'home-about',
+        type: 'homeAbout',
+        title: 'All - about\nmoments\n©26',
+        subtitle: 'Where Elegance Meets Sustainability Luxury Made Accessible',
+        isActive: true,
+        order: 2,
+        data: {
+          ctaLabel: 'LEARN MORE',
+          ctaLink: '/about',
+          smallImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf',
+          smallImageLabel: 'New Drop',
+          smallImagePrice: '($120)',
+          centerImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve',
+          copyright: '©International - going distance 2026',
+          rightTitle: 'Design\nPhilosophy',
+          rightCopy: 'Blending avant-garde aesthetics with everyday utility, our pieces are crafted for those who define their own path. Every stitch tells a story of innovation.',
+          rightImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq',
+          rightCopyright: '©International - just do it 2026',
+          projectCode: 'PROJECT_V01',
+          projectPercent: '(45%)',
+        },
+      },
+      {
+        id: 'home-testimonial',
+        type: 'homeTestimonial',
+        title: 'Testimonial',
+        subtitle: 'See What Our Customers Are Saying',
+        isActive: true,
+        order: 3,
+        data: {
+          headerIndex: '01/8',
+          tag: '[Testimonial]',
+          image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDn86UomaXCYKGME9gdwpyjHvfq2QMkZYhlDZQzwXii2NJ3QutwTXQln53Kv_G431CcLy9zi8lL-znmVkSvPZxjBfFo-aOnii8DFdgO-DOYz7BiZ9n-OUAs4VZBuPuJbeGHmo1eKxmwkLdaVJdvHN7d9Rev5g9Z_oMTlaIljZzxiS77OAXok8rHgTvlmvntOER1bqZsk9yruNKXIsgo0dTG9xefrrp3Z_f95Np6z2-XLodRzf_snomxfiw2h45UgrrfYVnaoVtY6BmG',
+          authorName: '[Emma Williams]',
+          authorRole: 'Fashion Stylist',
+          quote: 'Everything is absolutely perfect! From the fabric quality to the flawless fit every piece feels premium. This brand has completely transformed my wardrobe.',
+          rating: 5,
+          reviewsCount: '49',
+          footerText: 'See What Our Customers Are Saying',
+        },
+      },
+    ],
+  },
+  {
     title: 'About Us',
     slug: 'about-us',
     status: 'published',
@@ -333,6 +411,21 @@ export const defaultPagesList: Array<CreatePagePayload> = [
 export const PageModel = {
   async seedDefaults(): Promise<void> {
     const c = await col();
+    // Auto-cleanup duplicate home pages
+    const homePages = await c.find({
+      $or: [
+        { slug: 'home' },
+        { slug: { $regex: '^home-' } },
+        { title: 'Home Page' },
+      ],
+    }).sort({ createdAt: 1 }).toArray();
+
+    if (homePages.length > 1) {
+      const deleteIds = homePages.slice(1).map((p: any) => p._id);
+      await c.deleteMany({ _id: { $in: deleteIds } });
+      await c.updateOne({ _id: homePages[0]._id }, { $set: { slug: 'home', title: 'Home Page' } });
+    }
+
     for (const def of defaultPagesList) {
       const existing = await c.findOne({ slug: def.slug });
       if (!existing) {
@@ -356,6 +449,10 @@ export const PageModel = {
           def.slug === 'about-us' && (!existing.sections || existing.sections.length < 5 || !existing.sections[0]?.data?.image1)
         ) {
           await c.updateOne({ slug: 'about-us' }, { $set: { sections: formattedSections, updatedAt: new Date() } });
+        } else if (
+          def.slug === 'home' && (!existing.sections || existing.sections.length < 3 || !existing.sections[0]?.data?.modelImage)
+        ) {
+          await c.updateOne({ slug: 'home' }, { $set: { sections: formattedSections, updatedAt: new Date() } });
         } else if (
           (def.slug === 'privacy-policy' || def.slug === 'terms-conditions') && existingClausesCount < defaultClausesCount
         ) {

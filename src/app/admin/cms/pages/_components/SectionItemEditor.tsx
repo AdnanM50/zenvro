@@ -18,6 +18,9 @@ import {
   HelpCircle,
   BarChart3,
   Pencil,
+  Home,
+  PenTool,
+  Quote,
 } from 'lucide-react';
 import type { PageSection, SectionType } from '@/types';
 import GalleryPickerButton from '@/app/admin/gallery/_components/GalleryPickerButton';
@@ -202,6 +205,12 @@ export default function SectionItemEditor({
         return { label: 'Stats & Numbers CTA', icon: BarChart3, color: 'bg-teal-50 text-teal-600 border-teal-200' };
       case 'faq':
         return { label: 'FAQ Accordion', icon: HelpCircle, color: 'bg-rose-50 text-rose-600 border-rose-200' };
+      case 'homeHero':
+        return { label: 'Home Hero Banner', icon: Home, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200' };
+      case 'homeAbout':
+        return { label: 'Home About Editorial', icon: PenTool, color: 'bg-cyan-50 text-cyan-600 border-cyan-200' };
+      case 'homeTestimonial':
+        return { label: 'Home Testimonial', icon: Quote, color: 'bg-violet-50 text-violet-600 border-violet-200' };
       default:
         return { label: 'Rich Text', icon: Type, color: 'bg-gray-50 text-gray-600 border-gray-200' };
     }
@@ -939,6 +948,351 @@ export default function SectionItemEditor({
                       />
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* HOME HERO SECTION */}
+            {section.type === 'homeHero' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Left Big Title</label>
+                    <Input
+                      type="text"
+                      value={section.data?.leftTitle || 'where\n- style'}
+                      onChange={(e) => updateDataField('leftTitle', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="where\n- style"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Right Big Title</label>
+                    <Input
+                      type="text"
+                      value={section.data?.rightTitle || 'lives\n- now'}
+                      onChange={(e) => updateDataField('rightTitle', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="lives\n- now"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Tag (Top Left)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.tag || '// FASHION'}
+                      onChange={(e) => updateDataField('tag', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="// FASHION"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Tag (Top Right)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.rightTag || '// STYLED FOR\nLIFE.'}
+                      onChange={(e) => updateDataField('rightTag', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="// STYLED FOR\nLIFE."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">New Label</label>
+                    <Input
+                      type="text"
+                      value={section.data?.newText || '/ New'}
+                      onChange={(e) => updateDataField('newText', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="/ New"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">New Sub Label</label>
+                    <Input
+                      type="text"
+                      value={section.data?.newSubtext || 'Collection 2026'}
+                      onChange={(e) => updateDataField('newSubtext', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="Collection 2026"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">People Counter</label>
+                    <Input
+                      type="text"
+                      value={section.data?.peopleCount || '280K'}
+                      onChange={(e) => updateDataField('peopleCount', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="280K"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">People Label</label>
+                    <Input
+                      type="text"
+                      value={section.data?.peopleLabel || 'PEOPLE WE INSPIRE'}
+                      onChange={(e) => updateDataField('peopleLabel', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="PEOPLE WE INSPIRE"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <ImageFieldWithPreview
+                    label="Center Model Image"
+                    value={section.data?.modelImage || ''}
+                    onChange={(val) => updateDataField('modelImage', val)}
+                    placeholder="/hero/model-Photoroom.png"
+                  />
+                  <ImageFieldWithPreview
+                    label="Avatar 1 (Small Circle)"
+                    value={section.data?.avatar1 || ''}
+                    onChange={(val) => updateDataField('avatar1', val)}
+                    placeholder="/hero/avatar1.png"
+                  />
+                  <ImageFieldWithPreview
+                    label="Avatar 2 (Small Circle)"
+                    value={section.data?.avatar2 || ''}
+                    onChange={(val) => updateDataField('avatar2', val)}
+                    placeholder="/hero/avatar2.png"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Marquee Ticker Text</label>
+                  <Input
+                    type="text"
+                    value={section.data?.marquee || 'T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE'}
+                    onChange={(e) => updateDataField('marquee', e.target.value)}
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                    placeholder="T STYLING + CRAFTED STORIES + ..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* HOME ABOUT EDITORIAL SECTION */}
+            {section.type === 'homeAbout' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">CTA Button Label</label>
+                    <Input
+                      type="text"
+                      value={section.data?.ctaLabel || 'LEARN MORE'}
+                      onChange={(e) => updateDataField('ctaLabel', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="LEARN MORE"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">CTA Button Link</label>
+                    <Input
+                      type="text"
+                      value={section.data?.ctaLink || '/about'}
+                      onChange={(e) => updateDataField('ctaLink', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="/about"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Small Image Label</label>
+                    <Input
+                      type="text"
+                      value={section.data?.smallImageLabel || 'New Drop'}
+                      onChange={(e) => updateDataField('smallImageLabel', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="New Drop"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Small Image Price</label>
+                    <Input
+                      type="text"
+                      value={section.data?.smallImagePrice || '($120)'}
+                      onChange={(e) => updateDataField('smallImagePrice', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="($120)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Right Column Heading</label>
+                    <Input
+                      type="text"
+                      value={section.data?.rightTitle || 'Design\nPhilosophy'}
+                      onChange={(e) => updateDataField('rightTitle', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="Design\nPhilosophy"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Copyright Text (Center)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.copyright || '©International - going distance 2026'}
+                      onChange={(e) => updateDataField('copyright', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="©International..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Right Image Copyright</label>
+                    <Input
+                      type="text"
+                      value={section.data?.rightCopyright || '©International - just do it 2026'}
+                      onChange={(e) => updateDataField('rightCopyright', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="©International..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Project Code (Bottom Left)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.projectCode || 'PROJECT_V01'}
+                      onChange={(e) => updateDataField('projectCode', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="PROJECT_V01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Project Percent (Bottom Right)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.projectPercent || '(45%)'}
+                      onChange={(e) => updateDataField('projectPercent', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="(45%)"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Right Column Copy</label>
+                  <textarea
+                    rows={3}
+                    value={section.data?.rightCopy || 'Blending avant-garde aesthetics with everyday utility, our pieces are crafted for those who define their own path. Every stitch tells a story of innovation.'}
+                    onChange={(e) => updateDataField('rightCopy', e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-xs"
+                    placeholder="Right column descriptive copy..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <ImageFieldWithPreview
+                    label="Small Image (Left Close-Up)"
+                    value={section.data?.smallImage || ''}
+                    onChange={(val) => updateDataField('smallImage', val)}
+                  />
+                  <ImageFieldWithPreview
+                    label="Center Image (Main Model)"
+                    value={section.data?.centerImage || ''}
+                    onChange={(val) => updateDataField('centerImage', val)}
+                  />
+                  <ImageFieldWithPreview
+                    label="Right Image (Detail)"
+                    value={section.data?.rightImage || ''}
+                    onChange={(val) => updateDataField('rightImage', val)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* HOME TESTIMONIAL SECTION */}
+            {section.type === 'homeTestimonial' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Header Index (Top Left)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.headerIndex || '01/8'}
+                      onChange={(e) => updateDataField('headerIndex', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="01/8"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Tag (Top Center)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.tag || '[Testimonial]'}
+                      onChange={(e) => updateDataField('tag', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="[Testimonial]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Author Name</label>
+                    <Input
+                      type="text"
+                      value={section.data?.authorName || '[Emma Williams]'}
+                      onChange={(e) => updateDataField('authorName', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="[Emma Williams]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Author Role</label>
+                    <Input
+                      type="text"
+                      value={section.data?.authorRole || 'Fashion Stylist'}
+                      onChange={(e) => updateDataField('authorRole', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="Fashion Stylist"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Rating (1-5)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={5}
+                      value={section.data?.rating ?? 5}
+                      onChange={(e) => updateDataField('rating', Number(e.target.value))}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Reviews Count</label>
+                    <Input
+                      type="text"
+                      value={section.data?.reviewsCount || '49'}
+                      onChange={(e) => updateDataField('reviewsCount', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="49"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Testimonial Quote</label>
+                  <textarea
+                    rows={4}
+                    value={section.data?.quote || ''}
+                    onChange={(e) => updateDataField('quote', e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-xs"
+                    placeholder="Customer testimonial quote..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <ImageFieldWithPreview
+                    label="Author Profile Image"
+                    value={section.data?.image || ''}
+                    onChange={(val) => updateDataField('image', val)}
+                  />
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1">Footer Text</label>
+                    <Input
+                      type="text"
+                      value={section.data?.footerText || 'See What Our Customers Are Saying'}
+                      onChange={(e) => updateDataField('footerText', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
+                      placeholder="See What Our Customers Are Saying"
+                    />
+                  </div>
                 </div>
               </div>
             )}

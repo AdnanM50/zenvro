@@ -23,6 +23,9 @@ import {
   Tablet,
   Smartphone,
   RefreshCw,
+  Home,
+  PenTool,
+  Quote,
 } from 'lucide-react';
 import type { Page, PageSection, PageSEO, SectionType, PageStatus } from '@/types';
 import SectionItemEditor from './SectionItemEditor';
@@ -184,6 +187,72 @@ export default function PageEditor({
           },
         };
         break;
+      case 'homeHero':
+        newSection = {
+          id: newId,
+          type: 'homeHero',
+          title: 'Home Hero',
+          subtitle: 'Explore curated collections, exclusive drops, and everyday essentials all thoughtfully designed in one stylish shopping destination.',
+          isActive: true,
+          order: sections.length + 1,
+          data: {
+            leftTitle: 'where\n- style',
+            tag: '// FASHION',
+            rightTag: '// STYLED FOR\nLIFE.',
+            rightTitle: 'lives\n- now',
+            newText: '/ New',
+            newSubtext: 'Collection 2026',
+            modelImage: '/hero/model-Photoroom.png',
+            avatar1: '/hero/avatar1.png',
+            avatar2: '/hero/avatar2.png',
+            peopleCount: '280K',
+            peopleLabel: 'PEOPLE WE INSPIRE',
+            marquee: 'T STYLING + CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE',
+          },
+        };
+        break;
+      case 'homeAbout':
+        newSection = {
+          id: newId,
+          type: 'homeAbout',
+          title: 'All - about\nmoments\n©26',
+          subtitle: 'Where Elegance Meets Sustainability Luxury Made Accessible',
+          isActive: true,
+          order: sections.length + 1,
+          data: {
+            ctaLabel: 'LEARN MORE',
+            ctaLink: '/about',
+            smallImageLabel: 'New Drop',
+            smallImagePrice: '($120)',
+            copyright: '©International - going distance 2026',
+            rightTitle: 'Design\nPhilosophy',
+            rightCopy: 'Blending avant-garde aesthetics with everyday utility, our pieces are crafted for those who define their own path. Every stitch tells a story of innovation.',
+            rightCopyright: '©International - just do it 2026',
+            projectCode: 'PROJECT_V01',
+            projectPercent: '(45%)',
+          },
+        };
+        break;
+      case 'homeTestimonial':
+        newSection = {
+          id: newId,
+          type: 'homeTestimonial',
+          title: 'Testimonial',
+          subtitle: 'See What Our Customers Are Saying',
+          isActive: true,
+          order: sections.length + 1,
+          data: {
+            headerIndex: '01/8',
+            tag: '[Testimonial]',
+            authorName: '[Emma Williams]',
+            authorRole: 'Fashion Stylist',
+            quote: 'Everything is absolutely perfect! From the fabric quality to the flawless fit every piece feels premium. This brand has completely transformed my wardrobe.',
+            rating: 5,
+            reviewsCount: '49',
+            footerText: 'See What Our Customers Are Saying',
+          },
+        };
+        break;
       default:
         newSection = {
           id: newId,
@@ -253,6 +322,9 @@ export default function PageEditor({
     { type: 'contactInfo', label: 'Contact Info & Form', icon: Mail, desc: 'Email, phone, address, and inquiry form' },
     { type: 'policyClauses', label: 'Policy Clauses', icon: FileText, desc: 'Terms & conditions or privacy policy list' },
     { type: 'faq', label: 'FAQ Accordion', icon: HelpCircle, desc: 'Expandable Q&A accordion list' },
+    { type: 'homeHero', label: 'Home Hero Banner', icon: Home, desc: 'Homepage hero with model image & marquee ticker' },
+    { type: 'homeAbout', label: 'Home About Editorial', icon: PenTool, desc: 'Homepage editorial about section' },
+    { type: 'homeTestimonial', label: 'Home Testimonial', icon: Quote, desc: 'Homepage customer testimonial quote' },
   ];
 
   return (

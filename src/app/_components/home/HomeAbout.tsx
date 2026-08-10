@@ -12,6 +12,11 @@ import {
   VIEWPORT_CONFIG,
 } from "@/lib/animations";
 import Achievement from "@/components/Achievement";
+import type { PageSection } from "@/types";
+
+interface HomeAboutProps {
+  section?: PageSection;
+}
 
 // ─── Staggered Word Reveal Component ────────────────────────────────
 function RevealHeading({ text, className }: { text: string; className?: string }) {
@@ -42,7 +47,23 @@ function RevealHeading({ text, className }: { text: string; className?: string }
   );
 }
 
-const About = () => {
+const HomeAbout = ({ section }: HomeAboutProps) => {
+  const title = section?.title || "All - about\nmoments\n©26";
+  const description = section?.subtitle || section?.data?.description || "Where Elegance Meets Sustainability Luxury Made Accessible";
+  const ctaLabel = section?.data?.ctaLabel || "LEARN MORE";
+  const ctaLink = section?.data?.ctaLink || "/about";
+  const smallImage = section?.data?.smallImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf";
+  const smallImageLabel = section?.data?.smallImageLabel || "New Drop";
+  const smallImagePrice = section?.data?.smallImagePrice || "($120)";
+  const centerImage = section?.data?.centerImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve";
+  const copyright = section?.data?.copyright || "©International - going distance 2026";
+  const rightTitle = section?.data?.rightTitle || "Design\nPhilosophy";
+  const rightCopy = section?.data?.rightCopy || "Blending avant-garde aesthetics with everyday utility, our pieces are crafted for those who define their own path. Every stitch tells a story of innovation.";
+  const rightImage = section?.data?.rightImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq";
+  const rightCopyright = section?.data?.rightCopyright || "©International - just do it 2026";
+  const projectCode = section?.data?.projectCode || "PROJECT_V01";
+  const projectPercent = section?.data?.projectPercent || "(45%)";
+
   return (
     <section id="about" className="pt-12 md:pt-24 pb-12 px-6 max-w-[1440px] mx-auto min-h-screen">
       {/* Hero Editorial Section */}
@@ -58,7 +79,7 @@ const About = () => {
         >
           <div>
             <RevealHeading
-              text={"All - about\nmoments\n©26"}
+              text={title}
               className="font-headline text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] text-primary uppercase mb-6 md:mb-8"
             />
             <motion.div
@@ -70,16 +91,17 @@ const About = () => {
               custom={0.4}
             >
               <p className="font-body text-sm leading-relaxed uppercase tracking-tight text-secondary">
-                Where Elegance Meets Sustainability Luxury Made Accessible
+                {description}
               </p>
-              <motion.button
+              <motion.a
+                href={ctaLink}
                 className="bg-primary text-white px-8 py-4 rounded-full flex items-center gap-3 font-label font-bold text-xs tracking-widest hover:bg-primary-fixed transition-colors"
                 whileHover={{ scale: 1.03, x: 4 }}
                 whileTap={{ scale: 0.97 }}
               >
-                LEARN MORE
+                {ctaLabel}
                 <span className="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
-              </motion.button>
+              </motion.a>
             </motion.div>
           </div>
           <motion.div
@@ -94,12 +116,12 @@ const About = () => {
               <img
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 alt="Close-up of a colorful streetwear jacket"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf"
+                src={smallImage}
               />
             </div>
             <div>
-              <span className="font-label text-xs font-bold tracking-widest text-primary-fixed uppercase block mb-1">New Drop</span>
-              <span className="font-headline text-lg font-black tracking-tighter italic">($120)</span>
+              <span className="font-label text-xs font-bold tracking-widest text-primary-fixed uppercase block mb-1">{smallImageLabel}</span>
+              <span className="font-headline text-lg font-black tracking-tighter italic">{smallImagePrice}</span>
             </div>
           </motion.div>
         </motion.div>
@@ -126,7 +148,7 @@ const About = () => {
             <img
               className="w-full h-full object-cover"
               alt="Model posing in a tan and black luxury streetwear jacket"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve"
+              src={centerImage}
             />
             <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white opacity-40"></div>
           </div>
@@ -139,7 +161,7 @@ const About = () => {
             custom={0.5}
           >
             <p className="font-label text-[10px] uppercase tracking-widest text-secondary text-left">
-              ©International - going distance 2026
+              {copyright}
             </p>
           </motion.div>
         </motion.div>
@@ -155,10 +177,12 @@ const About = () => {
         >
           <div className="text-right flex flex-col items-end mt-4">
             <h3 className="font-headline text-2xl font-black tracking-tighter uppercase mb-4 leading-none">
-              Design<br />Philosophy
+              {rightTitle.split("\n").map((line: string, i: number) => (
+                <span key={i} className="block">{line}</span>
+              ))}
             </h3>
             <p className="font-body text-xs text-secondary leading-relaxed w-[85%]">
-              Blending avant-garde aesthetics with everyday utility, our pieces are crafted for those who define their own path. Every stitch tells a story of innovation.
+              {rightCopy}
             </p>
             <div className="mt-6 flex gap-2 w-full justify-end">
               <span className="w-1 h-1 bg-primary rounded-full"></span>
@@ -180,18 +204,18 @@ const About = () => {
                 <img
                   className="w-full h-full object-cover"
                   alt="Back detail of a jacket with artistic graphic design"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq"
+                  src={rightImage}
                 />
               </div>
               <div className="mt-4 text-right">
                 <p className="font-label text-[10px] uppercase tracking-widest text-secondary leading-none">
-                  ©International - just do it 2026
+                  {rightCopyright}
                 </p>
               </div>
             </motion.div>
             <div className="flex justify-between items-end border-t border-outline-variant pt-4 w-full">
-              <span className="font-label text-xs font-mono text-secondary">PROJECT_V01</span>
-              <span className="font-headline text-4xl font-black tracking-tighter text-primary-fixed">(45%)</span>
+              <span className="font-label text-xs font-mono text-secondary">{projectCode}</span>
+              <span className="font-headline text-4xl font-black tracking-tighter text-primary-fixed">{projectPercent}</span>
             </div>
           </div>
         </motion.div>
@@ -203,4 +227,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default HomeAbout;
