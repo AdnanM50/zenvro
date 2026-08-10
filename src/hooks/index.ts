@@ -86,3 +86,6 @@ export {
   useDeleteContactMessage,
   contactKeys,
 } from './use-contact-messages';
+
+// ── Public CMS page hooks (public pages: about / contact / privacy / terms) ─
+export { usePublicPage, publicPageKeys } from './use-public-page';

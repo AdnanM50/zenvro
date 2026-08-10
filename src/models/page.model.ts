@@ -147,9 +147,9 @@ export const defaultPagesList: Array<CreatePagePayload> = [
     slug: 'contact-us',
     status: 'published',
     seo: {
-      metaTitle: 'Contact Us | Zenvro Store',
-      metaDescription: 'Questions, sizing advice, or a collaboration in mind? Drop us a line — a real human from the Zenvro team replies within one working day.',
-      metaKeywords: 'contact us, contact zenvro, customer service, support, email, phone, say hello',
+      metaTitle: 'Contact Us | VELOUR Independent Fashion House',
+      metaDescription: 'Questions, sizing advice, or a collaboration in mind? Drop us a line — a real human from the VELOUR team replies within one working day.',
+      metaKeywords: 'contact us, contact velour, customer service, support, email, phone, say hello',
       ogImage: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=1200',
       canonicalUrl: 'https://zenvro.com/contact',
     },
@@ -157,15 +157,18 @@ export const defaultPagesList: Array<CreatePagePayload> = [
       {
         id: 'contact-info-main',
         type: 'contactInfo',
-        title: 'We Would Love to Hear From You',
-        subtitle: 'Have a question or need assistance? Reach out to our customer care team.',
+        title: 'SAY HELLO,\nWE LISTEN',
+        subtitle: 'Questions, sizing advice, or a collaboration in mind? Drop us a line — a real human replies within one working day.',
         isActive: true,
         order: 1,
         data: {
-          email: 'support@zenvro.com',
-          phone: '+1 (800) 555-0199',
-          address: '742 Evergreen Terrace, Suite 100, New York, NY 10001',
-          workingHours: 'Monday - Friday: 9am - 8pm EST',
+          tag: '// CONTACT VELOUR',
+          sideText: 'ATELIER — DIRECT LINE',
+          volText: '(VOL.01)',
+          email: 'hello@orbix.studio',
+          phone: '+016 76234396',
+          address: '5567 Washington Ave, America, 32289',
+          workingHours: '08:00 - 11:00 pm',
           showContactForm: true,
         },
       },
@@ -177,9 +180,11 @@ export const defaultPagesList: Array<CreatePagePayload> = [
         isActive: true,
         order: 2,
         data: {
+          tag: '// FAQ',
+          metaCode: 'PROJECT_SUPPORT_V01',
           items: [
-            { question: 'How can I track my package?', answer: 'Once your order ships, we email you a tracking code with live updates.' },
-            { question: 'What payment methods do you accept?', answer: 'We accept Credit/Debit cards, PayPal, Apple Pay, and Google Pay.' },
+            { q: 'How can I track my package?', a: 'Once your order ships, we email you a tracking code with live updates.' },
+            { q: 'What payment methods do you accept?', a: 'We accept Credit/Debit cards, PayPal, Apple Pay, and Google Pay.' },
           ],
         },
       },
@@ -190,8 +195,8 @@ export const defaultPagesList: Array<CreatePagePayload> = [
     slug: 'privacy-policy',
     status: 'published',
     seo: {
-      metaTitle: 'Privacy Policy | Zenvro Store',
-      metaDescription: 'Your data deserves the same care as our craft. Learn how Zenvro collects, uses, and safeguards your personal information.',
+      metaTitle: 'Privacy Policy | VELOUR Independent Fashion House',
+      metaDescription: 'Your data deserves the same care as our craft. Learn how VELOUR collects, uses, and safeguards your personal information.',
       metaKeywords: 'privacy policy, data protection, security, cookies, personal information, gdpr',
       ogImage: 'https://images.unsplash.com/photo-1516387938699-a93567ec168e?auto=format&fit=crop&q=80&w=1200',
       canonicalUrl: 'https://zenvro.com/privacy',
@@ -200,24 +205,52 @@ export const defaultPagesList: Array<CreatePagePayload> = [
       {
         id: 'privacy-content',
         type: 'policyClauses',
-        title: 'Zenvro Privacy Policy',
-        subtitle: 'Last updated: August 2026',
+        title: 'PRIVACY POLICY',
+        subtitle: 'Your data deserves the same care as our craft. This policy explains what we collect, how we use it, and the control you have over your personal information.',
         isActive: true,
         order: 1,
         data: {
           lastUpdated: '2026-08-08',
           clauses: [
             {
-              title: '1. Information We Collect',
-              content: 'We collect personal details such as your name, email address, shipping address, and payment information when you place an order or create an account.',
+              title: 'INFORMATION WE COLLECT',
+              content: 'We collect information you provide directly — name, email, phone, shipping and billing address, payment information, and any communication you send us when ordering or creating an account.\nWe also collect automatic device data — browser type, IP address, device specs, pages you visit, time on page, and the referral link that brought you to VELOUR.',
             },
             {
-              title: '2. How We Use Your Information',
-              content: 'Your data is utilized strictly to fulfill orders, process payments, prevent fraud, and improve your personalized shopping experience.',
+              title: 'HOW WE USE YOUR INFORMATION',
+              content: 'We use your data for fulfilling and shipping your order, processing payments, preventing fraud, communicating updates, improving site performance, responding to customer care, and sending newsletter updates if opted in.',
             },
             {
-              title: '3. Data Security',
-              content: 'We employ enterprise-grade SSL encryption and secure cloud servers to guard your sensitive data against unauthorized access.',
+              title: 'COOKIES & TRACKING',
+              content: 'We use cookies and similar technologies to keep you signed in, remember your preferences, and understand how visitors interact with our site. You can control cookies through browser settings.',
+            },
+            {
+              title: 'SHARING & DISCLOSURE',
+              content: 'We never sell your personal data. We share only with trusted service partners required to fulfill your order — logistics carriers, payment gateways, and IT infrastructure providers under strict confidentiality agreements.',
+            },
+            {
+              title: 'DATA RETENTION',
+              content: 'We retain personal information only for as long as necessary to fulfill the purposes for which it was collected, including tax, legal, and accounting requirements.',
+            },
+            {
+              title: 'YOUR RIGHTS',
+              content: 'Depending on your location, you have the right to access, correct, or delete the personal data we hold about you, object to processing, or request data portability.',
+            },
+            {
+              title: 'SECURITY',
+              content: 'We implement technical and organizational measures to safeguard your personal data against unauthorized access, loss, or alteration. All payments are processed securely via SSL encryption.',
+            },
+            {
+              title: 'CHILDREN\'S PRIVACY',
+              content: 'Our services are not intended for individuals under 16. We do not knowingly collect personal data from children.',
+            },
+            {
+              title: 'CHANGES TO THIS POLICY',
+              content: 'We may update this policy periodically. Changes take effect immediately upon posting to the site. We encourage you to review this page regularly.',
+            },
+            {
+              title: 'CONTACT',
+              content: 'For any privacy inquiries or to exercise your rights, email our team:\nprivacy@velour.studio\nsupport@velour.studio\nAtelier: 5567 Washington Ave, America, 32289',
             },
           ],
         },
@@ -229,8 +262,8 @@ export const defaultPagesList: Array<CreatePagePayload> = [
     slug: 'terms-conditions',
     status: 'published',
     seo: {
-      metaTitle: 'Terms & Conditions | Zenvro Store',
-      metaDescription: 'The fine print behind the fabric. Review the rules and guidelines governing your use of the Zenvro website and services.',
+      metaTitle: 'Terms & Conditions | VELOUR Independent Fashion House',
+      metaDescription: 'The fine print behind the fabric. Review the rules and guidelines governing your use of the VELOUR website and services.',
       metaKeywords: 'terms of service, terms and conditions, user agreement, legal, refunds, shipping policy',
       ogImage: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',
       canonicalUrl: 'https://zenvro.com/terms',
@@ -239,24 +272,56 @@ export const defaultPagesList: Array<CreatePagePayload> = [
       {
         id: 'terms-content',
         type: 'policyClauses',
-        title: 'Terms & Conditions of Service',
-        subtitle: 'Effective Date: August 2026',
+        title: 'TERMS & CONDITIONS',
+        subtitle: 'Please read these terms carefully before using our website or purchasing our products. By accessing VELOUR, you agree to be bound by these terms.',
         isActive: true,
         order: 1,
         data: {
           lastUpdated: '2026-08-08',
           clauses: [
             {
-              title: '1. Acceptance of Terms',
-              content: 'By accessing or purchasing from Zenvro, you agree to be bound by these terms and all applicable laws.',
+              title: 'AGREEMENT TO TERMS',
+              content: 'By accessing or using VELOUR, you agree to be bound by these Terms & Conditions and our Privacy Policy. If you do not agree to all of these terms, you may not use our services or purchase products.',
             },
             {
-              title: '2. Intellectual Property',
-              content: 'All content on this site including text, graphics, logos, and images is the exclusive property of Zenvro Store.',
+              title: 'THE SERVICE',
+              content: 'VELOUR provides an online boutique platform for purchasing original garments, footwear, and accessories created by our independent studio.',
             },
             {
-              title: '3. Limitation of Liability',
-              content: 'Zenvro shall not be liable for indirect, incidental, or consequential damages resulting from product use.',
+              title: 'INTELLECTUAL PROPERTY',
+              content: 'All content on this site — including photography, pattern designs, typography, brand names, copy, logos, and UI layouts — is the exclusive property of VELOUR and protected by international copyright laws.',
+            },
+            {
+              title: 'PURCHASES & PRICING',
+              content: 'All prices are listed in USD unless otherwise specified. We reserve the right to modify prices or correct errors at any time.',
+            },
+            {
+              title: 'LIMITED DROPS & AVAILABILITY',
+              content: 'Products are produced in small, numbered runs and sold on a first-come, first-served basis. Placing an item in your cart does not reserve it.',
+            },
+            {
+              title: 'SHIPPING & DELIVERY',
+              content: 'Orders ship within 3–7 business days. International duties and taxes are calculated at checkout where applicable.',
+            },
+            {
+              title: 'RETURNS & EXCHANGES',
+              content: 'You have 30 days from delivery to return any unworn garment in its original condition with tags attached. Exchanges for size are complimentary.',
+            },
+            {
+              title: 'USER RESPONSIBILITIES',
+              content: 'You agree not to misuse our website, attempt unauthorized access to our servers, or use our content for commercial reproduction without written permission.',
+            },
+            {
+              title: 'LIMITATION OF LIABILITY',
+              content: 'VELOUR shall not be liable for any indirect, incidental, or consequential damages arising from the use of our products or site.',
+            },
+            {
+              title: 'GOVERNING LAW',
+              content: 'These terms are governed by and construed in accordance with the laws of the jurisdiction where VELOUR operates.',
+            },
+            {
+              title: 'CONTACT',
+              content: 'For questions regarding these Terms & Conditions, contact us:\nlegal@velour.studio\nsupport@velour.studio\nAtelier: 5567 Washington Ave, America, 32289',
             },
           ],
         },
@@ -272,22 +337,33 @@ export const PageModel = {
       const existing = await c.findOne({ slug: def.slug });
       if (!existing) {
         await this.create(def);
-      } else if (def.slug === 'about-us') {
-        // Upgrade existing about-us if sections don't match the new multi-image schema
-        if (!existing.sections || existing.sections.length < 5 || !existing.sections[0]?.data?.image1) {
-          const formattedSections: PageSection[] = (def.sections || []).map((sec, idx) => ({
-            id: sec.id || `sec-${Date.now()}-${idx}`,
-            type: sec.type || 'richText',
-            title: sec.title || 'Untitled Section',
-            subtitle: sec.subtitle || '',
-            isActive: sec.isActive !== undefined ? sec.isActive : true,
-            order: sec.order !== undefined ? sec.order : idx + 1,
-            data: sec.data || {},
-          }));
-          await c.updateOne(
-            { slug: 'about-us' },
-            { $set: { sections: formattedSections, updatedAt: new Date() } }
-          );
+      } else {
+        // Upgrade existing records if clauses/sections count is less than default seed
+        const formattedSections: PageSection[] = (def.sections || []).map((sec, idx) => ({
+          id: sec.id || `sec-${Date.now()}-${idx}`,
+          type: sec.type || 'richText',
+          title: sec.title || 'Untitled Section',
+          subtitle: sec.subtitle || '',
+          isActive: sec.isActive !== undefined ? sec.isActive : true,
+          order: sec.order !== undefined ? sec.order : idx + 1,
+          data: sec.data || {},
+        }));
+
+        const existingClausesCount = existing.sections?.[0]?.data?.clauses?.length || 0;
+        const defaultClausesCount = def.sections?.[0]?.data?.clauses?.length || 0;
+
+        if (
+          def.slug === 'about-us' && (!existing.sections || existing.sections.length < 5 || !existing.sections[0]?.data?.image1)
+        ) {
+          await c.updateOne({ slug: 'about-us' }, { $set: { sections: formattedSections, updatedAt: new Date() } });
+        } else if (
+          (def.slug === 'privacy-policy' || def.slug === 'terms-conditions') && existingClausesCount < defaultClausesCount
+        ) {
+          await c.updateOne({ slug: def.slug }, { $set: { sections: formattedSections, updatedAt: new Date() } });
+        } else if (
+          def.slug === 'contact-us' && (!existing.sections?.[0]?.data?.email || existing.sections?.[0]?.data?.email === 'support@zenvro.com')
+        ) {
+          await c.updateOne({ slug: 'contact-us' }, { $set: { sections: formattedSections, updatedAt: new Date() } });
         }
       }
     }

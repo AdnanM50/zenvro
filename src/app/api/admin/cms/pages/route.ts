@@ -3,6 +3,7 @@ import { verifyAccessToken } from '@/lib/auth';
 import { UserModel } from '@/models/user.model';
 import { PageModel } from '@/models/page.model';
 import { api } from '@/lib/api-response';
+import { revalidatePublicPage } from '@/lib/revalidate-page';
 
 async function requireAdmin(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
@@ -58,11 +59,15 @@ export async function POST(request: NextRequest) {
       seo: typeof seo === 'object' && seo !== null ? seo : undefined,
     });
 
+    // Invalidate ISR cache for the page's public route so edits appear immediately
+    await revalidatePublicPage(page.slug);
+
     return api.created(page, 'Page created successfully');
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Create CMS page error:', error);
-    if (error.message && error.message.includes('already in use')) {
-      return api.badRequest(error.message);
+    if (message.includes('already in use')) {
+      return api.badRequest(message);
     }
     return api.serverError();
   }

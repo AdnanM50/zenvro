@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageModel } from "@/models/page.model";
 import { buildPageMetadata } from "@/lib/pageMetadata";
 import ContactClientView from "./_components/ContactClientView";
 
@@ -22,6 +23,18 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function ContactPage() {
-  return <ContactClientView />;
+export default async function ContactPage() {
+  let initialPage = null;
+
+  try {
+    await PageModel.seedDefaults();
+    initialPage = await PageModel.findBySlug("contact-us");
+    if (initialPage) {
+      initialPage = JSON.parse(JSON.stringify(initialPage));
+    }
+  } catch (error) {
+    console.error("Server fetch contact page error:", error);
+  }
+
+  return <ContactClientView initialPage={initialPage} />;
 }

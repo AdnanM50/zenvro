@@ -3,6 +3,7 @@ import { verifyAccessToken } from '@/lib/auth';
 import { UserModel } from '@/models/user.model';
 import { PageModel } from '@/models/page.model';
 import { api } from '@/lib/api-response';
+import { revalidatePublicPage } from '@/lib/revalidate-page';
 
 async function requireAdmin(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
@@ -51,11 +52,15 @@ export async function PATCH(
       return api.notFound('Page not found');
     }
 
+    // Invalidate ISR cache for the page's public route so edits appear immediately
+    await revalidatePublicPage(updatedPage.slug);
+
     return api.ok(updatedPage, 'Page updated successfully');
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Update page error:', error);
-    if (error.message && error.message.includes('already in use')) {
-      return api.badRequest(error.message);
+    if (message.includes('already in use')) {
+      return api.badRequest(message);
     }
     return api.serverError();
   }
@@ -70,10 +75,18 @@ export async function DELETE(
     if (!('admin' in auth)) return auth;
 
     const { id } = await context.params;
+    const page = await PageModel.findById(id);
+    if (!page) {
+      return api.notFound('Page not found');
+    }
+
     const deleted = await PageModel.delete(id);
     if (!deleted) {
       return api.notFound('Page not found');
     }
+
+    // Invalidate ISR cache for the deleted page's public route
+    await revalidatePublicPage(page.slug);
 
     return api.ok(null, 'Page deleted successfully');
   } catch (error) {
