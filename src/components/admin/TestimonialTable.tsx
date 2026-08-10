@@ -121,6 +121,7 @@ export default function TestimonialTable() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!name.trim() || !role.trim() || !quote.trim()) return;
 
     const payload = {

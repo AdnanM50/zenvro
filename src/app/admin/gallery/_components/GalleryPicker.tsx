@@ -82,7 +82,11 @@ export default function GalleryPicker({
     }
   }, [open]);
 
-  const toggleSelect = (url: string) => {
+  const toggleSelect = (url: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSelection((prev) => {
       if (prev.includes(url)) return prev.filter((u) => u !== url);
       if (!multiple) return [url];
@@ -90,7 +94,11 @@ export default function GalleryPicker({
     });
   };
 
-  const insert = () => {
+  const insert = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (selection.length === 0) return;
     onSelect(selection);
     onClose();
@@ -243,8 +251,10 @@ export default function GalleryPicker({
                     <button
                       key={item._id}
                       type="button"
-                      onClick={() => toggleSelect(item.url)}
-                      onDoubleClick={() => {
+                      onClick={(e) => toggleSelect(item.url, e)}
+                      onDoubleClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         onSelect([item.url]);
                         onClose();
                       }}
