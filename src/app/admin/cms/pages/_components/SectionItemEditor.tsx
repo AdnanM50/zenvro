@@ -23,6 +23,7 @@ import type { PageSection, SectionType } from '@/types';
 import GalleryPickerButton from '@/app/admin/gallery/_components/GalleryPickerButton';
 import GalleryPicker from '@/app/admin/gallery/_components/GalleryPicker';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 
 interface SectionItemEditorProps {
   section: PageSection;
@@ -123,14 +124,14 @@ function ImageFieldWithPreview({
         </div>
       ) : (
         <div className="flex items-center gap-1.5">
-          <input
+          <Input
             type="text"
             value={value}
             onChange={(e) => {
               setHasError(false);
               onChange(e.target.value);
             }}
-            className="flex-1 px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-orange-500 font-mono text-[11px]"
+            className="h-9 flex-1 rounded-xl bg-white px-2.5 font-mono text-[11px] focus:bg-white focus:border-orange-500"
             placeholder={placeholder}
           />
           <GalleryPickerButton
@@ -310,41 +311,41 @@ export default function SectionItemEditor({
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Tag (Top Left)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.tag || '// About Velour'}
                       onChange={(e) => updateDataField('tag', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="// About Velour"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Est. Text (Center)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.estText || 'Est. MMXVIII'}
                       onChange={(e) => updateDataField('estText', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="Est. MMXVIII"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Volume Tag (Top Right)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.volText || '(VOL.01)'}
                       onChange={(e) => updateDataField('volText', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="(VOL.01)"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Sideways Subtext</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.sideText || 'Where elegance meets sustainability'}
                       onChange={(e) => updateDataField('sideText', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="Where elegance meets sustainability"
                     />
                   </div>
@@ -386,41 +387,41 @@ export default function SectionItemEditor({
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Season Tag</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.seasonTag || '(SS/26)'}
                       onChange={(e) => updateDataField('seasonTag', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="(SS/26)"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Copyright Text</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.copyrightText || '©International - going distance 2026'}
                       onChange={(e) => updateDataField('copyrightText', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="©International..."
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">CTA Button Label</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.ctaLabel || 'Scroll to begin'}
                       onChange={(e) => updateDataField('ctaLabel', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="e.g. Scroll to begin"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">CTA Button Link</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.ctaLink || '#story'}
                       onChange={(e) => updateDataField('ctaLink', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="#story"
                     />
                   </div>
@@ -449,20 +450,20 @@ export default function SectionItemEditor({
                  <div className='col-span-2'>
                    <div>
                     <label className="block text-gray-700 font-medium mb-1">Tag (Top Header)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.tag || '// Our Story'}
                       onChange={(e) => updateDataField('tag', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Meta Code (Footer)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.metaCode || 'PROJECT_STORY_V02'}
                       onChange={(e) => updateDataField('metaCode', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                     />
                   </div>
                  </div>
@@ -495,7 +496,7 @@ export default function SectionItemEditor({
                     {(section.data?.items || []).map((item: any, tIdx: number) => (
                       <div key={tIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                          <input
+                          <Input
                             type="text"
                             value={item.year || ''}
                             onChange={(e) => {
@@ -503,10 +504,10 @@ export default function SectionItemEditor({
                               newItems[tIdx] = { ...newItems[tIdx], year: e.target.value };
                               updateDataField('items', newItems);
                             }}
-                            className="w-full sm:w-24 font-bold text-orange-600 px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                            className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs font-bold text-orange-600 sm:w-24 focus:bg-white focus:border-orange-500"
                             placeholder="Year (2026)"
                           />
-                          <input
+                          <Input
                             type="text"
                             value={item.title || ''}
                             onChange={(e) => {
@@ -514,7 +515,7 @@ export default function SectionItemEditor({
                               newItems[tIdx] = { ...newItems[tIdx], title: e.target.value };
                               updateDataField('items', newItems);
                             }}
-                            className="flex-1 min-w-0 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                            className="h-9 min-w-0 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                             placeholder="Milestone Title"
                           />
                           <button
@@ -551,47 +552,46 @@ export default function SectionItemEditor({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Email Address</label>
-                  <input
+                  <Input
                     type="email"
                     value={section.data?.email || ''}
                     onChange={(e) => updateDataField('email', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                   />
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Phone Number</label>
-                  <input
+                  <Input
                     type="text"
                     value={section.data?.phone || ''}
                     onChange={(e) => updateDataField('phone', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                   />
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Physical Address</label>
-                  <input
+                  <Input
                     type="text"
                     value={section.data?.address || ''}
                     onChange={(e) => updateDataField('address', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                   />
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Support Hours</label>
-                  <input
+                  <Input
                     type="text"
                     value={section.data?.workingHours || ''}
                     onChange={(e) => updateDataField('workingHours', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                   />
                 </div>
                 <div className="md:col-span-2 flex items-center gap-2 pt-1">
-                  <input
-                    type="checkbox"
+                  <Switch
                     id={`contact-form-${section.id}`}
                     checked={section.data?.showContactForm ?? true}
-                    onChange={(e) => updateDataField('showContactForm', e.target.checked)}
-                    className="rounded text-orange-500 focus:ring-orange-500"
+                    onCheckedChange={(checked) => updateDataField('showContactForm', checked)}
+                    size="sm"
                   />
                   <label htmlFor={`contact-form-${section.id}`} className="text-gray-700 font-medium cursor-pointer">
                     Enable Interactive Contact Inquiry Form
@@ -623,7 +623,7 @@ export default function SectionItemEditor({
                   {(section.data?.clauses || []).map((clause: any, cIdx: number) => (
                     <div key={cIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <input
+                        <Input
                           type="text"
                           value={clause.title || ''}
                           onChange={(e) => {
@@ -631,7 +631,7 @@ export default function SectionItemEditor({
                             newClauses[cIdx] = { ...newClauses[cIdx], title: e.target.value };
                             updateDataField('clauses', newClauses);
                           }}
-                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          className="h-9 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                           placeholder="Clause Title"
                         />
                         <button
@@ -667,11 +667,11 @@ export default function SectionItemEditor({
               <div className="space-y-3">
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Tag (Top Left Header)</label>
-                  <input
+                  <Input
                     type="text"
                     value={section.data?.tag || '// The Craft'}
                     onChange={(e) => updateDataField('tag', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                     placeholder="// The Craft"
                   />
                 </div>
@@ -695,7 +695,7 @@ export default function SectionItemEditor({
                   {(section.data?.items || []).map((item: any, fIdx: number) => (
                     <div key={fIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        <input
+                        <Input
                           type="text"
                           value={item.title || ''}
                           onChange={(e) => {
@@ -703,11 +703,11 @@ export default function SectionItemEditor({
                             newItems[fIdx] = { ...newItems[fIdx], title: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="flex-1 min-w-0 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          className="h-9 min-w-0 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                           placeholder="Feature Title"
                         />
                         <div className="flex items-center gap-2">
-                          <input
+                          <Input
                             type="text"
                             value={item.tag || ''}
                             onChange={(e) => {
@@ -715,7 +715,7 @@ export default function SectionItemEditor({
                               newItems[fIdx] = { ...newItems[fIdx], tag: e.target.value };
                               updateDataField('items', newItems);
                             }}
-                            className="w-24 font-mono px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                            className="h-9 w-24 rounded-none bg-gray-50 px-2.5 font-mono text-xs focus:bg-white focus:border-orange-500"
                             placeholder="CRAFT_01"
                           />
                           <button
@@ -730,7 +730,7 @@ export default function SectionItemEditor({
                           </button>
                         </div>
                       </div>
-                      <input
+                      <Input
                         type="text"
                         value={item.icon || 'auto_awesome'}
                         onChange={(e) => {
@@ -738,7 +738,7 @@ export default function SectionItemEditor({
                           newItems[fIdx] = { ...newItems[fIdx], icon: e.target.value };
                           updateDataField('items', newItems);
                         }}
-                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                        className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs focus:bg-white focus:border-orange-500"
                         placeholder="Material Symbol / Icon Name (e.g. auto_awesome, recycling, handshake, inventory_2)"
                       />
                       <textarea
@@ -781,7 +781,7 @@ export default function SectionItemEditor({
                   {(section.data?.items || []).map((stat: any, sIdx: number) => (
                     <div key={sIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        <input
+                        <Input
                           type="number"
                           value={stat.value ?? 0}
                           onChange={(e) => {
@@ -789,10 +789,10 @@ export default function SectionItemEditor({
                             newItems[sIdx] = { ...newItems[sIdx], value: Number(e.target.value) };
                             updateDataField('items', newItems);
                           }}
-                          className="w-full sm:w-20 font-bold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs font-bold sm:w-20 focus:bg-white focus:border-orange-500"
                           placeholder="Value"
                         />
-                        <input
+                        <Input
                           type="text"
                           value={stat.suffix || ''}
                           onChange={(e) => {
@@ -800,10 +800,10 @@ export default function SectionItemEditor({
                             newItems[sIdx] = { ...newItems[sIdx], suffix: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="w-full sm:w-16 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          className="h-9 w-full rounded-none bg-gray-50 px-2.5 text-xs font-semibold sm:w-16 focus:bg-white focus:border-orange-500"
                           placeholder="Suffix (K)"
                         />
-                        <input
+                        <Input
                           type="text"
                           value={stat.label || ''}
                           onChange={(e) => {
@@ -811,7 +811,7 @@ export default function SectionItemEditor({
                             newItems[sIdx] = { ...newItems[sIdx], label: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          className="h-9 min-w-0 flex-1 rounded-none bg-gray-50 px-2.5 text-xs focus:bg-white focus:border-orange-500"
                           placeholder="Stat Label"
                         />
                         <button
@@ -836,21 +836,21 @@ export default function SectionItemEditor({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-gray-700 font-medium mb-1">CTA Button Label</label>
-                      <input
+                      <Input
                         type="text"
                         value={section.data?.ctaLabel || 'Explore the edit'}
                         onChange={(e) => updateDataField('ctaLabel', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                        className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                         placeholder="Explore the edit"
                       />
                     </div>
                     <div>
                       <label className="block text-gray-700 font-medium mb-1">CTA Button Link</label>
-                      <input
+                      <Input
                         type="text"
                         value={section.data?.ctaLink || '/products'}
                         onChange={(e) => updateDataField('ctaLink', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                        className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                         placeholder="/products"
                       />
                     </div>
@@ -865,21 +865,21 @@ export default function SectionItemEditor({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Tag (Top Header)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.tag || '// FAQ'}
                       onChange={(e) => updateDataField('tag', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="// FAQ"
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-1">Meta Code (Footer)</label>
-                    <input
+                    <Input
                       type="text"
                       value={section.data?.metaCode || 'PROJECT_SUPPORT_V01'}
                       onChange={(e) => updateDataField('metaCode', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 h-10"
                       placeholder="PROJECT_SUPPORT_V01"
                     />
                   </div>
@@ -904,7 +904,7 @@ export default function SectionItemEditor({
                   {(section.data?.items || []).map((faq: any, qIdx: number) => (
                     <div key={qIdx} className="bg-white p-3 rounded-none border border-gray-200 shadow-sm space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <input
+                        <Input
                           type="text"
                           value={faq.q || faq.question || ''}
                           onChange={(e) => {
@@ -912,7 +912,7 @@ export default function SectionItemEditor({
                             newItems[qIdx] = { ...newItems[qIdx], q: e.target.value, question: e.target.value };
                             updateDataField('items', newItems);
                           }}
-                          className="flex-1 font-semibold px-2 py-1 bg-gray-50 border border-gray-200 rounded-none text-xs"
+                          className="h-9 flex-1 rounded-none bg-gray-50 px-2.5 text-xs font-semibold focus:bg-white focus:border-orange-500"
                           placeholder="Question?"
                         />
                         <button
@@ -947,4 +947,4 @@ export default function SectionItemEditor({
       )}
     </div>
   );
-}
+}  
