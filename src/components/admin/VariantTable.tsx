@@ -2,17 +2,27 @@
 
 import React, { useState } from 'react';
 import { Layers, Plus, Edit3, Trash2 } from 'lucide-react';
-import type { Variant } from '@/types';
+import Image from 'next/image';
+import type { Attribute, Variant } from '@/types';
 import { useApiGet, useApiPost, useApiPut, useApiDelete, createQueryKeys } from '@/hooks';
 import { getVariants, createVariant, updateVariant, deleteVariant } from '@/services/variant.service';
+import { getAttributes } from '@/services/attribute.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import Modal from '@/app/admin/_components/common/Modal';
 import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
 
 const variantQueryKeys = createQueryKeys('admin-variants');
+const attributeQueryKeys = createQueryKeys('admin-attributes');
 
 interface AttributeRow {
   key: string;
@@ -48,6 +58,13 @@ export default function VariantTable() {
 
   const variants = variantResponse?.data || [];
   const meta = variantResponse?.meta || { page: 1, limit: 10, total: 0, totalPages: 1 };
+
+  const { data: attributeResponse } = useApiGet<Attribute[]>({
+    queryKey: attributeQueryKeys.list({ limit: 100 }),
+    queryFn: () => getAttributes({ limit: 100 }),
+  });
+
+  const variantAttributes = (attributeResponse?.data || []).filter((attr) => attr.isVariant);
 
   // Mutations using generic hooks
   const createMutation = useApiPost({
@@ -125,6 +142,9 @@ export default function VariantTable() {
   const updateAttributeRow = (idx: number, field: 'key' | 'value', value: string) =>
     setAttributeRows((rows) => rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
 
+  const updateAttributeKey = (idx: number, key: string) =>
+    setAttributeRows((rows) => rows.map((r, i) => (i === idx ? { key, value: '' } : r)));
+
   const removeAttributeRow = (idx: number) =>
     setAttributeRows((rows) => (rows.length === 1 ? rows : rows.filter((_, i) => i !== idx)));
 
@@ -190,11 +210,15 @@ export default function VariantTable() {
       render: (variant) => (
         <div className="flex items-center gap-3">
           {variant.image ? (
-            <img
-              src={variant.image}
-              alt={variant.sku}
-              className="w-9 h-9 rounded-lg object-cover bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-            />
+            <div className="relative h-9 w-9 overflow-hidden rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800">
+              <Image
+                src={variant.image}
+                alt={variant.sku}
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            </div>
           ) : (
             <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
               <Layers className="h-4 w-4" />
@@ -391,18 +415,56 @@ export default function VariantTable() {
             <div className="space-y-2">
               {attributeRows.map((row, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <Input
-                    placeholder="e.g. Color"
-                    value={row.key}
-                    onChange={(e) => updateAttributeRow(idx, 'key', e.target.value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    placeholder="e.g. Black"
-                    value={row.value}
-                    onChange={(e) => updateAttributeRow(idx, 'value', e.target.value)}
-                    className="flex-1"
-                  />
+                  <Select
+                    value={row.key || null}
+                    onValueChange={(value) => updateAttributeKey(idx, value ?? '')}
+                  >
+                    <SelectTrigger
+                      className="flex-1"
+                      aria-label={`Select attribute ${idx + 1}`}
+                      title="Select attribute"
+                    >
+                      <SelectValue placeholder="Select attribute" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Select attribute</SelectItem>
+                      {variantAttributes.map((attr) => (
+                        <SelectItem key={attr._id || attr.name} value={attr.name}>
+                          {attr.name}
+                        </SelectItem>
+                      ))}
+                      {row.key && !variantAttributes.some((attr) => attr.name === row.key) && (
+                        <SelectItem value={row.key}>{row.key}</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={row.value || null}
+                    onValueChange={(value) => updateAttributeRow(idx, 'value', value ?? '')}
+                    disabled={!row.key}
+                  >
+                    <SelectTrigger
+                      className="flex-1"
+                      aria-label={`Select value ${idx + 1}`}
+                      title="Select value"
+                    >
+                      <SelectValue placeholder="Select value" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Select value</SelectItem>
+                      {(variantAttributes.find((attr) => attr.name === row.key)?.values || []).map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                      {row.value &&
+                        !variantAttributes
+                          .find((attr) => attr.name === row.key)
+                          ?.values.includes(row.value) && (
+                          <SelectItem value={row.value}>{row.value}</SelectItem>
+                        )}
+                    </SelectContent>
+                  </Select>
                   <button
                     type="button"
                     onClick={() => removeAttributeRow(idx)}

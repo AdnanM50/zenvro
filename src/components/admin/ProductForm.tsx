@@ -1,7 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, ChevronLeft, Loader2, Plus, Trash2 } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronLeft,
+  Image as ImageIcon,
+  Info,
+  Loader2,
+  Plus,
+  Tag as TagIcon,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type {
@@ -10,13 +22,28 @@ import type {
   ProductStatus,
   ProductGender,
   ProductSEO,
+  Category,
+  Brand,
+  CollectionItem,
+  Tag,
 } from '@/types';
 import { defaultProductSEO } from '@/types';
 import { useApiGet, useApiPost, useApiPut, createQueryKeys } from '@/hooks';
 import { getProduct, createProduct, updateProduct } from '@/services/product.service';
+import { getCategories } from '@/services/category.service';
+import { getBrands } from '@/services/brand.service';
+import { getCollections } from '@/services/collection.service';
+import { getTags } from '@/services/tag.service';
 import Stepper, { StepperStep } from '@/components/ui/Stepper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
 
 const productQueryKeys = createQueryKeys('admin-products');
@@ -57,7 +84,7 @@ const toFiniteOrUndefined = (raw: string): number | undefined => {
 };
 
 const inputClass =
-  'w-full px-3.5 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 text-gray-900 dark:text-gray-100';
+  'w-full px-3.5 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 text-gray-900 dark:text-gray-100 shadow-sm';
 const textareaClass = `${inputClass} font-mono`;
 const sectionTitleClass =
   'text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500';
@@ -65,6 +92,148 @@ const sectionTitleClass =
 interface ProductFormProps {
   /** When provided, the form fetches this product and updates it on submit. */
   productId?: string;
+}
+
+interface ProductImageSlotProps {
+  label?: string;
+  value: string;
+  onChange: (url: string) => void;
+  onRemove?: () => void;
+  selectedUrls: string[];
+  folder?: string;
+}
+
+function InfoLabel({
+  htmlFor,
+  children,
+  info,
+}: {
+  htmlFor?: string;
+  children: React.ReactNode;
+  info: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Label htmlFor={htmlFor}>{children}</Label>
+      <span
+        tabIndex={0}
+        title={info}
+        aria-label={info}
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 outline-none transition-colors hover:text-gray-700 focus-visible:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200 dark:focus-visible:text-gray-200"
+      >
+        <Info className="h-3.5 w-3.5" />
+      </span>
+    </div>
+  );
+}
+
+function ProductImageSlot({
+  label,
+  value,
+  onChange,
+  onRemove,
+  selectedUrls,
+  folder = 'velour/products',
+}: ProductImageSlotProps) {
+  const [uploading, setUploading] = useState(false);
+  const inputId = React.useId();
+  const slotLabel = label || 'image';
+
+  const uploadImage = async (file: File) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', folder);
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.success && data.data?.url) {
+        onChange(data.data.url);
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    } catch {
+      alert('Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {label ? <Label htmlFor={inputId}>{label}</Label> : null}
+      <div className="group relative h-24 w-24 sm:h-28 sm:w-28 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        {value ? (
+          <Image
+            src={value}
+            alt={slotLabel}
+            fill
+            sizes="112px"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => document.getElementById(inputId)?.click()}
+            className="flex h-full w-full items-center justify-center text-gray-300 transition-colors hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400"
+            aria-label={`Upload ${slotLabel}`}
+          >
+            {uploading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ImageIcon className="h-6 w-6" />
+            )}
+          </button>
+        )}
+
+        <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => document.getElementById(inputId)?.click()}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-800 shadow-sm transition-colors hover:bg-gray-100"
+            aria-label={`Upload ${slotLabel}`}
+            title={label ? `Upload ${label}` : 'Upload image'}
+            disabled={uploading}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          </button>
+          <GalleryPickerButton
+            onSelect={(urls) => {
+              if (urls[0]) onChange(urls[0]);
+            }}
+            folder={folder}
+            selectedUrls={selectedUrls}
+            label=""
+            className="h-8 w-8 rounded-full border-0 bg-white p-0 text-gray-800 shadow-sm hover:bg-gray-100"
+          />
+          {value && onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 shadow-sm transition-colors hover:bg-gray-100"
+              aria-label={`Remove ${slotLabel}`}
+              title={label ? `Remove ${label}` : 'Remove image'}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      <input
+        id={inputId}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) uploadImage(file);
+          e.currentTarget.value = '';
+        }}
+        className="hidden"
+      />
+    </div>
+  );
 }
 
 export default function ProductForm({ productId }: ProductFormProps) {
@@ -129,7 +298,7 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
   const [category, setCategory] = useState(initialProduct?.category || '');
   const [brand, setBrand] = useState(initialProduct?.brand || '');
   const [collection, setCollection] = useState(initialProduct?.collection || '');
-  const [tags, setTags] = useState((initialProduct?.tags || []).join(', '));
+  const [tags, setTags] = useState<string[]>(initialProduct?.tags || []);
   const [featuredImage, setFeaturedImage] = useState(initialProduct?.featuredImage || '');
   const [gallery, setGallery] = useState((initialProduct?.gallery || []).join(', '));
   const [video, setVideo] = useState(initialProduct?.video || '');
@@ -171,6 +340,84 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
     ...defaultProductSEO,
     ...(initialProduct?.seo || {}),
   });
+  const [seoTitleOptions, setSeoTitleOptions] = useState<string[]>(() =>
+    initialProduct?.seo?.title ? [initialProduct.seo.title] : ['']
+  );
+  const [keywordDraft, setKeywordDraft] = useState('');
+
+  const { data: categoriesResponse } = useApiGet<Category[]>({
+    queryKey: ['admin-categories-select'],
+    queryFn: () => getCategories({ limit: 100 }),
+  });
+  const { data: brandsResponse } = useApiGet<Brand[]>({
+    queryKey: ['admin-brands-select'],
+    queryFn: () => getBrands({ limit: 100 }),
+  });
+  const { data: collectionsResponse } = useApiGet<CollectionItem[]>({
+    queryKey: ['admin-collections-select'],
+    queryFn: () => getCollections({ limit: 100 }),
+  });
+  const { data: tagsResponse } = useApiGet<Tag[]>({
+    queryKey: ['admin-tags-select'],
+    queryFn: () => getTags({ limit: 100 }),
+  });
+
+  const categoriesList = categoriesResponse?.data || [];
+  const brandsList = brandsResponse?.data || [];
+  const collectionsList = collectionsResponse?.data || [];
+  const tagsList = tagsResponse?.data || [];
+  const availableTags = tagsList.filter((tag) => !tags.includes(tag.name));
+  const galleryUrls = splitCsv(gallery);
+  const selectedImageUrls = [featuredImage, ...galleryUrls].filter(Boolean);
+
+  const updateGalleryImage = (index: number, url: string) => {
+    const nextGallery = [...galleryUrls];
+    nextGallery[index] = url;
+    setGallery(nextGallery.filter(Boolean).join(', '));
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGallery(galleryUrls.filter((_, i) => i !== index).join(', '));
+  };
+
+  const addGalleryImages = (urls: string[]) => {
+    const merged = [...galleryUrls];
+    urls.forEach((url) => {
+      if (url && url !== featuredImage && !merged.includes(url)) merged.push(url);
+    });
+    setGallery(merged.join(', '));
+  };
+
+  const updateSeoTitleOption = (index: number, value: string) => {
+    setSeoTitleOptions((options) => {
+      const nextOptions = options.map((option, i) => (i === index ? value : option));
+      setSeo({ ...seo, title: nextOptions.find((option) => option.trim())?.trim() || '' });
+      return nextOptions;
+    });
+  };
+
+  const addSeoTitleOption = () => {
+    setSeoTitleOptions((options) => (options.length >= 5 ? options : [...options, '']));
+  };
+
+  const removeSeoTitleOption = (index: number) => {
+    setSeoTitleOptions((options) => {
+      const nextOptions = options.length === 1 ? [''] : options.filter((_, i) => i !== index);
+      setSeo({ ...seo, title: nextOptions.find((option) => option.trim())?.trim() || '' });
+      return nextOptions;
+    });
+  };
+
+  const addSeoKeyword = (value: string) => {
+    const nextKeyword = value.trim();
+    if (!nextKeyword || seo.keywords.includes(nextKeyword)) return;
+    setSeo({ ...seo, keywords: [...seo.keywords, nextKeyword] });
+    setKeywordDraft('');
+  };
+
+  const removeSeoKeyword = (keyword: string) => {
+    setSeo({ ...seo, keywords: seo.keywords.filter((item) => item !== keyword) });
+  };
 
   const createMutation = useApiPost<Product, CreateProductPayload>({
     mutationFn: createProduct,
@@ -254,7 +501,7 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
       category: category.trim(),
       brand: brand.trim(),
       collection: collection.trim(),
-      tags: splitCsv(tags),
+      tags,
       featuredImage: featuredImage.trim(),
       gallery: splitCsv(gallery),
       video: video.trim(),
@@ -383,39 +630,118 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="product-category">Category</Label>
-                    <Input
-                      id="product-category"
-                      placeholder="Category ID"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                    />
+                    <Select
+                      value={category || null}
+                      onValueChange={(value) => setCategory(value ?? '')}
+                    >
+                      <SelectTrigger id="product-category" className="w-full">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Select Category</SelectItem>
+                        {categoriesList.map((c) => (
+                          <SelectItem key={c._id || c.name} value={c.name}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                        {category && !categoriesList.some((c) => c.name === category) && (
+                          <SelectItem value={category}>{category}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="product-brand">Brand</Label>
-                    <Input
-                      id="product-brand"
-                      placeholder="Brand ID"
-                      value={brand}
-                      onChange={(e) => setBrand(e.target.value)}
-                    />
+                    <Select
+                      value={brand || null}
+                      onValueChange={(value) => setBrand(value ?? '')}
+                    >
+                      <SelectTrigger id="product-brand" className="w-full">
+                        <SelectValue placeholder="Select Brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Select Brand</SelectItem>
+                        {brandsList.map((b) => (
+                          <SelectItem key={b._id || b.name} value={b.name}>
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                        {brand && !brandsList.some((b) => b.name === brand) && (
+                          <SelectItem value={brand}>{brand}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="product-collection">Collection</Label>
-                    <Input
-                      id="product-collection"
-                      placeholder="Collection ID"
-                      value={collection}
-                      onChange={(e) => setCollection(e.target.value)}
-                    />
+                    <Select
+                      value={collection || null}
+                      onValueChange={(value) => setCollection(value ?? '')}
+                    >
+                      <SelectTrigger id="product-collection" className="w-full">
+                        <SelectValue placeholder="Select Collection" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Select Collection</SelectItem>
+                        {collectionsList.map((colItem) => (
+                          <SelectItem key={colItem._id || colItem.name} value={colItem.name}>
+                            {colItem.name}
+                          </SelectItem>
+                        ))}
+                        {collection && !collectionsList.some((colItem) => colItem.name === collection) && (
+                          <SelectItem value={collection}>{collection}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-tags">Tags</Label>
-                    <Input
-                      id="product-tags"
-                      placeholder="Comma separated tag IDs"
-                      value={tags}
-                      onChange={(e) => setTags(e.target.value)}
-                    />
+                    <Label>Tags</Label>
+                    <div className="space-y-2">
+                      {availableTags.length > 0 && (
+                        <Select
+                          value={null}
+                          onValueChange={(value) => {
+                            if (value) {
+                              setTags((currentTags) =>
+                                currentTags.includes(value) ? currentTags : [...currentTags, value]
+                              );
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select tag to add..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableTags.map((t) => (
+                              <SelectItem key={t._id || t.name} value={t.name}>
+                                {t.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {tags.length > 0 && (
+                        <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                          {tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                            >
+                              <TagIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                              <span className="truncate">{tag}</span>
+                              <button
+                                type="button"
+                                onClick={() => setTags((currentTags) => currentTags.filter((t) => t !== tag))}
+                                className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+                                aria-label={`Remove ${tag}`}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -427,22 +753,35 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
             <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className={sectionTitleClass}>Media</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product-featured-image">Featured Image URL</Label>
-                    <Input
-                      id="product-featured-image"
-                      placeholder="https://..."
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-4">
+                    <ProductImageSlot
                       value={featuredImage}
-                      onChange={(e) => setFeaturedImage(e.target.value)}
+                      onChange={setFeaturedImage}
+                      onRemove={() => setFeaturedImage('')}
+                      selectedUrls={selectedImageUrls}
                     />
-                    <GalleryPickerButton
-                      onSelect={(urls) => {
-                        if (urls[0]) setFeaturedImage(urls[0]);
-                      }}
-                      selectedUrls={featuredImage ? [featuredImage] : []}
-                      label="Browse Gallery"
-                    />
+                    {galleryUrls.map((url, index) => (
+                      <ProductImageSlot
+                        key={`${url}-${index}`}
+                        value={url}
+                        onChange={(nextUrl) => updateGalleryImage(index, nextUrl)}
+                        onRemove={() => removeGalleryImage(index)}
+                        selectedUrls={selectedImageUrls}
+                      />
+                    ))}
+                    {featuredImage &&
+                      galleryUrls.every((url) => url) && (
+                        <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white shadow-sm transition-colors hover:border-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600">
+                          <GalleryPickerButton
+                            multiple
+                            onSelect={addGalleryImages}
+                            selectedUrls={selectedImageUrls}
+                            label=""
+                            className="h-10 w-10 rounded-full border-gray-200 bg-gray-50 p-0 text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                          />
+                        </div>
+                      )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="product-video">Video URL</Label>
@@ -451,30 +790,6 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                       placeholder="https://..."
                       value={video}
                       onChange={(e) => setVideo(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="product-gallery">Gallery URLs</Label>
-                    <Input
-                      id="product-gallery"
-                      placeholder="Comma separated image URLs"
-                      value={gallery}
-                      onChange={(e) => setGallery(e.target.value)}
-                    />
-                    <GalleryPickerButton
-                      multiple
-                      onSelect={(urls) => {
-                        setGallery((prev) => {
-                          const existing = splitCsv(prev);
-                          const merged = [...existing];
-                          urls.forEach((u) => {
-                            if (!merged.includes(u)) merged.push(u);
-                          });
-                          return merged.join(', ');
-                        });
-                      }}
-                      selectedUrls={splitCsv(gallery)}
-                      label="Browse Gallery (multi-select)"
                     />
                   </div>
                 </div>
@@ -708,16 +1023,53 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                 <h3 className={sectionTitleClass}>SEO</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="product-seo-title">SEO Title</Label>
-                    <Input
-                      id="product-seo-title"
-                      placeholder="e.g. Classic Cotton Tee"
-                      value={seo.title}
-                      onChange={(e) => setSeo({ ...seo, title: e.target.value })}
-                    />
+                    <InfoLabel
+                      htmlFor="product-seo-title-0"
+                      info="Search result title. You can draft up to 5 options; the first filled option is saved."
+                    >
+                      SEO Title
+                    </InfoLabel>
+                    <div className="space-y-2">
+                      {seoTitleOptions.map((titleOption, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <Input
+                            id={index === 0 ? 'product-seo-title-0' : undefined}
+                            placeholder={`Title option ${index + 1}`}
+                            value={titleOption}
+                            onChange={(e) => updateSeoTitleOption(index, e.target.value)}
+                            className="flex-1"
+                          />
+                          {seoTitleOptions.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeSeoTitleOption(index)}
+                              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                              aria-label={`Remove SEO title option ${index + 1}`}
+                              title="Remove title option"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {seoTitleOptions.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addSeoTitleOption}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-700 transition-colors hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Add Title Option
+                      </button>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-seo-description">SEO Description</Label>
+                    <InfoLabel
+                      htmlFor="product-seo-description"
+                      info="Short summary used by search engines and social previews."
+                    >
+                      SEO Description
+                    </InfoLabel>
                     <Input
                       id="product-seo-description"
                       placeholder="Short SEO description"
@@ -726,16 +1078,54 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-seo-keywords">SEO Keywords</Label>
+                    <InfoLabel
+                      htmlFor="product-seo-keywords"
+                      info="Add multiple search phrases that describe this product."
+                    >
+                      SEO Keywords
+                    </InfoLabel>
                     <Input
                       id="product-seo-keywords"
-                      placeholder="Comma separated keywords"
-                      value={seo.keywords.join(', ')}
-                      onChange={(e) => setSeo({ ...seo, keywords: splitCsv(e.target.value) })}
+                      placeholder="Type keyword and press Enter"
+                      value={keywordDraft}
+                      onChange={(e) => setKeywordDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ',') {
+                          e.preventDefault();
+                          addSeoKeyword(keywordDraft);
+                        }
+                      }}
+                      onBlur={() => addSeoKeyword(keywordDraft)}
                     />
+                    {seo.keywords.length > 0 && (
+                      <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                        {seo.keywords.map((keyword) => (
+                          <span
+                            key={keyword}
+                            className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                          >
+                            <TagIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                            <span className="truncate">{keyword}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeSeoKeyword(keyword)}
+                              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+                              aria-label={`Remove ${keyword}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-seo-canonical">Canonical URL</Label>
+                    <InfoLabel
+                      htmlFor="product-seo-canonical"
+                      info="Preferred URL search engines should treat as the main product page."
+                    >
+                      Canonical URL
+                    </InfoLabel>
                     <Input
                       id="product-seo-canonical"
                       placeholder="https://..."
@@ -744,7 +1134,12 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-seo-og-image">OG Image URL</Label>
+                    <InfoLabel
+                      htmlFor="product-seo-og-image"
+                      info="Image shown when this product is shared on social platforms."
+                    >
+                      OG Image URL
+                    </InfoLabel>
                     <Input
                       id="product-seo-og-image"
                       placeholder="https://..."
@@ -760,7 +1155,12 @@ function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-seo-robots">Robots</Label>
+                    <InfoLabel
+                      htmlFor="product-seo-robots"
+                      info="Controls whether search engines index or follow this product page."
+                    >
+                      Robots
+                    </InfoLabel>
                     <Input
                       id="product-seo-robots"
                       placeholder="e.g. index"

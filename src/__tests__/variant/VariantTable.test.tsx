@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
 import VariantTable from '@/components/admin/VariantTable';
 import { getVariants, createVariant, updateVariant, deleteVariant } from '@/services/variant.service';
+import { getAttributes } from '@/services/attribute.service';
 import type { Variant } from '@/types';
 
 jest.mock('@/services/variant.service', () => ({
@@ -11,11 +12,15 @@ jest.mock('@/services/variant.service', () => ({
   updateVariant: jest.fn(),
   deleteVariant: jest.fn(),
 }));
+jest.mock('@/services/attribute.service', () => ({
+  getAttributes: jest.fn(),
+}));
 
 const mockedGetVariants = getVariants as jest.Mock;
 const mockedCreateVariant = createVariant as jest.Mock;
 const mockedUpdateVariant = updateVariant as jest.Mock;
 const mockedDeleteVariant = deleteVariant as jest.Mock;
+const mockedGetAttributes = getAttributes as jest.Mock;
 
 function makeVariant(overrides: Partial<Variant> = {}): Variant {
   return {
@@ -73,6 +78,28 @@ describe('VariantTable', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetVariants.mockResolvedValue(successResponse(sampleVariants));
+    mockedGetAttributes.mockResolvedValue({
+      success: true,
+      message: 'Attributes fetched',
+      data: [
+        {
+          _id: 'attr-color',
+          name: 'Color',
+          values: ['Black', 'Red'],
+          isVariant: true,
+          createdAt: new Date('2025-01-15'),
+          updatedAt: new Date('2025-01-15'),
+        },
+        {
+          _id: 'attr-size',
+          name: 'Size',
+          values: ['L', 'XL'],
+          isVariant: true,
+          createdAt: new Date('2025-01-15'),
+          updatedAt: new Date('2025-01-15'),
+        },
+      ],
+    });
   });
 
   describe('header', () => {
@@ -149,14 +176,8 @@ describe('VariantTable', () => {
       expect(screen.getByText('Create New Variant')).toBeInTheDocument();
 
       fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'TSH-BLK-XL' } });
-      fireEvent.change(screen.getByPlaceholderText('e.g. Color'), { target: { value: 'Color' } });
-      fireEvent.change(screen.getByPlaceholderText('e.g. Black'), { target: { value: 'Black' } });
+      expect(await screen.findByRole('combobox', { name: /select attribute 1/i })).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /add attribute/i }));
-
-      const colorInputs = screen.getAllByPlaceholderText('e.g. Color');
-      const valueInputs = screen.getAllByPlaceholderText('e.g. Black');
-      fireEvent.change(colorInputs[1], { target: { value: 'Size' } });
-      fireEvent.change(valueInputs[1], { target: { value: 'XL' } });
 
       fireEvent.change(screen.getByLabelText('Price ($)'), { target: { value: '49.99' } });
       fireEvent.change(screen.getByLabelText('Sale Price ($)'), { target: { value: '39.99' } });
@@ -170,7 +191,7 @@ describe('VariantTable', () => {
         expect(mockedCreateVariant).toHaveBeenCalledWith(
           {
             sku: 'TSH-BLK-XL',
-            attributes: { Color: 'Black', Size: 'XL' },
+            attributes: {},
             price: 49.99,
             salePrice: 39.99,
             stock: 25,
@@ -190,7 +211,7 @@ describe('VariantTable', () => {
       expect(removeButtons).toHaveLength(1);
       fireEvent.click(removeButtons[0]);
 
-      expect(screen.getAllByPlaceholderText('e.g. Color')).toHaveLength(1);
+      expect(screen.getAllByRole('combobox', { name: /select attribute/i })).toHaveLength(1);
     });
   });
 

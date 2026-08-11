@@ -7,6 +7,10 @@ import {
   createProduct,
   updateProduct,
 } from '@/services/product.service';
+import { getCategories } from '@/services/category.service';
+import { getBrands } from '@/services/brand.service';
+import { getCollections } from '@/services/collection.service';
+import { getTags } from '@/services/tag.service';
 import { defaultProductSEO } from '@/types';
 import type { Product } from '@/types';
 
@@ -14,6 +18,18 @@ jest.mock('@/services/product.service', () => ({
   getProduct: jest.fn(),
   createProduct: jest.fn(),
   updateProduct: jest.fn(),
+}));
+jest.mock('@/services/category.service', () => ({
+  getCategories: jest.fn(),
+}));
+jest.mock('@/services/brand.service', () => ({
+  getBrands: jest.fn(),
+}));
+jest.mock('@/services/collection.service', () => ({
+  getCollections: jest.fn(),
+}));
+jest.mock('@/services/tag.service', () => ({
+  getTags: jest.fn(),
 }));
 
 const mockPush = jest.fn();
@@ -24,6 +40,10 @@ jest.mock('next/navigation', () => ({
 const mockedGetProduct = getProduct as jest.Mock;
 const mockedCreateProduct = createProduct as jest.Mock;
 const mockedUpdateProduct = updateProduct as jest.Mock;
+const mockedGetCategories = getCategories as jest.Mock;
+const mockedGetBrands = getBrands as jest.Mock;
+const mockedGetCollections = getCollections as jest.Mock;
+const mockedGetTags = getTags as jest.Mock;
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
@@ -90,6 +110,21 @@ function navigateToFinalStep() {
 describe('ProductForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedGetCategories.mockResolvedValue({
+      success: true,
+      message: 'Categories fetched',
+      data: [{ _id: 'cat-2', name: 'cat-2' }],
+    });
+    mockedGetBrands.mockResolvedValue({ success: true, message: 'Brands fetched', data: [] });
+    mockedGetCollections.mockResolvedValue({ success: true, message: 'Collections fetched', data: [] });
+    mockedGetTags.mockResolvedValue({
+      success: true,
+      message: 'Tags fetched',
+      data: [
+        { _id: 'tag-1', name: 'tag-1' },
+        { _id: 'tag-2', name: 'tag-2' },
+      ],
+    });
   });
 
   describe('create flow', () => {
@@ -141,8 +176,8 @@ describe('ProductForm', () => {
       fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'New Denim Jacket' } });
       fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'JCK-NEW-001' } });
       fireEvent.change(screen.getByLabelText('Barcode'), { target: { value: '8801234567890' } });
-      fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'cat-2' } });
-      fireEvent.change(screen.getByLabelText('Tags'), { target: { value: 'tag-1, tag-2' } });
+      expect(await screen.findByRole('combobox', { name: 'Category' })).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('Comma separated tags')).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
       fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '149.99' } });
@@ -173,8 +208,6 @@ describe('ProductForm', () => {
             name: 'New Denim Jacket',
             sku: 'JCK-NEW-001',
             barcode: '8801234567890',
-            category: 'cat-2',
-            tags: ['tag-1', 'tag-2'],
             regularPrice: 149.99,
             salePrice: 129.99,
             costPrice: 70,
