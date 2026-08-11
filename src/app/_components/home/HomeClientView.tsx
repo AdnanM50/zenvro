@@ -6,6 +6,8 @@ import { usePublicPage } from "@/hooks";
 import HomeHero from "@/app/_components/home/HomeHero";
 import HomeAbout from "@/app/_components/home/HomeAbout";
 import HomeTestimonial from "@/app/_components/home/HomeTestimonial";
+import HomeFlashSale from "@/app/_components/home/HomeFlashSale";
+import FlashPopupModal from "@/components/FlashPopupModal";
 
 interface HomeClientViewProps {
   initialPage?: Page | null;
@@ -45,16 +47,21 @@ export default function HomeClientView({ initialPage, initialTestimonials }: Hom
         </div>
       )}
 
-      {/* Render active CMS sections in exact order */}
+      {/* Hero Section */}
       {activeSections.length > 0 ? (
         activeSections.map((sec) => renderSection(sec))
       ) : (
         <>
           <HomeHero section={heroSec} />
+          {/* Live Flash Sale Section */}
+          <HomeFlashSale />
           <HomeAbout section={aboutSec} />
           <HomeTestimonial section={testimonialSec} initialTestimonials={initialTestimonials} />
         </>
       )}
+
+      {/* Smart Popup Banner Modal */}
+      <FlashPopupModal />
     </>
   );
 }

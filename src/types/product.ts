@@ -107,6 +107,7 @@ export interface ProductListParams {
   isFeatured?: boolean;
   isNewArrival?: boolean;
   isTrending?: boolean;
+  ids?: string[];
 }
 
 export const defaultProductSEO: ProductSEO = {

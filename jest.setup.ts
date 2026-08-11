@@ -20,6 +20,27 @@ Object.defineProperty(globalThis, 'crypto', {
   configurable: true,
 });
 
+if (typeof window !== 'undefined' && typeof window.PointerEvent === 'undefined') {
+  class MockPointerEvent extends MouseEvent {
+    pointerId = 1;
+    width = 1;
+    height = 1;
+    pressure = 0;
+    tangentialPressure = 0;
+    tiltX = 0;
+    tiltY = 0;
+    twist = 0;
+    pointerType = '';
+    isPrimary = false;
+  }
+
+  Object.defineProperty(window, 'PointerEvent', {
+    value: MockPointerEvent,
+    writable: true,
+    configurable: true,
+  });
+}
+
 if (typeof globalThis.Response === 'undefined') {
   class MockResponse {
     status: number;

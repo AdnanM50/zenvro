@@ -37,6 +37,25 @@ export type {
   CouponListParams,
 } from './coupon';
 
+export type {
+  PopupBanner,
+  PopupBannerStatus,
+  CreatePopupBannerPayload,
+  UpdatePopupBannerPayload,
+  PopupBannerListParams,
+  FlashSale,
+  FlashSaleDiscountType,
+  FlashSaleStatus,
+  CreateFlashSalePayload,
+  UpdateFlashSalePayload,
+  FlashSaleListParams,
+  HomeSection,
+  HomeSectionType,
+  CreateHomeSectionPayload,
+  UpdateHomeSectionPayload,
+  HomeSectionListParams,
+} from './marketing';
+
 export type { Tag, CreateTagPayload, UpdateTagPayload } from './tag';
 export type { Brand, CreateBrandPayload, UpdateBrandPayload } from './brand';
 export type { Attribute, CreateAttributePayload, UpdateAttributePayload } from './attribute';
@@ -59,6 +78,12 @@ export type {
   PublicUser,
   UserListParams,
 } from './user';
+
+export type {
+  Profile,
+  UpdateProfilePayload,
+  ChangePasswordPayload,
+} from './profile';
 
 export type {
   Review,

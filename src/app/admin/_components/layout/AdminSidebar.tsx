@@ -22,10 +22,13 @@ import {
   ShoppingCart,
   Star,
   TicketPercent,
+  User,
   Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 type NavItemType = {
   label: string;
@@ -37,7 +40,8 @@ type NavItemType = {
 };
 
 const navItems: NavItemType[] = [
-  { label: "Dashboard", icon: Home, href: "#", active: true },
+  { label: "Dashboard", icon: Home, href: "/admin" },
+  { label: "Profile", icon: User, href: "/admin/profile" },
   {
     label: "Products",
     icon: Box,
@@ -59,7 +63,16 @@ const navItems: NavItemType[] = [
   { label: "Contact", icon: MessageSquare, href: "/admin/contact" },
   { label: "Coupons", icon: TicketPercent, href: "/admin/coupons" },
   { label: "Inventory", icon: Boxes, href: "/admin/inventory" },
-  { label: "Marketing", icon: Megaphone, href: "#" },
+  {
+    label: "Marketing",
+    icon: Megaphone,
+    children: [
+      { label: "Overview", href: "/admin/marketing" },
+      { label: "Home Sections", href: "/admin/marketing/home-sections" },
+      { label: "Popup Banners", href: "/admin/marketing/popups" },
+      { label: "Flash Sales", href: "/admin/marketing/flash-sales" },
+    ],
+  },
   { label: "CMS", icon: FileText, href: "/admin/cms/pages" },
   {
     label: "SEO",
@@ -151,6 +164,21 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const [menuOpen, setMenuOpen] = useState(true);
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch {
+      router.push("/login");
+    }
+  };
+
+  const displayName = user?.name || "Noah Bellingham";
+  const displayEmail = user?.email || "admin@gmail.com";
+  const userInitial = displayName[0]?.toUpperCase() || "A";
 
   return (
     <aside
@@ -164,40 +192,37 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       `}
     >
       <div className="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2" data-lenis-prevent>
-        {/* Logo */}
-        <div className="flex items-center gap-3 mb-8 lg:mb-10">
-          <div className="w-9 h-9 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center font-bold text-lg shrink-0">
-            V
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-base lg:text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-              <span className="truncate">Teknova Store</span>
-              <span className="bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-400 text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 border border-green-200 dark:border-green-800">
-                PRO
+        {/* Brand Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+              V
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-sm tracking-wider uppercase text-gray-900 dark:text-white leading-none">
+                VELORA
+              </span>
+              <span className="text-[10px] text-gray-400 font-medium mt-0.5">
+                Admin Panel
               </span>
             </div>
-            <div className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              <Lock className="h-3 w-3" /> Private
-            </div>
-          </div>
+          </Link>
           <button
-            className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mr-1"
+            className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1"
             onClick={onClose}
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </button>
-          <MoreVertical className="hidden h-5 w-5 text-gray-400 dark:text-gray-500 ml-auto cursor-pointer lg:block" />
         </div>
 
         {/* Greeting */}
-        <div className="mb-6 lg:mb-8">
-          <div className="text-[11px] text-gray-400 dark:text-gray-500 mb-1">
-            Teknova Store &gt; Dashboard
+        <div className="mb-6 pb-4 border-b border-gray-100 dark:border-gray-800/80">
+          <div className="text-[11px] font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+            Store Overview
           </div>
-          <h1 className="text-xl lg:text-2xl font-bold leading-tight text-gray-900 dark:text-white">
-            Welcome Back,<br />
-            Noah Bellingham <span role="img" aria-label="wave">&#128075;</span>
+          <h1 className="text-lg font-bold leading-tight text-gray-900 dark:text-white">
+            Welcome, {displayName.split(" ")[0]} <span role="img" aria-label="wave">&#128075;</span>
           </h1>
         </div>
 
@@ -227,13 +252,14 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                   <NavItem key={item.label} item={item} />
                 ))}
                 <li>
-                  <a
-                    href="#"
-                    className="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 px-3.5 py-2.5 rounded-xl transition-colors mt-2"
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 px-3.5 py-2.5 rounded-xl transition-colors mt-2 cursor-pointer"
                   >
                     <LogOut className="h-4 w-5 shrink-0" strokeWidth={2.2} />
                     <span className="font-medium text-sm">Logout</span>
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -242,25 +268,24 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       </div>
 
       {/* User Profile Bottom */}
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-5 shrink-0">
-        <img
-          alt="User Avatar"
-          className="w-10 h-10 rounded-full shrink-0 object-cover"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa1xDcspgxj2FSQ74NfSLrT4HWcBvcD72IIYy2JfXutd5H0GOkbZ-WDA0bCGuNv14qVNYAipF4ZCCl_tkZFqBRh1u7cYVdRGYvUjizlygZp87cWIGTnXG_IclEAyEFNxUCIjXBKmDMnOTHzM03KxxupLbFchUzNU1u3wfC30jyeBqFbJQHUvJfzoWOHHO-q_HVOfU3nNvj9UZBkBJxOzyNF8PzqD5BUMIH0FBb4ppEpX1ouEBoCXSqxg"
-        />
+      <Link
+        href="/admin/profile"
+        className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-5 shrink-0 hover:bg-gray-50 dark:hover:bg-gray-900/60 p-2 rounded-xl transition-colors"
+      >
+        <div className="w-10 h-10 rounded-full bg-black dark:bg-white text-white dark:text-black font-bold flex items-center justify-center text-sm shrink-0 shadow-xs">
+          {userInitial}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold text-gray-900 dark:text-white truncate">
-            Noah Bellingham
+            {displayName}
           </div>
           <div className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full shrink-0" />
-            <span className="truncate">noah@gmail.com</span>
+            <span className="truncate">{displayEmail}</span>
           </div>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer shrink-0 p-1" aria-label="More options">
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
-      </div>
+        <MoreHorizontal className="h-5 w-5 text-gray-400 shrink-0" />
+      </Link>
     </aside>
   );
 }

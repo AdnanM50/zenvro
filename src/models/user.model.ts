@@ -131,6 +131,61 @@ export const UserModel = {
     return raw ? normalizeUser(raw) : null;
   },
 
+  async findByIdPublic(id: string): Promise<Omit<User, 'password'> | null> {
+    const col = await usersCol();
+    const raw = await col.findOne(buildIdQuery(id), { projection: { password: 0 } });
+    if (!raw) return null;
+    const { password: _password, ...rest } = normalizeUser(raw);
+    return rest;
+  },
+
+  /**
+   * Updates the given profile fields and returns the refreshed public user.
+   * Returns null when the user does not exist or no valid field was provided.
+   */
+  async updateProfile(
+    id: string,
+    data: { name?: string; email?: string; phone?: string }
+  ): Promise<Omit<User, 'password'> | null> {
+    const col = await usersCol();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const set: Record<string, any> = {};
+
+    if (data.name !== undefined) {
+      const name = data.name.trim();
+      if (!name) return null;
+      set.name = name;
+    }
+
+    if (data.email !== undefined) {
+      const email = data.email.trim().toLowerCase();
+      if (!email) return null;
+      set.email = email;
+    }
+
+    if (data.phone !== undefined) {
+      set.phone = data.phone.trim();
+    }
+
+    if (Object.keys(set).length === 0) return null;
+
+    const result = await col.updateOne(buildIdQuery(id), { $set: set });
+    if (result.matchedCount === 0) return null;
+
+    const raw = await col.findOne(buildIdQuery(id), { projection: { password: 0 } });
+    if (!raw) return null;
+    const { password: _password, ...rest } = normalizeUser(raw);
+    return rest;
+  },
+
+  async updatePassword(id: string, hashedPassword: string): Promise<boolean> {
+    const col = await usersCol();
+    const result = await col.updateOne(buildIdQuery(id), {
+      $set: { password: hashedPassword },
+    });
+    return result.modifiedCount > 0;
+  },
+
   async updateRole(id: string, role: UserRole): Promise<boolean> {
     const col = await usersCol();
     const result = await col.updateOne(buildIdQuery(id), { $set: { role } });

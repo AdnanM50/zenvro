@@ -79,6 +79,7 @@ export interface ProductFilters {
   isFeatured?: boolean;
   isNewArrival?: boolean;
   isTrending?: boolean;
+  ids?: string[];
 }
 
 function buildSearchFilter(search?: string): Record<string, unknown> {
@@ -103,6 +104,10 @@ function buildFilters(params: ProductFilters): Record<string, unknown> {
   if (params.isFeatured !== undefined) filter.isFeatured = params.isFeatured;
   if (params.isNewArrival !== undefined) filter.isNewArrival = params.isNewArrival;
   if (params.isTrending !== undefined) filter.isTrending = params.isTrending;
+
+  if (params.ids && params.ids.length > 0) {
+    filter._id = { $in: params.ids };
+  }
 
   return filter;
 }

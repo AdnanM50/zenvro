@@ -198,6 +198,13 @@ export async function GET(request: NextRequest) {
     const brand = searchParams.get('brand') || undefined;
     const status = searchParams.get('status') || undefined;
     const gender = searchParams.get('gender') || undefined;
+    const idsParam = searchParams.get('ids');
+    const ids = idsParam
+      ? idsParam
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined;
     const isFeatured = parseBooleanParam(searchParams.get('isFeatured'));
     const isNewArrival = parseBooleanParam(searchParams.get('isNewArrival'));
     const isTrending = parseBooleanParam(searchParams.get('isTrending'));
@@ -210,6 +217,7 @@ export async function GET(request: NextRequest) {
       brand,
       status,
       gender,
+      ids,
       isFeatured,
       isNewArrival,
       isTrending,
