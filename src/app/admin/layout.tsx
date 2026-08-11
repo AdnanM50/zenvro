@@ -3,6 +3,7 @@
 import { useState } from "react";
 import AdminSidebar from "@/app/admin/_components/layout/AdminSidebar";
 import AdminHeader from "@/app/admin/_components/layout/AdminHeader";
+import AnalyticsScripts from "@/components/AnalyticsScripts";
 
 export default function AdminLayout({
   children,
@@ -25,6 +26,9 @@ export default function AdminLayout({
         )}
 
         <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+        {/* Dynamic Analytics & Hotjar Script */}
+        <AnalyticsScripts />
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">

@@ -305,7 +305,7 @@ export default function AnalyticsSettingsPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Hotjar Analytics</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Site ID (e.g., 1234567)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Site ID (e.g., 971168)</p>
                 </div>
               </div>
               {settings.hotjarId ? (
@@ -322,9 +322,19 @@ export default function AnalyticsSettingsPage() {
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Hotjar Site ID</label>
               <Input
                 value={settings.hotjarId}
-                onChange={(e) => updateField('hotjarId', e.target.value)}
-                placeholder="1234567"
+                onChange={(e) => updateField('hotjarId', e.target.value.trim())}
+                placeholder="971168"
               />
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 border border-gray-100 dark:border-gray-800 text-xs space-y-1 text-gray-500 dark:text-gray-400">
+              <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-orange-500" /> How to find your Hotjar Site ID:
+              </p>
+              <ol className="list-decimal list-inside space-y-0.5 pl-1">
+                <td>1. Log in to your <a href="https://insights.hotjar.com" target="_blank" rel="noreferrer" className="text-orange-500 underline font-medium hover:text-orange-600">Hotjar Dashboard</a></td>
+                <td>2. Click your organization avatar (top right) $\rightarrow$ <strong>Sites & Organizations</strong></td>
+                <td>3. Copy the numeric <strong>Site ID</strong> next to your site name (e.g. <code>971168</code>)</td>
+              </ol>
             </div>
           </div>
 
