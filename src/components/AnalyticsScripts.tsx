@@ -14,7 +14,7 @@ export default function AnalyticsScripts() {
         // Hotjar Initialization via react-hotjar
         const hotjarId = data.hotjarId ? data.hotjarId.trim() : '';
         if (hotjarId && /^\d+$/.test(hotjarId)) {
-          hotjar.initialize(parseInt(hotjarId, 10), 6);
+          hotjar.initialize({ id: parseInt(hotjarId, 10), sv: 6 });
         }
 
         // Microsoft Clarity Injection
