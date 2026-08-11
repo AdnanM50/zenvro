@@ -11,10 +11,13 @@ export async function getDb(): Promise<Db> {
   if (!MONGODB_URI) {
     throw new Error('DB_STRING environment variable is not set');
   }
+
   client = new MongoClient(MONGODB_URI, {
-    tlsAllowInvalidCertificates: true,
+    family: 4,
     serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
   });
+
   await client.connect();
   database = client.db(DB_NAME);
   return database;

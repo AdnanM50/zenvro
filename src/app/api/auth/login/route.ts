@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
     return setAuthCookies(response, accessToken, refreshToken);
   } catch (error: any) {
     console.error('Login error:', error);
+    const msg = String(error?.message || '');
+    if (msg.includes('SSL') || msg.includes('tlsv1') || msg.includes('alert') || msg.includes('connect')) {
+      return api.serverError('Database connection temporary issue. Please click Sign In again.');
+    }
     return api.serverError(error?.message || 'Internal server error');
   }
 }
