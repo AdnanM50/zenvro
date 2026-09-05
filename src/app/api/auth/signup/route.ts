@@ -24,16 +24,17 @@ export async function POST(request: NextRequest) {
 
     if (!email || !otp) return api.badRequest('Email and OTP are required');
 
-    const result = await verifyOtp(email, otp);
-    if (!result.valid) return api.badRequest('Invalid or expired OTP');
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const result = await verifyOtp(normalizedEmail, String(otp).trim());
+    if (!result || !result.valid) return api.badRequest('Invalid or expired OTP');
 
     const { name, password } = result;
     if (!name || !password) return api.badRequest('Registration data not found. Please start over.');
 
-    const existingUser = await UserModel.findByEmail(email);
+    const existingUser = await UserModel.findByEmail(normalizedEmail);
     if (existingUser) return api.conflict('User with this email already exists');
 
-    const user = await UserModel.create({ name: name!, email, password });
+    const user = await UserModel.create({ name: name!, email: normalizedEmail, password });
 
     const { accessToken, refreshToken } = generateTokenPair(user._id, user.email, user.role);
     const refreshExpiresAt = getTokenExpiration(refreshToken);
@@ -48,8 +49,8 @@ export async function POST(request: NextRequest) {
     );
 
     return setAuthCookies(response, accessToken, refreshToken);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Signup error:', error);
-    return api.serverError();
+    return api.serverError(error?.message || 'Failed to complete registration');
   }
 }

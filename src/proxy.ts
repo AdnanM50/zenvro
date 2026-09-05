@@ -35,6 +35,11 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(
         new URL(decoded.role === 'admin' ? '/admin' : '/user-dashboard', request.url),
       );
+    } else {
+      const response = NextResponse.next();
+      response.cookies.delete('access_token');
+      response.cookies.delete('refresh_token');
+      return response;
     }
   }
 

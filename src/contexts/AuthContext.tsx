@@ -64,9 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (response.ok) {
-        const data = await response.json();
-        setUser(data.data);
-        startRefreshTimer();
+        const data = await response.json().catch(() => null);
+        if (data?.data) {
+          setUser(data.data);
+          startRefreshTimer();
+        } else {
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
@@ -95,18 +99,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (response.ok) {
+      if (response.ok && data?.data) {
         setUser(data.data);
         startRefreshTimer();
         return { success: true, role: data.data.role };
       } else {
-        return { success: false, error: data.error };
+        const fallbackError = response.status === 404
+          ? 'Authentication service is unavailable. Please restart the dev server.'
+          : response.status === 401
+          ? 'Invalid email or password'
+          : 'Login failed';
+        return { success: false, error: data?.error || data?.message || fallbackError };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      return { success: false, error: error?.message || 'An unexpected error occurred' };
     }
   };
 
@@ -118,30 +127,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, otp }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (response.ok) {
+      if (response.ok && data?.data) {
         setUser(data.data);
         startRefreshTimer();
         return { success: true, role: data.data.role };
       } else {
-        return { success: false, error: data.error };
+        const fallbackError = response.status === 404
+          ? 'Signup service is unavailable. Please restart the dev server.'
+          : 'Signup verification failed';
+        return { success: false, error: data?.error || data?.message || fallbackError };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      return { success: false, error: error?.message || 'An unexpected error occurred' };
     }
   };
 
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      setUser(null);
-      if (refreshTimerRef.current) {
-        clearInterval(refreshTimerRef.current);
-      }
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
       setUser(null);
       if (refreshTimerRef.current) {
         clearInterval(refreshTimerRef.current);

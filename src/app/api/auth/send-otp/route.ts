@@ -11,19 +11,29 @@ export async function POST(request: NextRequest) {
 
     if (!name || !email || !password) return api.badRequest('Name, email, and password are required');
     if (password.length < 6) return api.badRequest('Password must be at least 6 characters long');
-    if (isRateLimited(email)) return api.tooMany('Too many OTP requests. Please wait a minute.');
+    const normalizedEmail = String(email).trim().toLowerCase();
+    if (isRateLimited(normalizedEmail)) return api.tooMany('Too many OTP requests. Please wait a minute.');
 
-    const existingUser = await UserModel.findByEmail(email);
+    const existingUser = await UserModel.findByEmail(normalizedEmail);
     if (existingUser) return api.conflict('User with this email already exists');
 
     const otp = generateOtp();
-    await storeOtp(email, otp, name, password);
-    recordOtpRequest(email);
-    await sendOtpEmail(email, otp);
+    await storeOtp(normalizedEmail, otp, String(name).trim(), password);
+    recordOtpRequest(normalizedEmail);
+
+    try {
+      await sendOtpEmail(normalizedEmail, otp);
+    } catch (mailError: any) {
+      console.error('Failed to send OTP email:', mailError);
+      console.log(`\n========================================\n[DEV OTP] OTP for ${normalizedEmail}: ${otp}\n========================================\n`);
+      if (process.env.NODE_ENV === 'production') {
+        return api.serverError('Failed to send verification email. Please check your email configuration.');
+      }
+    }
 
     return api.ok({ expiresIn: 300 }, 'OTP sent successfully');
-  } catch (error) {
+  } catch (error: any) {
     console.error('Send OTP error:', error);
-    return api.serverError('Failed to send OTP');
+    return api.serverError(error?.message || 'Failed to send OTP');
   }
 }

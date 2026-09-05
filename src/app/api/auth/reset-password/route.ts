@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
       return api.notFound('Account not found');
     }
 
-    const isOtpValid = await verifyOtp(normalizedEmail, String(otp).trim());
-    if (!isOtpValid) {
+    const otpResult = await verifyOtp(normalizedEmail, String(otp).trim());
+    if (!otpResult || !otpResult.valid) {
       return api.badRequest('Invalid or expired OTP code');
     }
 
