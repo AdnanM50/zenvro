@@ -117,6 +117,10 @@ export const ProductModel = {
     const c = await col();
     const _id = generateObjectId();
     const now = new Date();
+    const featuredImage = data.media?.featuredImage || data.featuredImage || '';
+    const gallery = data.media?.gallery || data.gallery || [];
+    const video = data.media?.videoUrl || data.video || '';
+
     const product: Product = {
       _id,
       name: data.name,
@@ -129,9 +133,14 @@ export const ProductModel = {
       brand: data.brand || '',
       collection: data.collection || '',
       tags: data.tags || [],
-      featuredImage: data.featuredImage || '',
-      gallery: data.gallery || [],
-      video: data.video || '',
+      featuredImage,
+      gallery,
+      video,
+      media: {
+        featuredImage,
+        gallery,
+        videoUrl: video,
+      },
       regularPrice: toFiniteNumber(data.regularPrice),
       salePrice: toFiniteOrUndefined(data.salePrice) ?? 0,
       costPrice: toFiniteOrUndefined(data.costPrice) ?? 0,
@@ -200,8 +209,29 @@ export const ProductModel = {
     if (data.variants !== undefined) {
       updateFields.variants = data.variants.map(hydrateVariant);
     }
+
+    const featuredImage = data.media?.featuredImage ?? data.featuredImage;
+    const gallery = data.media?.gallery ?? data.gallery;
+    const video = data.media?.videoUrl ?? data.video;
+
+    if (featuredImage !== undefined || gallery !== undefined || video !== undefined || data.media !== undefined) {
+      const existing = await c.findOne({ _id });
+      const finalFeatured = featuredImage ?? existing?.media?.featuredImage ?? existing?.featuredImage ?? '';
+      const finalGallery = gallery ?? existing?.media?.gallery ?? existing?.gallery ?? [];
+      const finalVideo = video ?? existing?.media?.videoUrl ?? existing?.video ?? '';
+
+      updateFields.featuredImage = finalFeatured;
+      updateFields.gallery = finalGallery;
+      updateFields.video = finalVideo;
+      updateFields.media = {
+        featuredImage: finalFeatured,
+        gallery: finalGallery,
+        videoUrl: finalVideo,
+      };
+    }
+
     const result = await c.updateOne({ _id }, { $set: updateFields });
-    return result.modifiedCount > 0;
+    return result.modifiedCount > 0 || result.matchedCount > 0;
   },
 
   async delete(_id: string): Promise<boolean> {

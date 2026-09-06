@@ -88,6 +88,11 @@ describe('ProductModel Unit Tests (Possible & Impossible Edge Cases)', () => {
       expect(product.collection).toBe('col-1');
       expect(product.tags).toEqual(['tag-1', 'tag-2']);
       expect(product.gallery).toEqual(['https://img.com/a.png', 'https://img.com/b.png']);
+      expect(product.media).toEqual({
+        featuredImage: 'https://img.com/tee.png',
+        gallery: ['https://img.com/a.png', 'https://img.com/b.png'],
+        videoUrl: 'https://img.com/tee.mp4',
+      });
       expect(product.regularPrice).toBe(59.99);
       expect(product.salePrice).toBe(49.99);
       expect(product.costPrice).toBe(20);

@@ -293,6 +293,10 @@ export async function POST(request: NextRequest) {
     const { variants, error: variantsError } = parseVariants(body.variants);
     if (variantsError) return api.badRequest(variantsError);
 
+    const featuredImage = strOr(body.media?.featuredImage) || strOr(body.featuredImage);
+    const gallery = body.media?.gallery ? parseStringList(body.media.gallery) : parseStringList(body.gallery);
+    const video = strOr(body.media?.videoUrl) || strOr(body.video);
+
     const product = await ProductModel.create({
       name: name.trim(),
       slug: candidateSlug,
@@ -304,9 +308,14 @@ export async function POST(request: NextRequest) {
       brand: strOr(body.brand),
       collection: strOr(body.collection),
       tags: parseStringList(body.tags),
-      featuredImage: strOr(body.featuredImage),
-      gallery: parseStringList(body.gallery),
-      video: strOr(body.video),
+      featuredImage,
+      gallery,
+      video,
+      media: {
+        featuredImage,
+        gallery,
+        videoUrl: video,
+      },
       regularPrice: regularPriceNum,
       salePrice: salePriceNum ?? 0,
       costPrice: costPriceNum ?? 0,
@@ -419,6 +428,16 @@ export async function PATCH(request: NextRequest) {
 
     if (body.tags !== undefined) updateData.tags = parseStringList(body.tags);
     if (body.gallery !== undefined) updateData.gallery = parseStringList(body.gallery);
+    if (body.media !== undefined && typeof body.media === 'object') {
+      updateData.media = {
+        featuredImage: strOr(body.media.featuredImage),
+        gallery: parseStringList(body.media.gallery),
+        videoUrl: strOr(body.media.videoUrl),
+      };
+      if (body.media.featuredImage !== undefined) updateData.featuredImage = strOr(body.media.featuredImage);
+      if (body.media.gallery !== undefined) updateData.gallery = parseStringList(body.media.gallery);
+      if (body.media.videoUrl !== undefined) updateData.video = strOr(body.media.videoUrl);
+    }
     if (body.specifications !== undefined) updateData.specifications = parseSpecifications(body.specifications);
     if (body.seo !== undefined) updateData.seo = parseSEO(body.seo);
 

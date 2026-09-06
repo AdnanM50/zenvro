@@ -21,6 +21,13 @@ export interface ProductSEO {
   robots: string;
 }
 
+/** Media assets for a product listing */
+export interface ProductMedia {
+  featuredImage?: string;
+  gallery?: string[];
+  videoUrl?: string;
+}
+
 /** Core product entity returned by the API */
 export interface Product {
   _id: string;
@@ -37,6 +44,7 @@ export interface Product {
   featuredImage: string;
   gallery: string[];
   video: string;
+  media?: ProductMedia;
   regularPrice: number;
   salePrice: number;
   costPrice: number;
@@ -72,6 +80,7 @@ export interface CreateProductPayload {
   featuredImage?: string;
   gallery?: string[];
   video?: string;
+  media?: ProductMedia;
   regularPrice: number;
   salePrice?: number;
   costPrice?: number;
