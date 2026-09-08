@@ -67,7 +67,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     stock: 25,
     lowStock: 5,
     sold: 10,
-    status: 'active',
+    status: 'published',
     isFeatured: true,
     isNewArrival: false,
     isTrending: false,
@@ -98,12 +98,12 @@ function renderWithClient(ui: ReactElement) {
 }
 
 function navigateToFinalStep() {
-  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'New Denim Jacket' } });
-  fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'JCK-NEW-001' } });
+  fireEvent.change(screen.getByLabelText('Name *'), { target: { value: 'New Denim Jacket' } });
+  fireEvent.change(screen.getByLabelText('SKU (Required) *'), { target: { value: 'JCK-NEW-001' } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-  fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '149.99' } });
-  fireEvent.change(screen.getByLabelText('Stock'), { target: { value: '50' } });
+  fireEvent.change(screen.getByLabelText('Regular Price ($) *'), { target: { value: '149.99' } });
+  fireEvent.change(screen.getByLabelText('Stock Quantity *'), { target: { value: '50' } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 }
 
@@ -134,7 +134,7 @@ describe('ProductForm', () => {
       expect(screen.getByText('Create New Product')).toBeInTheDocument();
       expect(screen.getByText('Basics & Organization')).toBeInTheDocument();
       expect(screen.getByText('Media & Pricing')).toBeInTheDocument();
-      expect(screen.getByText('Attributes & SEO')).toBeInTheDocument();
+      expect(screen.getByText('Variants, Attributes & SEO')).toBeInTheDocument();
 
       const continueButton = screen.getByRole('button', { name: /continue/i });
       expect(continueButton).toBeDisabled();
@@ -143,29 +143,29 @@ describe('ProductForm', () => {
     it('enables Continue after name and SKU, then navigates to Media & Pricing', () => {
       renderWithClient(<ProductForm />);
 
-      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Tee' } });
+      fireEvent.change(screen.getByLabelText('Name *'), { target: { value: 'Tee' } });
       expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
 
-      fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'TSH-1' } });
+      fireEvent.change(screen.getByLabelText('SKU (Required) *'), { target: { value: 'TSH-1' } });
       const continueButton = screen.getByRole('button', { name: /continue/i });
       expect(continueButton).toBeEnabled();
 
       fireEvent.click(continueButton);
-      expect(screen.getByLabelText('Regular Price ($)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Regular Price ($) *')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
     });
 
     it('disables Continue on the pricing step until price and stock are filled', () => {
       renderWithClient(<ProductForm />);
 
-      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Tee' } });
-      fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'TSH-1' } });
+      fireEvent.change(screen.getByLabelText('Name *'), { target: { value: 'Tee' } });
+      fireEvent.change(screen.getByLabelText('SKU (Required) *'), { target: { value: 'TSH-1' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '9.99' } });
+      fireEvent.change(screen.getByLabelText('Regular Price ($) *'), { target: { value: '9.99' } });
       expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
 
-      fireEvent.change(screen.getByLabelText('Stock'), { target: { value: '2' } });
+      fireEvent.change(screen.getByLabelText('Stock Quantity *'), { target: { value: '2' } });
       expect(screen.getByRole('button', { name: /continue/i })).toBeEnabled();
     });
 
@@ -173,30 +173,31 @@ describe('ProductForm', () => {
       mockedCreateProduct.mockResolvedValue({ success: true, message: 'ok', data: makeProduct() });
       renderWithClient(<ProductForm />);
 
-      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'New Denim Jacket' } });
-      fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'JCK-NEW-001' } });
+      fireEvent.change(screen.getByLabelText('Name *'), { target: { value: 'New Denim Jacket' } });
+      fireEvent.change(screen.getByLabelText('SKU (Required) *'), { target: { value: 'JCK-NEW-001' } });
       fireEvent.change(screen.getByLabelText('Barcode'), { target: { value: '8801234567890' } });
       expect(await screen.findByRole('combobox', { name: 'Category' })).toBeInTheDocument();
-      expect(screen.queryByPlaceholderText('Comma separated tags')).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '149.99' } });
+      fireEvent.change(screen.getByLabelText('Regular Price ($) *'), { target: { value: '149.99' } });
       fireEvent.change(screen.getByLabelText('Sale Price ($)'), { target: { value: '129.99' } });
       fireEvent.change(screen.getByLabelText('Cost Price ($)'), { target: { value: '70' } });
-      fireEvent.change(screen.getByLabelText('Stock'), { target: { value: '50' } });
+      fireEvent.change(screen.getByLabelText('Stock Quantity *'), { target: { value: '50' } });
       fireEvent.change(screen.getByLabelText('Low Stock Threshold'), { target: { value: '5' } });
-      fireEvent.change(screen.getByLabelText('Sold'), { target: { value: '12' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      fireEvent.click(screen.getByLabelText('Featured'));
-      fireEvent.click(screen.getByLabelText('Trending'));
+      fireEvent.click(screen.getByLabelText('Featured Product'));
+      fireEvent.click(screen.getByLabelText('Trending Item'));
 
-      fireEvent.change(screen.getByPlaceholderText('e.g. Material'), { target: { value: 'Material' } });
-      fireEvent.change(screen.getByPlaceholderText('e.g. Cotton'), { target: { value: 'Denim' } });
+      fireEvent.change(screen.getByPlaceholderText('e.g. 100% Mulberry Silk'), { target: { value: 'Denim' } });
 
-      fireEvent.change(screen.getByLabelText('Variants (JSON array)'), {
-        target: { value: '[{"sku":"JCK-NEW-BLK","price":149.99,"stock":5}]' },
-      });
+      fireEvent.change(screen.getByPlaceholderText('Specification Name (e.g. Fabric)'), { target: { value: 'Material' } });
+      fireEvent.change(screen.getByPlaceholderText('Specification Value (e.g. 100% Silk)'), { target: { value: 'Denim' } });
+
+      fireEvent.click(screen.getByRole('button', { name: /add variant/i }));
+      fireEvent.change(screen.getByPlaceholderText('e.g. VAR-BLK-L'), { target: { value: 'JCK-NEW-BLK' } });
+      fireEvent.change(screen.getByPlaceholderText('Price'), { target: { value: '149.99' } });
+      fireEvent.change(screen.getByPlaceholderText('Stock'), { target: { value: '5' } });
 
       fireEvent.change(screen.getByLabelText('SEO Title'), { target: { value: 'New Denim Jacket' } });
 
@@ -213,12 +214,13 @@ describe('ProductForm', () => {
             costPrice: 70,
             stock: 50,
             lowStock: 5,
-            sold: 12,
-            status: 'active',
+            sold: 0,
+            status: 'draft',
             isFeatured: true,
             isTrending: true,
+            material: 'Denim',
             specifications: { Material: 'Denim' },
-            variants: [{ sku: 'JCK-NEW-BLK', price: 149.99, stock: 5 }],
+            variants: [expect.objectContaining({ sku: 'JCK-NEW-BLK', price: 149.99, stock: 5 })],
             seo: expect.objectContaining({ title: 'New Denim Jacket' }),
           }),
           expect.anything()
@@ -242,7 +244,7 @@ describe('ProductForm', () => {
             sku: 'JCK-NEW-001',
             regularPrice: 149.99,
             stock: 50,
-            status: 'active',
+            status: 'draft',
             isFeatured: false,
             gallery: [],
             specifications: {},
@@ -272,7 +274,7 @@ describe('ProductForm', () => {
       expect(screen.getByDisplayValue('25')).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-      expect((screen.getByLabelText('Status') as HTMLSelectElement).value).toBe('active');
+      expect((screen.getByLabelText('Product Status (Draft / Published / Archived)') as HTMLSelectElement).value).toBe('published');
     });
 
     it('updates the product on submit', async () => {
@@ -284,7 +286,7 @@ describe('ProductForm', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-      fireEvent.change(screen.getByLabelText('Regular Price ($)'), { target: { value: '64.99' } });
+      fireEvent.change(screen.getByLabelText('Regular Price ($) *'), { target: { value: '64.99' } });
       fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
       fireEvent.click(screen.getByRole('button', { name: /update product/i }));

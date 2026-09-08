@@ -149,14 +149,14 @@ describe('PopupTable', () => {
       expect(screen.getByText('Create New Popup Banner')).toBeInTheDocument();
 
       fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Winter Sale' } });
-      fireEvent.change(screen.getByLabelText('Image URL'), { target: { value: 'https://img.com/w.png' } });
+      fireEvent.change(screen.getByLabelText('Promo / Discount Code'), { target: { value: 'WINTER20' } });
       fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Big discounts' } });
-      fireEvent.change(screen.getByLabelText('Button Text'), { target: { value: 'Shop Sale' } });
+      fireEvent.change(screen.getByLabelText('Image URL'), { target: { value: 'https://img.com/w.png' } });
+      fireEvent.change(screen.getByLabelText('Button Text (CTA)'), { target: { value: 'Shop Sale' } });
       fireEvent.change(screen.getByLabelText('Button Link'), { target: { value: '/products/sale' } });
       fireEvent.change(screen.getByLabelText('Start Date'), { target: { value: '2025-07-01' } });
       fireEvent.change(screen.getByLabelText('End Date'), { target: { value: '2025-07-15' } });
       fireEvent.click(screen.getByRole('switch'));
-      fireEvent.change(screen.getByLabelText('Sort Order'), { target: { value: '2' } });
 
       fireEvent.click(screen.getByRole('button', { name: /create banner/i }));
 
@@ -168,10 +168,11 @@ describe('PopupTable', () => {
             description: 'Big discounts',
             buttonText: 'Shop Sale',
             buttonLink: '/products/sale',
+            discountCode: 'WINTER20',
             startDate: '2025-07-01',
             endDate: '2025-07-15',
             status: 'active',
-            sortOrder: 2,
+            sortOrder: 0,
           }),
           expect.anything()
         );

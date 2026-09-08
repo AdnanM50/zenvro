@@ -66,6 +66,7 @@ describe('ProductModel Unit Tests (Possible & Impossible Edge Cases)', () => {
         seo: {
           title: 'Classic Cotton Tee',
           description: 'SEO desc',
+          focusKeyword: 'cotton tee',
           keywords: ['tee', 'cotton'],
           canonical: 'https://store.com/tee',
           ogImage: 'https://img.com/og.png',

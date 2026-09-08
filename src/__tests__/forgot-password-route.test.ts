@@ -104,7 +104,7 @@ describe('Forgot & Reset Password API Routes', () => {
         _id: 'user1',
         email: 'test@example.com',
       });
-      (verifyOtp as jest.Mock).mockResolvedValue(true);
+      (verifyOtp as jest.Mock).mockResolvedValue({ valid: true, password: 'hashed' });
 
       const res: any = await resetPasswordHandler(
         makeRequest({
