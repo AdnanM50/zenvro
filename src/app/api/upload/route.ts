@@ -1,22 +1,10 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import cloudinary from '@/lib/cloudinary';
 import { api } from '@/lib/api-response';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
 const MAX_SIZE = 5 * 1024 * 1024;
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const payload = await verifyAccessToken(token);
-  if (!payload) return api.unauthorized('Invalid token');
-  const user = await UserModel.findById(payload.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);

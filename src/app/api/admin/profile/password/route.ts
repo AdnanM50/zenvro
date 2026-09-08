@@ -1,23 +1,13 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken, verifyPassword, hashPassword } from '@/lib/auth';
+import { requireUser } from '@/middlewares';
+import { verifyPassword, hashPassword } from '@/lib/auth';
 import { UserModel } from '@/models/user.model';
 import { api } from '@/lib/api-response';
 
 const MIN_PASSWORD_LENGTH = 6;
-
-async function requireUser(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user) return api.notFound('User not found');
-  return { user };
-}
-
 export async function PATCH(request: NextRequest) {
   try {
-    const auth = await requireUser(request);
+    const auth = await requireUser(request, { onUserNotFound: 'notFound' });
     if (auth instanceof Response) return auth;
 
     const body = await request.json();

@@ -1,64 +1,15 @@
-import { Collection, ObjectId, type Document, type PullOperator } from 'mongodb';
-import { getDb } from '@/lib/db';
+import { ObjectId, type Document, type PullOperator } from 'mongodb';
 import type { UserRole, UserStatus, UserAddress, WishlistItem } from '@/types';
+import {
+  User,
+  RefreshToken,
+  usersCol,
+  refreshCol,
+  buildIdQuery,
+  normalizeUser,
+} from './user.schema';
 
-export interface User {
-  _id: string;
-  email: string;
-  password: string;
-  name: string;
-  phone?: string;
-  role: UserRole;
-  status: UserStatus;
-  addresses: UserAddress[];
-  wishlist: WishlistItem[];
-  createdAt: Date;
-}
-
-export interface RefreshToken {
-  id: string;
-  userId: string;
-  token: string;
-  expiresAt: Date;
-  createdAt: Date;
-  isRevoked: boolean;
-}
-
-const USERS_COLLECTION = 'users';
-const REFRESH_COLLECTION = 'refresh_tokens';
-
-async function usersCol(): Promise<Collection> {
-  const db = await getDb();
-  return db.collection(USERS_COLLECTION);
-}
-
-async function refreshCol(): Promise<Collection<RefreshToken>> {
-  const db = await getDb();
-  return db.collection<RefreshToken>(REFRESH_COLLECTION);
-}
-
-function buildIdQuery(id: string): any {
-  if (ObjectId.isValid(id)) {
-    return { $or: [{ _id: new ObjectId(id) }, { _id: id }, { id }] };
-  }
-  return { $or: [{ _id: id }, { id }] };
-}
-
-function normalizeUser(raw: any): User {
-  const _id = raw._id ? raw._id.toString() : raw.id || '';
-  return {
-    _id,
-    email: raw.email,
-    password: raw.password,
-    name: raw.name,
-    phone: raw.phone || undefined,
-    role: raw.role || 'user',
-    status: raw.status || 'active',
-    addresses: Array.isArray(raw.addresses) ? raw.addresses : [],
-    wishlist: Array.isArray(raw.wishlist) ? raw.wishlist : [],
-    createdAt: raw.createdAt,
-  };
-}
+export type { User, RefreshToken };
 
 export const UserModel = {
   async create(data: Omit<User, '_id' | 'createdAt' | 'role' | 'status' | 'addresses' | 'wishlist'>): Promise<User> {
@@ -112,10 +63,10 @@ export const UserModel = {
         wishlist: [],
         createdAt: new Date(),
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await col.insertOne(doc as any);
       return normalizeUser(doc);
     } else {
-      // Ensure existing admin user has a valid hashed password and active status
       await col.updateOne(
         { email },
         { $set: { password: hashedPassword, role: 'admin', status: 'active' } }
@@ -139,10 +90,6 @@ export const UserModel = {
     return rest;
   },
 
-  /**
-   * Updates the given profile fields and returns the refreshed public user.
-   * Returns null when the user does not exist or no valid field was provided.
-   */
   async updateProfile(
     id: string,
     data: { name?: string; email?: string; phone?: string }
@@ -283,8 +230,7 @@ export const UserModel = {
     return result.deletedCount > 0;
   },
 
-  // ── Wishlist operations (embedded in the user document) ──────────────────
-
+  // Wishlist operations
   async getWishlist(userId: string): Promise<WishlistItem[]> {
     const col = await usersCol();
     const raw = await col.findOne(buildIdQuery(userId), { projection: { wishlist: 1 } });

@@ -1,22 +1,10 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import { ReviewModel } from '@/models/review.model';
 import { api } from '@/lib/api-response';
 import type { ReviewStatus, ReviewRating } from '@/types';
 
 const REVIEW_STATUSES: ReviewStatus[] = ['pending', 'approved', 'rejected'];
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 function parseStatus(value: unknown): ReviewStatus | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value === 'string' && (REVIEW_STATUSES as string[]).includes(value)) {

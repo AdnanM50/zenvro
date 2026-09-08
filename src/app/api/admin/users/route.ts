@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
+import { requireAdmin } from '@/middlewares';
 import { UserModel } from '@/models/user.model';
 import { api } from '@/lib/api-response';
 import type { UserRole, UserStatus } from '@/types';
@@ -15,16 +15,6 @@ function parseRole(value: string | null): UserRole | undefined {
 function parseStatusFilter(value: string | null): UserStatus | undefined {
   if (value && (VALID_STATUSES as string[]).includes(value)) return value as UserStatus;
   return undefined;
-}
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
 }
 
 export async function GET(request: NextRequest) {

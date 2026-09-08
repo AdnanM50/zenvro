@@ -41,6 +41,7 @@ function defaultSEO(): ProductSEO {
   return {
     title: '',
     description: '',
+    focusKeyword: '',
     keywords: [],
     canonical: '',
     ogImage: '',
@@ -50,6 +51,11 @@ function defaultSEO(): ProductSEO {
     twitterCard: 'summary_large_image',
     structuredData: '',
     robots: 'index',
+    sitemap: {
+      include: true,
+      priority: 0.8,
+      changefreq: 'weekly',
+    },
   };
 }
 

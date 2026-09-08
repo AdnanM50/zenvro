@@ -1,15 +1,23 @@
 import type { Variant, CreateVariantPayload } from './variant';
 
 /** Lifecycle status of a product listing */
-export type ProductStatus = 'draft' | 'active' | 'archived';
+export type ProductStatus = 'draft' | 'published' | 'active' | 'archived';
 
 /** Audience/gender targeting of a product */
 export type ProductGender = 'men' | 'women' | 'unisex' | 'kids' | '';
+
+/** Sitemap configuration for search engines */
+export interface ProductSitemapSettings {
+  include: boolean;
+  priority: number;
+  changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+}
 
 /** Rich SEO metadata for a product listing */
 export interface ProductSEO {
   title: string;
   description: string;
+  focusKeyword: string;
   keywords: string[];
   canonical: string;
   ogImage: string;
@@ -19,6 +27,7 @@ export interface ProductSEO {
   twitterCard: string;
   structuredData: string;
   robots: string;
+  sitemap?: ProductSitemapSettings;
 }
 
 /** Media assets for a product listing */
@@ -122,6 +131,7 @@ export interface ProductListParams {
 export const defaultProductSEO: ProductSEO = {
   title: '',
   description: '',
+  focusKeyword: '',
   keywords: [],
   canonical: '',
   ogImage: '',
@@ -131,4 +141,9 @@ export const defaultProductSEO: ProductSEO = {
   twitterCard: 'summary_large_image',
   structuredData: '',
   robots: 'index',
+  sitemap: {
+    include: true,
+    priority: 0.8,
+    changefreq: 'weekly',
+  },
 };

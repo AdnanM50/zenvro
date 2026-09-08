@@ -1,20 +1,8 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import { GalleryModel } from '@/models/gallery.model';
 import { deleteImage } from '@/lib/cloudinary';
 import { api } from '@/lib/api-response';
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 function isValidImageUrl(value: string): boolean {
   if (!value || typeof value !== 'string') return false;
   try {

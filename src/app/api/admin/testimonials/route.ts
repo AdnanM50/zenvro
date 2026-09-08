@@ -1,20 +1,8 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import { TestimonialModel } from '@/models/testimonial.model';
 import { api } from '@/lib/api-response';
 import { revalidatePublicTestimonials } from '@/lib/revalidate-page';
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 function parseNumber(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const n = Number(value);

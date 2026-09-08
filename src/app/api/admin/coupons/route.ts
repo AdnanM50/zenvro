@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import { CouponModel } from '@/models/coupon.model';
 import { api } from '@/lib/api-response';
 import type { CouponType, CouponStatus, CouponAppliesTo } from '@/types';
@@ -8,17 +7,6 @@ import type { CouponType, CouponStatus, CouponAppliesTo } from '@/types';
 const COUPON_TYPES: CouponType[] = ['percentage', 'fixed'];
 const COUPON_STATUSES: CouponStatus[] = ['active', 'inactive', 'expired'];
 const COUPON_APPLIES_TO: CouponAppliesTo[] = ['all', 'products', 'categories'];
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 /** Normalizes a coupon code to uppercase without surrounding whitespace. */
 function normalizeCode(code: string): string {
   return code.trim().toUpperCase().replace(/\s+/g, '');

@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import { ProductModel } from '@/models/product.model';
 import { api } from '@/lib/api-response';
 import { defaultProductSEO } from '@/types/product';
@@ -8,17 +7,6 @@ import type { ProductSEO, ProductStatus, ProductGender, CreateVariantPayload } f
 
 const PRODUCT_STATUSES: ProductStatus[] = ['draft', 'active', 'archived'];
 const PRODUCT_GENDERS: ProductGender[] = ['men', 'women', 'unisex', 'kids', ''];
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -103,9 +91,11 @@ function parseSEO(value: unknown): ProductSEO {
   const base = { ...defaultProductSEO };
   if (!value || typeof value !== 'object') return base;
   const src = value as Record<string, unknown>;
+  const sitemapRaw = src.sitemap as Record<string, unknown> | undefined;
   return {
     title: strOr(src.title, base.title),
     description: strOr(src.description, base.description),
+    focusKeyword: strOr(src.focusKeyword, base.focusKeyword),
     keywords: parseStringList(src.keywords),
     canonical: strOr(src.canonical, base.canonical),
     ogImage: strOr(src.ogImage, base.ogImage),
@@ -115,6 +105,11 @@ function parseSEO(value: unknown): ProductSEO {
     twitterCard: strOr(src.twitterCard, base.twitterCard),
     structuredData: strOr(src.structuredData, base.structuredData),
     robots: strOr(src.robots, base.robots),
+    sitemap: {
+      include: sitemapRaw?.include !== undefined ? Boolean(sitemapRaw.include) : (base.sitemap?.include ?? true),
+      priority: typeof sitemapRaw?.priority === 'number' ? sitemapRaw.priority : (base.sitemap?.priority ?? 0.8),
+      changefreq: (typeof sitemapRaw?.changefreq === 'string' ? sitemapRaw.changefreq : (base.sitemap?.changefreq ?? 'weekly')) as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never',
+    },
   };
 }
 

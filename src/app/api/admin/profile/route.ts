@@ -1,19 +1,8 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
+import { requireUser } from '@/middlewares';
 import { UserModel } from '@/models/user.model';
 import { api } from '@/lib/api-response';
 import type { Profile } from '@/types';
-
-async function requireUser(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user) return api.notFound('User not found');
-  return { user };
-}
-
 function toProfile(user: {
   _id: string;
   name: string;
@@ -36,7 +25,7 @@ function toProfile(user: {
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireUser(request);
+    const auth = await requireUser(request, { onUserNotFound: 'notFound' });
     if (auth instanceof Response) return auth;
     return api.ok(toProfile(auth.user), 'Profile fetched');
   } catch (error) {
@@ -47,7 +36,7 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const auth = await requireUser(request);
+    const auth = await requireUser(request, { onUserNotFound: 'notFound' });
     if (auth instanceof Response) return auth;
 
     const body = await request.json();

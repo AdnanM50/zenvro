@@ -1,19 +1,7 @@
 import { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-import { UserModel } from '@/models/user.model';
+import { requireAdmin } from '@/middlewares';
 import { VariantModel } from '@/models/variant.model';
 import { api } from '@/lib/api-response';
-
-async function requireAdmin(request: NextRequest) {
-  const token = request.cookies.get('access_token')?.value;
-  if (!token) return api.unauthorized();
-  const decoded = verifyAccessToken(token);
-  if (!decoded) return api.unauthorized('Invalid or expired token');
-  const user = await UserModel.findById(decoded.userId);
-  if (!user || user.role !== 'admin') return api.forbidden();
-  return { admin: user };
-}
-
 /** Normalises attributes from an object or a "Color: Black, Size: XL" string. */
 function parseAttributes(value: unknown): Record<string, string> {
   if (!value) return {};
