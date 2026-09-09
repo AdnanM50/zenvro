@@ -1,7 +1,10 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/middlewares';
 import { VariantModel } from '@/models/variant.model';
+import { AttributeModel } from '@/models/attribute.model';
+import { ProductModel } from '@/models/product.model';
 import { api } from '@/lib/api-response';
+
 /** Normalises attributes from an object or a "Color: Black, Size: XL" string. */
 function parseAttributes(value: unknown): Record<string, string> {
   if (!value) return {};
@@ -21,7 +24,7 @@ function parseAttributes(value: unknown): Record<string, string> {
     return Object.fromEntries(
       Object.entries(value as Record<string, unknown>)
         .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '')
-        .map(([k, v]) => [k, String(v)])
+        .map(([k, v]) => [k, String(v).trim()])
     ) as Record<string, string>;
   }
   return {};
@@ -41,10 +44,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || undefined;
+    const productId = searchParams.get('productId') || undefined;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-    const { variants, total } = await VariantModel.findPaginated(page, limit, search);
+    const { variants, total } = await VariantModel.findPaginated(page, limit, search, productId);
     const totalPages = Math.ceil(total / limit) || 1;
 
     return api.paginated(variants, { page, limit, total, totalPages }, 'Variants fetched');
@@ -60,7 +64,16 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { sku, attributes, price, salePrice, stock, image, weight } = body;
+    const { productId, sku, attributes, price, salePrice, costPrice, stock, image, weight, status } = body;
+
+    if (typeof productId !== 'string' || !productId.trim()) {
+      return api.badRequest('productId ObjectId reference is required');
+    }
+
+    const product = await ProductModel.findById(productId.trim());
+    if (!product) {
+      return api.notFound('Product not found for the given productId');
+    }
 
     if (typeof sku !== 'string' || !sku.trim()) {
       return api.badRequest('SKU is required');
@@ -76,27 +89,66 @@ export async function POST(request: NextRequest) {
       return api.badRequest('A valid stock quantity is required');
     }
 
-    const existing = await VariantModel.findBySku(sku.trim());
-    if (existing) return api.conflict('A variant with this SKU already exists');
+    const existingSku = await VariantModel.findBySku(sku.trim());
+    if (existingSku) return api.conflict('A variant with this SKU already exists');
+
+    const parsedAttrs = parseAttributes(attributes);
+
+    // Validate that only variant-enabled attributes (useForVariants: true) are used
+    const allAttributes = await AttributeModel.findAll();
+    const variantEnabledAttrs = new Map(
+      allAttributes.filter((a) => a.useForVariants ?? a.isVariant ?? true).map((a) => [a.name.toLowerCase(), a])
+    );
+
+    for (const [attrName, attrValue] of Object.entries(parsedAttrs)) {
+      const definedAttr = variantEnabledAttrs.get(attrName.toLowerCase());
+      if (!definedAttr) {
+        return api.badRequest(
+          `Attribute "${attrName}" is either not defined or not enabled for variants (useForVariants must be true).`
+        );
+      }
+      if (definedAttr.values.length > 0 && !definedAttr.values.includes(attrValue)) {
+        return api.badRequest(
+          `Value "${attrValue}" is invalid for attribute "${attrName}". Allowed values: ${definedAttr.values.join(', ')}`
+        );
+      }
+    }
 
     const salePriceNum = parseNumber(salePrice);
     if (salePriceNum !== undefined && salePriceNum < 0) {
       return api.badRequest('Sale price cannot be negative');
     }
 
+    const costPriceNum = parseNumber(costPrice);
+    if (costPriceNum !== undefined && costPriceNum < 0) {
+      return api.badRequest('Cost price cannot be negative');
+    }
+
     const weightNum = parseNumber(weight);
 
-    const variant = await VariantModel.create({
-      sku: sku.trim(),
-      attributes: parseAttributes(attributes),
-      price: priceNum,
-      salePrice: salePriceNum,
-      stock: stockNum,
-      image: typeof image === 'string' ? image.trim() : '',
-      weight: weightNum,
-    });
+    try {
+      const variant = await VariantModel.create({
+        productId: productId.trim(),
+        sku: sku.trim(),
+        attributes: parsedAttrs,
+        price: priceNum,
+        salePrice: salePriceNum,
+        costPrice: costPriceNum,
+        stock: stockNum,
+        sold: 0,
+        image: typeof image === 'string' ? image.trim() : '',
+        weight: weightNum,
+        status: status === 'inactive' ? 'inactive' : 'active',
+      });
 
-    return api.created(variant, 'Variant created');
+      return api.created(variant, 'Variant created');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('already exists for this product')) {
+        return api.conflict(message);
+      }
+      throw err;
+    }
   } catch (error) {
     console.error('Create variant error:', error);
     return api.serverError();
@@ -109,12 +161,19 @@ export async function PATCH(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { _id, sku, attributes, price, salePrice, stock, image, weight } = body;
+    const { _id, productId, sku, attributes, price, salePrice, costPrice, stock, image, weight, status } = body;
 
     if (!_id) return api.badRequest('_id is required');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
+
+    if (productId !== undefined) {
+      if (typeof productId !== 'string' || !productId.trim()) {
+        return api.badRequest('productId cannot be empty');
+      }
+      updateData.productId = productId.trim();
+    }
 
     if (sku !== undefined) {
       if (typeof sku !== 'string' || !sku.trim()) {
@@ -128,7 +187,27 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (attributes !== undefined) {
-      updateData.attributes = parseAttributes(attributes);
+      const parsedAttrs = parseAttributes(attributes);
+      const allAttributes = await AttributeModel.findAll();
+      const variantEnabledAttrs = new Map(
+        allAttributes.filter((a) => a.useForVariants ?? a.isVariant ?? true).map((a) => [a.name.toLowerCase(), a])
+      );
+
+      for (const [attrName, attrValue] of Object.entries(parsedAttrs)) {
+        const definedAttr = variantEnabledAttrs.get(attrName.toLowerCase());
+        if (!definedAttr) {
+          return api.badRequest(
+            `Attribute "${attrName}" is either not defined or not enabled for variants.`
+          );
+        }
+        if (definedAttr.values.length > 0 && !definedAttr.values.includes(attrValue)) {
+          return api.badRequest(
+            `Value "${attrValue}" is invalid for attribute "${attrName}". Allowed values: ${definedAttr.values.join(', ')}`
+          );
+        }
+      }
+
+      updateData.attributes = parsedAttrs;
     }
 
     if (price !== undefined) {
@@ -145,6 +224,14 @@ export async function PATCH(request: NextRequest) {
         return api.badRequest('Sale price cannot be negative');
       }
       if (salePriceNum !== undefined) updateData.salePrice = salePriceNum;
+    }
+
+    if (costPrice !== undefined) {
+      const costPriceNum = parseNumber(costPrice);
+      if (costPriceNum !== undefined && costPriceNum < 0) {
+        return api.badRequest('Cost price cannot be negative');
+      }
+      if (costPriceNum !== undefined) updateData.costPrice = costPriceNum;
     }
 
     if (stock !== undefined) {
@@ -164,10 +251,22 @@ export async function PATCH(request: NextRequest) {
       if (weightNum !== undefined) updateData.weight = weightNum;
     }
 
-    const updated = await VariantModel.update(_id, updateData);
-    if (!updated) return api.notFound('Variant not found');
+    if (status !== undefined) {
+      updateData.status = status === 'inactive' ? 'inactive' : 'active';
+    }
 
-    return api.ok(null, 'Variant updated');
+    try {
+      const updated = await VariantModel.update(_id, updateData);
+      if (!updated) return api.notFound('Variant not found');
+
+      return api.ok(null, 'Variant updated');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('already exists for this product')) {
+        return api.conflict(message);
+      }
+      throw err;
+    }
   } catch (error) {
     console.error('Update variant error:', error);
     return api.serverError();

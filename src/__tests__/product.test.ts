@@ -74,6 +74,9 @@ describe('ProductModel Unit Tests (Possible & Impossible Edge Cases)', () => {
           ogDescription: 'OG desc',
           ogType: 'product',
           twitterCard: 'summary_large_image',
+          twitterTitle: 'Twitter Tee',
+          twitterDescription: 'Twitter desc',
+          twitterImage: 'https://img.com/tw.png',
           structuredData: '{}',
           robots: 'index',
         },
@@ -108,9 +111,9 @@ describe('ProductModel Unit Tests (Possible & Impossible Edge Cases)', () => {
       expect(product.material).toBe('100% Cotton');
       expect(product.specifications).toEqual({ Fit: 'Regular', Neckline: 'Crew' });
       expect(product.variants).toHaveLength(1);
-      expect(product.variants[0].sku).toBe('TSH-COT-BLK-XL');
-      expect(product.variants[0].price).toBe(59.99);
-      expect(product.variants[0].createdAt).toBeInstanceOf(Date);
+      expect(product.variants![0].sku).toBe('TSH-COT-BLK-XL');
+      expect(product.variants![0].price).toBe(59.99);
+      expect(product.variants![0].createdAt).toBeInstanceOf(Date);
       expect(product.seo.ogTitle).toBe('OG Tee');
       expect(product.seo.robots).toBe('index');
     });
@@ -179,10 +182,10 @@ describe('ProductModel Unit Tests (Possible & Impossible Edge Cases)', () => {
       });
 
       expect(product.variants).toHaveLength(2);
-      expect(product.variants[0]._id).toBeDefined();
-      expect(product.variants[0].createdAt).toBeInstanceOf(Date);
-      expect(product.variants[0].updatedAt).toBeInstanceOf(Date);
-      expect(product.variants[0]._id).not.toBe(product.variants[1]._id);
+      expect(product.variants![0]._id).toBeDefined();
+      expect(product.variants![0].createdAt).toBeInstanceOf(Date);
+      expect(product.variants![0].updatedAt).toBeInstanceOf(Date);
+      expect(product.variants![0]._id).not.toBe(product.variants![1]._id);
     });
 
     it('coerces invalid numeric input instead of crashing (Impossible edge case)', async () => {

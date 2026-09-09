@@ -18,13 +18,18 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+function SelectValue({ className, children, placeholder, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left data-[placeholder]:text-gray-400 dark:data-[placeholder]:text-gray-500", className)}
+      placeholder={placeholder}
       {...props}
-    />
+    >
+      {typeof children === 'function'
+        ? children
+        : (val: any) => (children !== undefined && children !== null && children !== '' ? children : val)}
+    </SelectPrimitive.Value>
   )
 }
 
@@ -41,7 +46,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-2 pr-3 pl-3.5 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap transition-[border-color,box-shadow,background-color] outline-none select-none hover:border-gray-400 dark:hover:border-gray-600 focus-visible:border-gray-900 dark:focus-visible:border-white focus-visible:ring-4 focus-visible:ring-gray-900/10 dark:focus-visible:ring-white/10 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-70 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 data-placeholder:text-gray-400 dark:data-placeholder:text-gray-500 data-[size=default]:h-11 data-[size=sm]:h-9 data-[size=sm]:rounded-md *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 shadow-sm",
+        "flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-2 pr-3 pl-3.5 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap transition-[border-color,box-shadow,background-color] outline-none select-none hover:border-gray-400 dark:hover:border-gray-600 focus-visible:border-gray-900 dark:focus-visible:border-white focus-visible:ring-4 focus-visible:ring-gray-900/10 dark:focus-visible:ring-white/10 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-70 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 data-placeholder:text-gray-400 dark:data-placeholder:text-gray-500 data-[size=default]:h-11 data-[size=sm]:h-9 data-[size=sm]:rounded-md *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 shadow-sm",
         className
       )}
       {...props}

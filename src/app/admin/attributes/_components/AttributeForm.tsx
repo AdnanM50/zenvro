@@ -22,7 +22,9 @@ const AttributeForm = forwardRef<AttributeFormHandle, AttributeFormProps>(functi
   const [name, setName] = useState(attribute?.name ?? '');
   const [values, setValues] = useState<string[]>(attribute?.values ?? []);
   const [valueDraft, setValueDraft] = useState('');
-  const [isVariant, setIsVariant] = useState(attribute?.isVariant ?? true);
+  const [useForVariants, setUseForVariants] = useState(
+    attribute?.useForVariants ?? attribute?.isVariant ?? true
+  );
 
   const addValue = () => {
     const nextValue = valueDraft.trim();
@@ -36,9 +38,10 @@ const AttributeForm = forwardRef<AttributeFormHandle, AttributeFormProps>(functi
     if (!name.trim()) return;
 
     onSubmit({
-      name,
+      name: name.trim(),
       values,
-      isVariant,
+      useForVariants,
+      isVariant: useForVariants,
     });
   };
 
@@ -52,7 +55,7 @@ const AttributeForm = forwardRef<AttributeFormHandle, AttributeFormProps>(functi
         <Label htmlFor="attr-name">Attribute Name</Label>
         <Input
           id="attr-name"
-          placeholder="e.g. Size, Color, Ram"
+          placeholder="e.g. Size, Color, Material, Fit, Pattern, Gender, Season, Occasion"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -63,7 +66,7 @@ const AttributeForm = forwardRef<AttributeFormHandle, AttributeFormProps>(functi
         <Label htmlFor="attr-values">Option Values</Label>
         <Input
           id="attr-values"
-          placeholder="Type an option and press Enter"
+          placeholder="Type an option (e.g. Olive, S, M, XL) and press Enter"
           value={valueDraft}
           onChange={(e) => setValueDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -94,18 +97,25 @@ const AttributeForm = forwardRef<AttributeFormHandle, AttributeFormProps>(functi
             ))}
           </div>
         )}
-        <p className="text-[11px] text-gray-400">Press Enter after each option to add it below.</p>
+        <p className="text-[11px] text-gray-400">Press Enter after each option value to add it.</p>
       </div>
 
-      <div className="flex items-center gap-2 pt-2">
+      <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <div>
+          <Label htmlFor="useForVariants" className="text-xs font-semibold block text-gray-800 dark:text-gray-200">
+            Use for Product Variants
+          </Label>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400">
+            When enabled, this attribute appears in the Variant creation form (e.g. Size, Color).
+          </p>
+        </div>
         <input
           type="checkbox"
-          id="attr-variant"
-          checked={isVariant}
-          onChange={(e) => setIsVariant(e.target.checked)}
-          className="rounded text-black focus:ring-0"
+          id="useForVariants"
+          checked={useForVariants}
+          onChange={(e) => setUseForVariants(e.target.checked)}
+          className="h-4 w-4 rounded text-black focus:ring-0 cursor-pointer"
         />
-        <Label htmlFor="attr-variant">Use for Product Variants</Label>
       </div>
     </form>
   );

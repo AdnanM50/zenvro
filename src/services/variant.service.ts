@@ -1,13 +1,9 @@
-import type { Variant, CreateVariantPayload, UpdateVariantPayload } from '@/types';
+import type { Variant, CreateVariantPayload, UpdateVariantPayload, VariantListParams } from '@/types';
 import { httpGet, httpPost, httpPatch, httpDelete, buildQueryString } from '@/lib/http-client';
 
 const BASE_URL = '/api/admin/variants';
 
-export interface VariantListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-}
+export type { VariantListParams };
 
 export function getVariants(params: VariantListParams = {}) {
   return httpGet<Variant[]>(`${BASE_URL}${buildQueryString(params)}`);

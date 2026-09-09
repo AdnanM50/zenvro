@@ -20,13 +20,16 @@ export interface ProductSEO {
   focusKeyword: string;
   keywords: string[];
   canonical: string;
-  ogImage: string;
+  robots: string;
   ogTitle: string;
   ogDescription: string;
-  ogType: string;
-  twitterCard: string;
-  structuredData: string;
-  robots: string;
+  ogImage: string;
+  ogType?: string;
+  twitterCard?: string;
+  twitterTitle: string;
+  twitterDescription: string;
+  twitterImage: string;
+  structuredData?: string;
   sitemap?: ProductSitemapSettings;
 }
 
@@ -48,8 +51,8 @@ export interface Product {
   description: string;
   category: string;
   brand: string;
-  collection: string;
-  tags: string[];
+  collection?: string;
+  tags?: string[];
   featuredImage: string;
   gallery: string[];
   video: string;
@@ -67,8 +70,9 @@ export interface Product {
   gender: ProductGender;
   material: string;
   careInstruction: string;
+  careInstructions?: string;
   specifications: Record<string, string>;
-  variants: Variant[];
+  variants?: Variant[];
   seo: ProductSEO;
   createdAt: Date;
   updatedAt: Date;
@@ -103,6 +107,7 @@ export interface CreateProductPayload {
   gender?: ProductGender;
   material?: string;
   careInstruction?: string;
+  careInstructions?: string;
   specifications?: Record<string, string>;
   variants?: CreateVariantPayload[];
   seo?: ProductSEO;
@@ -120,6 +125,8 @@ export interface ProductListParams {
   search?: string;
   category?: string;
   brand?: string;
+  collection?: string;
+  tag?: string;
   status?: ProductStatus;
   gender?: ProductGender;
   isFeatured?: boolean;
@@ -134,13 +141,16 @@ export const defaultProductSEO: ProductSEO = {
   focusKeyword: '',
   keywords: [],
   canonical: '',
-  ogImage: '',
+  robots: 'index, follow',
   ogTitle: '',
   ogDescription: '',
+  ogImage: '',
   ogType: 'product',
   twitterCard: 'summary_large_image',
+  twitterTitle: '',
+  twitterDescription: '',
+  twitterImage: '',
   structuredData: '',
-  robots: 'index',
   sitemap: {
     include: true,
     priority: 0.8,

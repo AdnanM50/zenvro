@@ -3,10 +3,11 @@ import { requireAdmin } from '@/middlewares';
 import { ProductModel } from '@/models/product.model';
 import { api } from '@/lib/api-response';
 import { defaultProductSEO } from '@/types/product';
-import type { ProductSEO, ProductStatus, ProductGender, CreateVariantPayload } from '@/types';
+import type { ProductSEO, ProductStatus, ProductGender } from '@/types';
 
-const PRODUCT_STATUSES: ProductStatus[] = ['draft', 'active', 'archived'];
+const PRODUCT_STATUSES: ProductStatus[] = ['draft', 'published', 'active', 'archived'];
 const PRODUCT_GENDERS: ProductGender[] = ['men', 'women', 'unisex', 'kids', ''];
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -15,7 +16,6 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-/** Coerces a value into a finite number, or undefined when empty/invalid. */
 function parseNumber(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const n = Number(value);
@@ -41,7 +41,6 @@ function strOr(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value.trim() : fallback;
 }
 
-/** Normalises an array or a comma-separated string into a clean string array. */
 function parseStringList(value: unknown): string[] {
   if (value === undefined || value === null) return [];
   if (Array.isArray(value)) {
@@ -56,7 +55,6 @@ function parseStringList(value: unknown): string[] {
   return [];
 }
 
-/** Normalises specifications from an object or a "Color: Black, Size: XL" string. */
 function parseSpecifications(value: unknown): Record<string, string> {
   if (!value) return {};
   if (typeof value === 'string') {
@@ -81,30 +79,24 @@ function parseSpecifications(value: unknown): Record<string, string> {
   return {};
 }
 
-/** Normalises an object or a "Color: Black" string into an attribute map. */
-function parseAttributes(value: unknown): Record<string, string> {
-  return parseSpecifications(value);
-}
-
-/** Merges raw seo input over the product defaults. */
 function parseSEO(value: unknown): ProductSEO {
   const base = { ...defaultProductSEO };
   if (!value || typeof value !== 'object') return base;
   const src = value as Record<string, unknown>;
   const sitemapRaw = src.sitemap as Record<string, unknown> | undefined;
   return {
-    title: strOr(src.title, base.title),
-    description: strOr(src.description, base.description),
+    title: strOr(src.title ?? src.seoTitle, base.title),
+    description: strOr(src.description ?? src.metaDescription, base.description),
     focusKeyword: strOr(src.focusKeyword, base.focusKeyword),
-    keywords: parseStringList(src.keywords),
-    canonical: strOr(src.canonical, base.canonical),
-    ogImage: strOr(src.ogImage, base.ogImage),
+    keywords: parseStringList(src.keywords ?? src.seoKeywords),
+    canonical: strOr(src.canonical ?? src.canonicalUrl, base.canonical),
+    robots: strOr(src.robots, base.robots),
     ogTitle: strOr(src.ogTitle, base.ogTitle),
     ogDescription: strOr(src.ogDescription, base.ogDescription),
-    ogType: strOr(src.ogType, base.ogType),
-    twitterCard: strOr(src.twitterCard, base.twitterCard),
-    structuredData: strOr(src.structuredData, base.structuredData),
-    robots: strOr(src.robots, base.robots),
+    ogImage: strOr(src.ogImage, base.ogImage),
+    twitterTitle: strOr(src.twitterTitle, base.twitterTitle),
+    twitterDescription: strOr(src.twitterDescription, base.twitterDescription),
+    twitterImage: strOr(src.twitterImage, base.twitterImage),
     sitemap: {
       include: sitemapRaw?.include !== undefined ? Boolean(sitemapRaw.include) : (base.sitemap?.include ?? true),
       priority: typeof sitemapRaw?.priority === 'number' ? sitemapRaw.priority : (base.sitemap?.priority ?? 0.8),
@@ -129,59 +121,6 @@ function parseGender(value: unknown): ProductGender | undefined {
   return 'INVALID' as unknown as ProductGender;
 }
 
-/**
- * Parses embedded variants from an array or a JSON string.
- * Returns normalized variant inputs or an error message.
- */
-function parseVariants(value: unknown): {
-  variants: CreateVariantPayload[];
-  error?: string;
-} {
-  if (value === undefined || value === null) return { variants: [] };
-  let list: unknown = value;
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) return { variants: [] };
-    try {
-      list = JSON.parse(trimmed);
-    } catch {
-      return { variants: [], error: 'Invalid variants JSON' };
-    }
-  }
-  if (!Array.isArray(list)) return { variants: [], error: 'Variants must be an array' };
-
-  const variants: CreateVariantPayload[] = [];
-  for (const item of list) {
-    if (typeof item !== 'object' || item === null) {
-      return { variants: [], error: 'Each variant must be an object' };
-    }
-    const v = item as Record<string, unknown>;
-    if (typeof v.sku !== 'string' || !v.sku.trim()) {
-      return { variants: [], error: 'Each variant requires a SKU' };
-    }
-    const price = parseNumber(v.price);
-    if (price === undefined || price < 0) {
-      return { variants: [], error: 'Each variant requires a valid price' };
-    }
-    const stock = parseNumber(v.stock);
-    if (stock === undefined || stock < 0) {
-      return { variants: [], error: 'Each variant requires a valid stock quantity' };
-    }
-    const salePrice = parseNumber(v.salePrice);
-    const weight = parseNumber(v.weight);
-    variants.push({
-      sku: v.sku.trim(),
-      attributes: parseAttributes(v.attributes),
-      price,
-      salePrice: salePrice !== undefined && salePrice < 0 ? undefined : salePrice,
-      stock,
-      image: typeof v.image === 'string' ? v.image.trim() : '',
-      weight: weight !== undefined && weight < 0 ? undefined : weight,
-    });
-  }
-  return { variants };
-}
-
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
@@ -191,8 +130,12 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || undefined;
     const category = searchParams.get('category') || undefined;
     const brand = searchParams.get('brand') || undefined;
-    const status = searchParams.get('status') || undefined;
-    const gender = searchParams.get('gender') || undefined;
+    const collection = searchParams.get('collection') || undefined;
+    const tag = searchParams.get('tag') || undefined;
+    const statusParam = searchParams.get('status');
+    const status = statusParam ? parseStatus(statusParam) : undefined;
+    const genderParam = searchParams.get('gender');
+    const gender = genderParam ? parseGender(genderParam) : undefined;
     const idsParam = searchParams.get('ids');
     const ids = idsParam
       ? idsParam
@@ -202,7 +145,7 @@ export async function GET(request: NextRequest) {
       : undefined;
     const isFeatured = parseBooleanParam(searchParams.get('isFeatured'));
     const isNewArrival = parseBooleanParam(searchParams.get('isNewArrival'));
-    const isTrending = parseBooleanParam(searchParams.get('isTrending'));
+    const isTrending = searchParams.get('isTrending') ? parseBooleanParam(searchParams.get('isTrending')) : undefined;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
@@ -210,6 +153,8 @@ export async function GET(request: NextRequest) {
       search,
       category,
       brand,
+      collection,
+      tag,
       status,
       gender,
       ids,
@@ -232,7 +177,7 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { name, slug, sku, regularPrice, stock, salePrice, costPrice, lowStock, sold, status, gender } = body;
+    const { name, slug, sku, category, brand, regularPrice, stock, salePrice, costPrice, lowStock, status, gender } = body;
 
     if (typeof name !== 'string' || !name.trim()) {
       return api.badRequest('Product name is required');
@@ -270,12 +215,8 @@ export async function POST(request: NextRequest) {
     if (lowStockNum !== undefined && lowStockNum < 0) {
       return api.badRequest('Low stock cannot be negative');
     }
-    const soldNum = parseNumber(sold);
-    if (soldNum !== undefined && soldNum < 0) {
-      return api.badRequest('Sold count cannot be negative');
-    }
 
-    const parsedStatus = status === undefined || status === '' ? 'active' : parseStatus(status);
+    const parsedStatus = status === undefined || status === '' ? 'published' : parseStatus(status);
     if (parsedStatus === undefined || parsedStatus === ('INVALID' as unknown as ProductStatus)) {
       return api.badRequest('Invalid status');
     }
@@ -285,8 +226,26 @@ export async function POST(request: NextRequest) {
       return api.badRequest('Invalid gender');
     }
 
-    const { variants, error: variantsError } = parseVariants(body.variants);
-    if (variantsError) return api.badRequest(variantsError);
+    if (body.variants !== undefined) {
+      let vList: unknown = body.variants;
+      if (typeof body.variants === 'string') {
+        try {
+          vList = JSON.parse(body.variants);
+        } catch {
+          return api.badRequest('Invalid variants JSON');
+        }
+      }
+      if (Array.isArray(vList)) {
+        for (const item of vList) {
+          if (typeof item === 'object' && item !== null) {
+            const record = item as Record<string, unknown>;
+            if (typeof record.sku !== 'string' || !record.sku.trim()) {
+              return api.badRequest('Each variant requires a SKU');
+            }
+          }
+        }
+      }
+    }
 
     const featuredImage = strOr(body.media?.featuredImage) || strOr(body.featuredImage);
     const gallery = body.media?.gallery ? parseStringList(body.media.gallery) : parseStringList(body.gallery);
@@ -299,8 +258,8 @@ export async function POST(request: NextRequest) {
       barcode: strOr(body.barcode),
       shortDescription: strOr(body.shortDescription),
       description: strOr(body.description),
-      category: strOr(body.category),
-      brand: strOr(body.brand),
+      category: strOr(category, 'general-cat'),
+      brand: strOr(brand, 'general-brand'),
       collection: strOr(body.collection),
       tags: parseStringList(body.tags),
       featuredImage,
@@ -316,7 +275,7 @@ export async function POST(request: NextRequest) {
       costPrice: costPriceNum ?? 0,
       stock: stockNum,
       lowStock: lowStockNum ?? 0,
-      sold: soldNum ?? 0,
+      sold: 0,
       status: parsedStatus,
       isFeatured: parseBoolean(body.isFeatured) ?? false,
       isNewArrival: parseBoolean(body.isNewArrival) ?? false,
@@ -325,7 +284,6 @@ export async function POST(request: NextRequest) {
       material: strOr(body.material),
       careInstruction: strOr(body.careInstruction),
       specifications: parseSpecifications(body.specifications),
-      variants,
       seo: parseSEO(body.seo),
     });
 
@@ -342,7 +300,7 @@ export async function PATCH(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { _id, name, slug, sku } = body;
+    const { _id, name, slug, sku, category, brand } = body;
 
     if (!_id) return api.badRequest('_id is required');
 
@@ -350,105 +308,93 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {};
 
     if (name !== undefined) {
-      if (typeof name !== 'string' || !name.trim()) {
-        return api.badRequest('Product name cannot be empty');
-      }
+      if (typeof name !== 'string' || !name.trim()) return api.badRequest('Name cannot be empty');
       updateData.name = name.trim();
-      if (slug === undefined) {
-        const candidateSlug = slugify(name);
-        const existingSlug = await ProductModel.findBySlug(candidateSlug);
-        if (existingSlug && existingSlug._id !== _id) {
-          return api.conflict('A product with this slug already exists');
-        }
-        updateData.slug = candidateSlug;
-      }
     }
 
     if (slug !== undefined) {
-      if (typeof slug !== 'string' || !slug.trim()) {
-        return api.badRequest('Slug cannot be empty');
+      const candidate = strOr(slug) || (name ? slugify(name) : '');
+      if (candidate) {
+        const existing = await ProductModel.findBySlug(candidate);
+        if (existing && existing._id !== _id) return api.conflict('A product with this slug already exists');
+        updateData.slug = candidate;
       }
-      const existingSlug = await ProductModel.findBySlug(slug.trim());
-      if (existingSlug && existingSlug._id !== _id) {
-        return api.conflict('A product with this slug already exists');
-      }
-      updateData.slug = slug.trim();
+    } else if (name) {
+      updateData.slug = slugify(name);
     }
 
     if (sku !== undefined) {
-      if (typeof sku !== 'string' || !sku.trim()) {
-        return api.badRequest('SKU cannot be empty');
-      }
-      const existingSku = await ProductModel.findBySku(sku.trim());
-      if (existingSku && existingSku._id !== _id) {
-        return api.conflict('A product with this SKU already exists');
-      }
+      if (typeof sku !== 'string' || !sku.trim()) return api.badRequest('SKU cannot be empty');
+      const existing = await ProductModel.findBySku(sku.trim());
+      if (existing && existing._id !== _id) return api.conflict('A product with this SKU already exists');
       updateData.sku = sku.trim();
     }
 
+    if (category !== undefined) {
+      if (!category || typeof category !== 'string' || !category.trim()) return api.badRequest('Category is required');
+      updateData.category = category.trim();
+    }
+
+    if (brand !== undefined) {
+      if (!brand || typeof brand !== 'string' || !brand.trim()) return api.badRequest('Brand is required');
+      updateData.brand = brand.trim();
+    }
+
+    if (body.collection !== undefined) updateData.collection = strOr(body.collection);
+    if (body.tags !== undefined) updateData.tags = parseStringList(body.tags);
+    if (body.barcode !== undefined) updateData.barcode = strOr(body.barcode);
+    if (body.shortDescription !== undefined) updateData.shortDescription = strOr(body.shortDescription);
+    if (body.description !== undefined) updateData.description = strOr(body.description);
+
+    if (body.regularPrice !== undefined) {
+      const p = parseNumber(body.regularPrice);
+      if (p === undefined || p < 0) return api.badRequest('A valid regular price is required');
+      updateData.regularPrice = p;
+    }
+
+    if (body.salePrice !== undefined) {
+      const p = parseNumber(body.salePrice);
+      if (p !== undefined && p < 0) return api.badRequest('Invalid sale price');
+      updateData.salePrice = p ?? 0;
+    }
+
+    if (body.costPrice !== undefined) {
+      const p = parseNumber(body.costPrice);
+      if (p !== undefined && p < 0) return api.badRequest('Invalid cost price');
+      updateData.costPrice = p ?? 0;
+    }
+
+    if (body.stock !== undefined) {
+      const s = parseNumber(body.stock);
+      if (s === undefined || s < 0) return api.badRequest('Invalid stock quantity');
+      updateData.stock = s;
+    }
+
+    if (body.lowStock !== undefined) {
+      const s = parseNumber(body.lowStock);
+      if (s !== undefined && s < 0) return api.badRequest('Invalid low stock');
+      updateData.lowStock = s ?? 0;
+    }
+
     if (body.status !== undefined) {
-      const parsedStatus = body.status === '' ? undefined : parseStatus(body.status);
-      if (parsedStatus === undefined || parsedStatus === ('INVALID' as unknown as ProductStatus)) {
-        return api.badRequest('Invalid status');
-      }
-      updateData.status = parsedStatus;
+      const s = parseStatus(body.status);
+      if (!s || s === ('INVALID' as unknown as ProductStatus)) return api.badRequest('Invalid status');
+      updateData.status = s;
     }
 
     if (body.gender !== undefined) {
-      const parsedGender = body.gender === '' ? '' : parseGender(body.gender);
-      if (parsedGender === undefined || parsedGender === ('INVALID' as unknown as ProductGender)) {
-        return api.badRequest('Invalid gender');
-      }
-      updateData.gender = parsedGender;
+      const g = parseGender(body.gender);
+      if (g === ('INVALID' as unknown as ProductGender)) return api.badRequest('Invalid gender');
+      updateData.gender = g ?? '';
     }
 
-    const numericFields: [string, string][] = [
-      ['regularPrice', 'A valid regular price is required'],
-      ['salePrice', 'Sale price cannot be negative'],
-      ['costPrice', 'Cost price cannot be negative'],
-      ['stock', 'A valid stock quantity is required'],
-      ['lowStock', 'Low stock cannot be negative'],
-      ['sold', 'Sold count cannot be negative'],
-    ];
-
-    for (const [field, message] of numericFields) {
-      if (body[field] !== undefined) {
-        const num = parseNumber(body[field]);
-        if (num === undefined || num < 0) {
-          return api.badRequest(message);
-        }
-        updateData[field] = num;
-      }
-    }
-
-    if (body.tags !== undefined) updateData.tags = parseStringList(body.tags);
-    if (body.gallery !== undefined) updateData.gallery = parseStringList(body.gallery);
-    if (body.media !== undefined && typeof body.media === 'object') {
-      updateData.media = {
-        featuredImage: strOr(body.media.featuredImage),
-        gallery: parseStringList(body.media.gallery),
-        videoUrl: strOr(body.media.videoUrl),
-      };
-      if (body.media.featuredImage !== undefined) updateData.featuredImage = strOr(body.media.featuredImage);
-      if (body.media.gallery !== undefined) updateData.gallery = parseStringList(body.media.gallery);
-      if (body.media.videoUrl !== undefined) updateData.video = strOr(body.media.videoUrl);
-    }
+    if (body.isFeatured !== undefined) updateData.isFeatured = parseBoolean(body.isFeatured);
+    if (body.isNewArrival !== undefined) updateData.isNewArrival = parseBoolean(body.isNewArrival);
+    if (body.isTrending !== undefined) updateData.isTrending = parseBoolean(body.isTrending);
+    if (body.material !== undefined) updateData.material = strOr(body.material);
+    if (body.careInstruction !== undefined) updateData.careInstruction = strOr(body.careInstruction);
     if (body.specifications !== undefined) updateData.specifications = parseSpecifications(body.specifications);
     if (body.seo !== undefined) updateData.seo = parseSEO(body.seo);
-
-    for (const field of ['barcode', 'shortDescription', 'description', 'category', 'brand', 'collection', 'featuredImage', 'video', 'material', 'careInstruction'] as const) {
-      if (body[field] !== undefined) updateData[field] = strOr(body[field]);
-    }
-
-    for (const field of ['isFeatured', 'isNewArrival', 'isTrending'] as const) {
-      if (body[field] !== undefined) updateData[field] = parseBoolean(body[field]) ?? false;
-    }
-
-    if (body.variants !== undefined) {
-      const { variants, error: variantsError } = parseVariants(body.variants);
-      if (variantsError) return api.badRequest(variantsError);
-      updateData.variants = variants;
-    }
 
     const updated = await ProductModel.update(_id, updateData);
     if (!updated) return api.notFound('Product not found');

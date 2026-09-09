@@ -5,6 +5,7 @@ module.exports = {
   testTimeout: 15000,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^bson$': require.resolve('bson'),
   },
   transform: {
     '^.+\\.(ts|tsx|js|jsx|mjs)$': 'ts-jest',

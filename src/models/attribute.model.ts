@@ -1,40 +1,70 @@
-import { generateObjectId } from '@/lib/id';
-import { getDb } from '@/lib/db';
+import mongoose, { Schema, Model } from 'mongoose';
+import connectToDatabase from '@/lib/mongoose';
 import type { Attribute, CreateAttributePayload } from '@/types';
 
-const COLLECTION = 'attributes';
+const AttributeSchema = new Schema<Attribute>(
+  {
+    _id: { type: String, required: true },
+    name: { type: String, required: true, unique: true, trim: true },
+    values: { type: [String], default: [] },
+    useForVariants: { type: Boolean, default: true },
+    isVariant: { type: Boolean, default: true },
+  },
+  {
+    timestamps: true,
+    _id: false,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function col(): Promise<any> {
-  const db = await getDb();
-  return db.collection(COLLECTION);
+AttributeSchema.pre('save', function (this: any) {
+  if (this.useForVariants !== undefined) {
+    this.isVariant = this.useForVariants;
+  } else if (this.isVariant !== undefined) {
+    this.useForVariants = this.isVariant;
+  }
+});
+
+let AttributeMongooseModel: Model<Attribute>;
+
+try {
+  AttributeMongooseModel = mongoose.model<Attribute>('Attribute');
+} catch {
+  AttributeMongooseModel = mongoose.model<Attribute>('Attribute', AttributeSchema);
+}
+
+export { AttributeMongooseModel };
+
+function generateId(): string {
+  return new mongoose.Types.ObjectId().toHexString();
 }
 
 export const AttributeModel = {
   async create(data: CreateAttributePayload): Promise<Attribute> {
-    const c = await col();
-    const _id = generateObjectId();
-    const now = new Date();
-    const attr: Attribute = {
+    await connectToDatabase();
+    const useForVar = data.useForVariants ?? data.isVariant ?? true;
+    const _id = generateId();
+    const doc = await AttributeMongooseModel.create({
       _id,
-      name: data.name,
+      name: data.name.trim(),
       values: data.values || [],
-      isVariant: data.isVariant ?? true,
-      createdAt: now,
-      updatedAt: now,
-    };
-    await c.insertOne(attr);
-    return attr;
+      useForVariants: useForVar,
+      isVariant: useForVar,
+    });
+    return (doc.toObject ? doc.toObject() : doc) as unknown as Attribute;
   },
 
   async findById(_id: string): Promise<Attribute | null> {
-    const c = await col();
-    return c.findOne({ _id });
+    await connectToDatabase();
+    const doc = await AttributeMongooseModel.findById(_id).exec();
+    return doc ? ((doc.toObject ? doc.toObject() : doc) as unknown as Attribute) : null;
   },
 
   async findAll(): Promise<Attribute[]> {
-    const c = await col();
-    return c.find({}).sort({ createdAt: -1 }).toArray();
+    await connectToDatabase();
+    const docs = await AttributeMongooseModel.find({}).sort({ createdAt: -1 }).exec();
+    return docs.map((doc) => (doc.toObject ? doc.toObject() : doc) as unknown as Attribute);
   },
 
   async findPaginated(
@@ -42,31 +72,39 @@ export const AttributeModel = {
     limit: number,
     search?: string
   ): Promise<{ attributes: Attribute[]; total: number }> {
-    const c = await col();
+    await connectToDatabase();
     const filter: Record<string, unknown> = {};
     if (search) {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ name: regex }, { values: regex }];
     }
     const skip = (page - 1) * limit;
-    const [attributes, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
+    const [docs, total] = await Promise.all([
+      AttributeMongooseModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
+      AttributeMongooseModel.countDocuments(filter).exec(),
     ]);
-    return { attributes, total };
+    return {
+      attributes: docs.map((doc) => (doc.toObject ? doc.toObject() : doc) as unknown as Attribute),
+      total,
+    };
   },
 
   async update(_id: string, data: Partial<CreateAttributePayload>): Promise<boolean> {
-    const c = await col();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateFields: any = { ...data, updatedAt: new Date() };
-    const result = await c.updateOne({ _id }, { $set: updateFields });
-    return result.modifiedCount > 0;
+    await connectToDatabase();
+    const updateFields: Record<string, unknown> = { ...data };
+    if (data.useForVariants !== undefined) {
+      updateFields.isVariant = data.useForVariants;
+    } else if (data.isVariant !== undefined) {
+      updateFields.useForVariants = data.isVariant;
+    }
+
+    const result = await AttributeMongooseModel.updateOne({ _id }, { $set: updateFields }).exec();
+    return result.modifiedCount > 0 || result.matchedCount > 0;
   },
 
   async delete(_id: string): Promise<boolean> {
-    const c = await col();
-    const result = await c.deleteOne({ _id });
+    await connectToDatabase();
+    const result = await AttributeMongooseModel.deleteOne({ _id }).exec();
     return result.deletedCount > 0;
   },
 };

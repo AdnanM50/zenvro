@@ -349,33 +349,20 @@ describe('Products API Route Handlers', () => {
           costPrice: 20,
           stock: 100,
           lowStock: 10,
-          sold: 42,
+          sold: 0,
           status: 'active',
           gender: 'unisex',
           specifications: { Fit: 'Regular', Neckline: 'Crew' },
           isFeatured: false,
-          variants: [
-            {
-              sku: 'TSH-COT-BLK-XL',
-              attributes: { Color: 'Black' },
-              price: 59.99,
-              salePrice: 49.99,
-              stock: 25,
-              image: '',
-              weight: 0.4,
-            },
-          ],
           seo: expect.objectContaining({
             title: 'SEO Tee',
             keywords: ['tee', 'cotton'],
-            ogType: 'product',
-            robots: 'index',
           }),
         })
       );
     });
 
-    it('defaults to the active status when none is provided', async () => {
+    it('defaults to published status when none is provided', async () => {
       (ProductModel.findBySku as jest.Mock).mockResolvedValue(null);
       (ProductModel.findBySlug as jest.Mock).mockResolvedValue(null);
 
@@ -387,7 +374,7 @@ describe('Products API Route Handlers', () => {
       );
 
       expect(ProductModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'active', gender: '', isFeatured: false })
+        expect.objectContaining({ status: 'published', gender: '', isFeatured: false })
       );
     });
 
@@ -522,17 +509,6 @@ describe('Products API Route Handlers', () => {
           tags: ['new-tag'],
           specifications: { Fit: 'Slim' },
           isFeatured: true,
-          variants: [
-            {
-              sku: 'TSH-UPD-XL',
-              attributes: {},
-              price: 69.99,
-              salePrice: undefined,
-              stock: 3,
-              image: '',
-              weight: undefined,
-            },
-          ],
         })
       );
     });

@@ -25,11 +25,13 @@ const mockedGetAttributes = getAttributes as jest.Mock;
 function makeVariant(overrides: Partial<Variant> = {}): Variant {
   return {
     _id: 'v-1',
+    productId: 'prod-1',
     sku: 'TSH-BLK-XL',
     attributes: { Color: 'Black', Size: 'XL' },
     price: 49.99,
     salePrice: 39.99,
     stock: 25,
+    status: 'active',
     image: '',
     weight: 0.4,
     createdAt: new Date('2025-01-15'),

@@ -1,20 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ArrowRight,
   ChevronLeft,
+  ChevronDown,
   Image as ImageIcon,
   Info,
   Loader2,
   Plus,
   Tag as TagIcon,
   Trash2,
-  Upload,
   X,
   Sparkles,
   Globe,
   Share2,
+  Check,
+  Layers,
+  Upload,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,6 +25,7 @@ import { useRouter } from 'next/navigation';
 import type {
   Product,
   CreateProductPayload,
+  UpdateProductPayload,
   ProductStatus,
   ProductGender,
   ProductSEO,
@@ -29,10 +33,9 @@ import type {
   Brand,
   CollectionItem,
   Tag,
-  CreateVariantPayload,
 } from '@/types';
 import { defaultProductSEO } from '@/types';
-import { useApiGet, useApiPost, useApiPut, createQueryKeys } from '@/hooks';
+import { useApiGet, useApiPost, useApiPut } from '@/hooks';
 import { getProduct, createProduct, updateProduct } from '@/services/product.service';
 import { getCategories } from '@/services/category.service';
 import { getBrands } from '@/services/brand.service';
@@ -41,6 +44,7 @@ import { getTags } from '@/services/tag.service';
 import Stepper, { StepperStep } from '@/components/ui/Stepper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -49,13 +53,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
-
-const productQueryKeys = createQueryKeys('admin-products');
+import SeoPreview from './SeoPreview';
 
 const steps: StepperStep[] = [
-  { id: 'basics', label: 'Basics & Organization' },
-  { id: 'media', label: 'Media & Pricing' },
-  { id: 'attributes', label: 'Variants, Attributes & SEO' },
+  { id: 'basics', label: 'Step 1 — Basics & Organization' },
+  { id: 'media', label: 'Step 2 — Media & Pricing' },
+  { id: 'attributes', label: 'Step 3 — Attributes & SEO' },
 ];
 
 interface SpecificationRow {
@@ -63,51 +66,10 @@ interface SpecificationRow {
   value: string;
 }
 
-interface AttributeRow {
-  key: string;
-  value: string;
-}
-
-interface VisualVariantItem {
-  id: string;
-  sku: string;
-  price: string;
-  salePrice: string;
-  stock: string;
-  image: string;
-  weight: string;
-  attributes: AttributeRow[];
-}
-
 const emptySpecificationRow = (): SpecificationRow => ({ key: '', value: '' });
 
-const createEmptyVariant = (index: number): VisualVariantItem => ({
-  id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-  sku: `VAR-SKU-${index + 1}`,
-  price: '',
-  salePrice: '',
-  stock: '0',
-  image: '',
-  weight: '',
-  attributes: [{ key: 'Color', value: '' }, { key: 'Size', value: '' }],
-});
-
-const splitCsv = (value: string): string[] =>
-  value
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-const toFiniteOrUndefined = (raw: string): number | undefined => {
-  if (raw === '') return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : undefined;
-};
-
-const inputClass =
-  'w-full px-3.5 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 text-gray-900 dark:text-gray-100 shadow-sm';
 const sectionTitleClass =
-  'text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500';
+  'text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 flex items-center gap-2';
 
 interface ProductFormProps {
   productId?: string;
@@ -123,16 +85,132 @@ function InfoLabel({
   info: string;
 }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <Label htmlFor={htmlFor}>{children}</Label>
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <Label htmlFor={htmlFor} className="text-xs font-medium text-gray-700 dark:text-gray-300">
+        {children}
+      </Label>
       <span
         tabIndex={0}
         title={info}
         aria-label={info}
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 outline-none transition-colors hover:text-gray-700 focus-visible:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200 dark:focus-visible:text-gray-200"
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 outline-none transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200"
       >
         <Info className="h-3.5 w-3.5" />
       </span>
+    </div>
+  );
+}
+
+interface TagMultiSelectProps {
+  tags: Tag[];
+  selectedTagIds: string[];
+  onChange: (selectedIds: string[]) => void;
+}
+
+function TagMultiSelect({ tags, selectedTagIds, onChange }: TagMultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredTags = useMemo(() => {
+    if (!searchTerm.trim()) return tags;
+    const term = searchTerm.toLowerCase();
+    return tags.filter((t) => t.name.toLowerCase().includes(term));
+  }, [tags, searchTerm]);
+
+  const toggleTag = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (selectedTagIds.includes(id)) {
+      onChange(selectedTagIds.filter((tId) => tId !== id));
+    } else {
+      onChange([...selectedTagIds, id]);
+    }
+  };
+
+  const selectedTagObjects = useMemo(() => {
+    return selectedTagIds
+      .map((id) => tags.find((t) => t._id === id) || { _id: id, name: id })
+      .filter(Boolean);
+  }, [selectedTagIds, tags]);
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <div
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-2 px-3 text-sm text-gray-900 dark:text-gray-100 cursor-pointer transition-colors outline-none select-none hover:border-gray-400 dark:hover:border-gray-600 focus-within:ring-4 focus-within:ring-gray-900/10 dark:focus-within:ring-white/10 shadow-xs"
+      >
+        <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
+          {selectedTagObjects.length === 0 ? (
+            <span className="text-gray-400 dark:text-gray-500 text-sm">Select Tags & Badges (Multiple)...</span>
+          ) : (
+            selectedTagObjects.map((tag) => (
+              <span
+                key={tag._id}
+                className="inline-flex items-center gap-1 bg-black dark:bg-white text-white dark:text-black px-2.5 py-0.5 rounded-full text-xs font-medium shadow-xs"
+              >
+                {tag.name}
+                <button
+                  type="button"
+                  onClick={(e) => toggleTag(tag._id, e)}
+                  className="p-0.5 rounded-full hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+        <ChevronDown className={`pointer-events-none size-4 text-gray-500 dark:text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </div>
+
+      {open && (
+        <div className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-hidden rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-1.5 text-gray-900 dark:text-gray-100 shadow-2xl ring-1 ring-black/10 dark:ring-white/10 animate-in fade-in-0 zoom-in-95">
+          <div className="p-1 mb-1 border-b border-gray-100 dark:border-gray-800">
+            <Input
+              type="text"
+              placeholder="Search tags..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="h-8 text-xs w-full"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          <div className="max-h-44 overflow-y-auto space-y-0.5 scrollbar-thin">
+            {filteredTags.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-gray-400 text-center">No tags found</div>
+            ) : (
+              filteredTags.map((tag) => {
+                const selected = selectedTagIds.includes(tag._id);
+                return (
+                  <div
+                    key={tag._id}
+                    onClick={(e) => toggleTag(tag._id, e)}
+                    className={`flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium cursor-pointer transition-colors ${
+                      selected
+                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800/60 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    <span>{tag.name}</span>
+                    {selected && <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -141,7 +219,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const editing = Boolean(productId);
 
   const { data: productResponse, isLoading, isError } = useApiGet<Product>({
-    queryKey: productQueryKeys.detail(productId ?? 'none'),
+    queryKey: ['admin-products', 'detail', productId ?? 'none'],
     queryFn: () => getProduct(productId as string),
     options: { enabled: Boolean(productId) },
   });
@@ -151,8 +229,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
   if (editing && (isLoading || (!product && !isError))) {
     return (
       <div className="flex items-center justify-center py-24 text-gray-400">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-2 text-sm">Loading product...</span>
+        <Loader2 className="h-6 w-6 animate-spin text-black dark:text-white" />
+        <span className="ml-2 text-sm font-medium">Loading product...</span>
       </div>
     );
   }
@@ -161,11 +239,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
     return (
       <div className="text-center py-24">
         <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-          Failed to load this product.
+          Failed to load product.
         </p>
         <Link
           href="/admin/products"
-          className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mt-3"
+          className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mt-3"
         >
           <ChevronLeft className="h-3.5 w-3.5" /> Back to Products
         </Link>
@@ -181,1446 +259,1208 @@ export default function ProductForm({ productId }: ProductFormProps) {
   );
 }
 
-interface ProductFormInnerProps {
-  initialProduct?: Product;
-}
-
-function ProductFormInner({ initialProduct }: ProductFormInnerProps) {
-  const editing = Boolean(initialProduct);
+function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
+  const editing = Boolean(initialProduct);
 
-  const [name, setName] = useState(initialProduct?.name ?? '');
-  const [slug, setSlug] = useState(initialProduct?.slug ?? '');
-  const [sku, setSku] = useState(initialProduct?.sku ?? '');
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Fetch dropdown data
+  const { data: categoriesData } = useApiGet<Category[]>({
+    queryKey: ['categories'],
+    queryFn: () => getCategories(),
+  });
+  const { data: brandsData } = useApiGet<Brand[]>({
+    queryKey: ['brands'],
+    queryFn: () => getBrands(),
+  });
+  const { data: collectionsData } = useApiGet<CollectionItem[]>({
+    queryKey: ['collections'],
+    queryFn: () => getCollections(),
+  });
+  const { data: tagsData } = useApiGet<Tag[]>({
+    queryKey: ['tags'],
+    queryFn: () => getTags(),
+  });
+
+  const categories = categoriesData?.data || [];
+  const brands = brandsData?.data || [];
+  const collections = collectionsData?.data || [];
+  const tagsList = tagsData?.data || [];
+
+  // Dynamic Specification state
+  const initialSpecs: SpecificationRow[] = useMemo(() => {
+    if (initialProduct?.specifications) {
+      const entries = Object.entries(initialProduct.specifications);
+      if (entries.length > 0) {
+        return entries.map(([key, value]) => ({ key, value }));
+      }
+    }
+    return [emptySpecificationRow()];
+  }, [initialProduct]);
+
+  const [specifications, setSpecifications] = useState<SpecificationRow[]>(initialSpecs);
+
+  // Step 1: Basics & Organization
+  const [name, setName] = useState(initialProduct?.name || '');
+  const [sku, setSku] = useState(initialProduct?.sku || '');
+  const [slug, setSlug] = useState(initialProduct?.slug || '');
   const [barcode, setBarcode] = useState(initialProduct?.barcode || '');
   const [shortDescription, setShortDescription] = useState(initialProduct?.shortDescription || '');
   const [description, setDescription] = useState(initialProduct?.description || '');
-  const [category, setCategory] = useState(initialProduct?.category || '');
-  const [brand, setBrand] = useState(initialProduct?.brand || '');
-  const [collection, setCollection] = useState(initialProduct?.collection || '');
-  const [tags, setTags] = useState<string[]>(initialProduct?.tags || []);
-  const [featuredImage, setFeaturedImage] = useState(
-    initialProduct?.media?.featuredImage || initialProduct?.featuredImage || ''
-  );
-  const [gallery, setGallery] = useState(
-    (initialProduct?.media?.gallery || initialProduct?.gallery || []).join(', ')
-  );
-  const [video, setVideo] = useState(
-    initialProduct?.media?.videoUrl || initialProduct?.video || ''
-  );
-  const [uploadingFeatured, setUploadingFeatured] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
 
-  const [regularPrice, setRegularPrice] = useState(
-    initialProduct?.regularPrice !== undefined ? String(initialProduct.regularPrice) : ''
-  );
-  const [salePrice, setSalePrice] = useState(
-    initialProduct?.salePrice !== undefined && initialProduct.salePrice !== null
-      ? String(initialProduct.salePrice)
-      : ''
-  );
-  const [costPrice, setCostPrice] = useState(
-    initialProduct?.costPrice !== undefined && initialProduct.costPrice !== null
-      ? String(initialProduct.costPrice)
-      : ''
-  );
-  const [stock, setStock] = useState(
-    initialProduct?.stock !== undefined ? String(initialProduct.stock) : ''
-  );
-  const [lowStock, setLowStock] = useState(
-    initialProduct?.lowStock !== undefined ? String(initialProduct.lowStock) : ''
-  );
-  
-  // Sold count is read-only & automatic
-  const soldCount = initialProduct?.sold !== undefined ? initialProduct.sold : 0;
+  const initialCatId = typeof initialProduct?.category === 'object' && initialProduct?.category ? (initialProduct.category as Category)._id : (initialProduct?.category || '');
+  const initialBrandId = typeof initialProduct?.brand === 'object' && initialProduct?.brand ? (initialProduct.brand as Brand)._id : (initialProduct?.brand || '');
+  const initialColId = typeof initialProduct?.collection === 'object' && initialProduct?.collection ? (initialProduct.collection as CollectionItem)._id : (initialProduct?.collection || '');
+  const initialTagIds = Array.isArray(initialProduct?.tags)
+    ? initialProduct.tags.map((t) => (typeof t === 'object' && t ? (t as Tag)._id : t))
+    : [];
 
-  const [status, setStatus] = useState<ProductStatus>(initialProduct?.status || 'draft');
-  const [gender, setGender] = useState<ProductGender>(initialProduct?.gender || '');
+  const [category, setCategory] = useState(initialCatId);
+  const [brand, setBrand] = useState(initialBrandId);
+  const [collection, setCollection] = useState(initialColId);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialTagIds);
+
+  const selectedCategoryName = useMemo(() => {
+    if (!category) return '';
+    const match = categories.find((c) => c._id === category);
+    if (match) return match.name;
+    if (typeof initialProduct?.category === 'object' && initialProduct?.category && (initialProduct.category as Category)._id === category) {
+      return (initialProduct.category as Category).name;
+    }
+    return category;
+  }, [category, categories, initialProduct]);
+
+  const selectedBrandName = useMemo(() => {
+    if (!brand) return '';
+    const match = brands.find((b) => b._id === brand);
+    if (match) return match.name;
+    if (typeof initialProduct?.brand === 'object' && initialProduct?.brand && (initialProduct.brand as Brand)._id === brand) {
+      return (initialProduct.brand as Brand).name;
+    }
+    return brand;
+  }, [brand, brands, initialProduct]);
+
+  const selectedCollectionName = useMemo(() => {
+    if (!collection) return '';
+    const match = collections.find((c) => c._id === collection);
+    if (match) return match.name;
+    if (typeof initialProduct?.collection === 'object' && initialProduct?.collection && (initialProduct.collection as CollectionItem)._id === collection) {
+      return (initialProduct.collection as CollectionItem).name;
+    }
+    return collection;
+  }, [collection, collections, initialProduct]);
+
+  // Step 2: Media & Pricing
+  const [featuredImage, setFeaturedImage] = useState(initialProduct?.media?.featuredImage || initialProduct?.featuredImage || '');
+  const [gallery, setGallery] = useState<string[]>(initialProduct?.media?.gallery || initialProduct?.gallery || []);
+  const [videoUrl, setVideoUrl] = useState(initialProduct?.media?.videoUrl || '');
+
+  const [regularPrice, setRegularPrice] = useState(initialProduct?.regularPrice ? String(initialProduct.regularPrice) : '');
+  const [salePrice, setSalePrice] = useState(initialProduct?.salePrice ? String(initialProduct.salePrice) : '');
+  const [costPrice, setCostPrice] = useState(initialProduct?.costPrice ? String(initialProduct.costPrice) : '');
+  const [stock, setStock] = useState(initialProduct?.stock ? String(initialProduct.stock) : '0');
+  const [lowStock, setLowStock] = useState(initialProduct?.lowStock ? String(initialProduct.lowStock) : '5');
+  const sold = initialProduct?.sold ?? 0;
+
+  // Step 3: Attributes & SEO
+  const [status, setStatus] = useState<ProductStatus>(initialProduct?.status || 'published');
+  const [gender, setGender] = useState<ProductGender>(initialProduct?.gender || 'unisex');
   const [material, setMaterial] = useState(initialProduct?.material || '');
-  const [careInstruction, setCareInstruction] = useState(initialProduct?.careInstruction || '');
+  const [careInstruction, setCareInstruction] = useState(initialProduct?.careInstructions || initialProduct?.careInstruction || '');
 
-  const [isFeatured, setIsFeatured] = useState(initialProduct?.isFeatured || false);
-  const [isNewArrival, setIsNewArrival] = useState(initialProduct?.isNewArrival || false);
-  const [isTrending, setIsTrending] = useState(initialProduct?.isTrending || false);
-  
-  const [specificationRows, setSpecificationRows] = useState<SpecificationRow[]>(() => {
-    const rows = Object.entries(initialProduct?.specifications || {}).map(([key, value]) => ({ key, value }));
-    return rows.length > 0 ? rows : [emptySpecificationRow()];
-  });
+  const [isFeatured, setIsFeatured] = useState(Boolean(initialProduct?.isFeatured));
+  const [isNewArrival, setIsNewArrival] = useState(Boolean(initialProduct?.isNewArrival));
+  const [isTrending, setIsTrending] = useState(Boolean(initialProduct?.isTrending));
 
-  // Visual Variant Builder state
-  const [variantItems, setVariantItems] = useState<VisualVariantItem[]>(() => {
-    if (initialProduct?.variants && initialProduct.variants.length > 0) {
-      return initialProduct.variants.map((v, i) => ({
-        id: v._id || `variant-${i}`,
-        sku: v.sku || '',
-        price: v.price !== undefined ? String(v.price) : '',
-        salePrice: v.salePrice !== undefined && v.salePrice !== null ? String(v.salePrice) : '',
-        stock: v.stock !== undefined ? String(v.stock) : '0',
-        image: v.image || '',
-        weight: v.weight !== undefined && v.weight !== null ? String(v.weight) : '',
-        attributes: Object.entries(v.attributes || {}).map(([key, value]) => ({ key, value })),
-      }));
-    }
-    return [];
-  });
+  // SEO Fields
+  const initialSEO = initialProduct?.seo || defaultProductSEO;
+  const [seoTitle, setSeoTitle] = useState(initialSEO.title || '');
+  const [seoDescription, setSeoDescription] = useState(initialSEO.description || '');
+  const [focusKeyword, setFocusKeyword] = useState(initialSEO.focusKeyword || '');
+  const [keywordsInput, setKeywordsInput] = useState(Array.isArray(initialSEO.keywords) ? initialSEO.keywords.join(', ') : '');
+  const [canonicalUrl, setCanonicalUrl] = useState(initialSEO.canonical || '');
+  const [robots, setRobots] = useState(initialSEO.robots || 'index, follow');
+  const [ogTitle, setOgTitle] = useState(initialSEO.ogTitle || '');
+  const [ogDescription, setOgDescription] = useState(initialSEO.ogDescription || '');
+  const [ogImage, setOgImage] = useState(initialSEO.ogImage || '');
+  const [twitterTitle, setTwitterTitle] = useState(initialSEO.twitterTitle || '');
+  const [twitterDescription, setTwitterDescription] = useState(initialSEO.twitterDescription || '');
+  const [twitterImage, setTwitterImage] = useState(initialSEO.twitterImage || '');
+  const [includeInSitemap, setIncludeInSitemap] = useState(initialSEO.sitemap?.include ?? true);
+  const [sitemapPriority, setSitemapPriority] = useState(String(initialSEO.sitemap?.priority ?? 0.8));
+  const [changeFrequency, setChangeFrequency] = useState(initialSEO.sitemap?.changefreq ?? 'weekly');
 
-  // SEO state with focusKeyword, ogTitle, ogDescription, and sitemap settings
-  const [seo, setSeo] = useState<ProductSEO>({
-    ...defaultProductSEO,
-    ...(initialProduct?.seo || {}),
-    focusKeyword: initialProduct?.seo?.focusKeyword || '',
-    ogTitle: initialProduct?.seo?.ogTitle || '',
-    ogDescription: initialProduct?.seo?.ogDescription || '',
-    sitemap: {
-      include: initialProduct?.seo?.sitemap?.include ?? true,
-      priority: initialProduct?.seo?.sitemap?.priority ?? 0.8,
-      changefreq: initialProduct?.seo?.sitemap?.changefreq ?? 'weekly',
-    },
-  });
-
-  const [keywordDraft, setKeywordDraft] = useState('');
-
-  const { data: categoriesResponse } = useApiGet<Category[]>({
-    queryKey: ['admin-categories-select'],
-    queryFn: () => getCategories({ limit: 100 }),
-  });
-  const { data: brandsResponse } = useApiGet<Brand[]>({
-    queryKey: ['admin-brands-select'],
-    queryFn: () => getBrands({ limit: 100 }),
-  });
-  const { data: collectionsResponse } = useApiGet<CollectionItem[]>({
-    queryKey: ['admin-collections-select'],
-    queryFn: () => getCollections({ limit: 100 }),
-  });
-  const { data: tagsResponse } = useApiGet<Tag[]>({
-    queryKey: ['admin-tags-select'],
-    queryFn: () => getTags({ limit: 100 }),
-  });
-
-  const categoriesList = categoriesResponse?.data || [];
-  const brandsList = brandsResponse?.data || [];
-  const collectionsList = collectionsResponse?.data || [];
-  const tagsList = tagsResponse?.data || [];
-  const availableTags = tagsList.filter((tag) => !tags.includes(tag.name));
-  const galleryUrls = splitCsv(gallery);
-  const selectedImageUrls = [featuredImage, ...galleryUrls].filter(Boolean);
-
-  const updateGalleryImage = (index: number, url: string) => {
-    const nextGallery = [...galleryUrls];
-    nextGallery[index] = url;
-    setGallery(nextGallery.filter(Boolean).join(', '));
-  };
-
-  const removeGalleryImage = (index: number) => {
-    setGallery(galleryUrls.filter((_, i) => i !== index).join(', '));
-  };
-
-  const addGalleryImages = (urls: string[]) => {
-    const merged = [...galleryUrls];
-    urls.forEach((url) => {
-      if (url && url !== featuredImage && !merged.includes(url)) merged.push(url);
-    });
-    setGallery(merged.join(', '));
-  };
-
-  const handleFeaturedUpload = async (file: File) => {
-    setUploadingFeatured(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'velour/products');
-
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-
-      if (data.success && data.data?.url) {
-        setFeaturedImage(data.data.url);
-      } else {
-        alert(data.error || 'Upload failed');
-      }
-    } catch {
-      alert('Upload failed');
-    } finally {
-      setUploadingFeatured(false);
-    }
-  };
-
-  const handleGalleryFilesUpload = async (files: File[]) => {
-    setUploadingGallery(true);
-    try {
-      for (const file of files) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', 'velour/products');
-
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-
-        if (data.success && data.data?.url) {
-          addGalleryImages([data.data.url]);
-        }
-      }
-    } catch {
-      alert('Upload failed');
-    } finally {
-      setUploadingGallery(false);
-    }
-  };
-
-  const addSeoKeyword = (value: string) => {
-    const nextKeyword = value.trim();
-    if (!nextKeyword || seo.keywords.includes(nextKeyword)) return;
-    setSeo({ ...seo, keywords: [...seo.keywords, nextKeyword] });
-    setKeywordDraft('');
-  };
-
-  const removeSeoKeyword = (keyword: string) => {
-    setSeo({ ...seo, keywords: seo.keywords.filter((item) => item !== keyword) });
-  };
-
-  // Variant Helpers
-  const addVariant = () => {
-    setVariantItems((items) => [...items, createEmptyVariant(items.length)]);
-  };
-
-  const removeVariant = (id: string) => {
-    setVariantItems((items) => items.filter((item) => item.id !== id));
-  };
-
-  const updateVariantField = (id: string, field: keyof VisualVariantItem, value: any) => {
-    setVariantItems((items) =>
-      items.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const addVariantAttribute = (variantId: string) => {
-    setVariantItems((items) =>
-      items.map((item) =>
-        item.id === variantId
-          ? { ...item, attributes: [...item.attributes, { key: '', value: '' }] }
-          : item
-      )
-    );
-  };
-
-  const updateVariantAttribute = (
-    variantId: string,
-    attrIdx: number,
-    field: 'key' | 'value',
-    value: string
-  ) => {
-    setVariantItems((items) =>
-      items.map((item) => {
-        if (item.id !== variantId) return item;
-        const nextAttrs = item.attributes.map((attr, i) =>
-          i === attrIdx ? { ...attr, [field]: value } : attr
-        );
-        return { ...item, attributes: nextAttrs };
-      })
-    );
-  };
-
-  const removeVariantAttribute = (variantId: string, attrIdx: number) => {
-    setVariantItems((items) =>
-      items.map((item) => {
-        if (item.id !== variantId) return item;
-        return { ...item, attributes: item.attributes.filter((_, i) => i !== attrIdx) };
-      })
-    );
-  };
-
-  const buildVariantPayloads = (): CreateVariantPayload[] => {
-    return variantItems
-      .filter((v) => v.sku.trim())
-      .map((v) => {
-        const attrMap: Record<string, string> = {};
-        v.attributes.forEach((attr) => {
-          if (attr.key.trim() && attr.value.trim()) {
-            attrMap[attr.key.trim()] = attr.value.trim();
-          }
-        });
-
-        return {
-          sku: v.sku.trim(),
-          price: toFiniteOrUndefined(v.price) ?? 0,
-          salePrice: toFiniteOrUndefined(v.salePrice),
-          stock: toFiniteOrUndefined(v.stock) ?? 0,
-          image: v.image.trim(),
-          weight: toFiniteOrUndefined(v.weight),
-          attributes: attrMap,
-        };
-      });
-  };
+  const [errorMsg, setErrorMsg] = useState('');
 
   const createMutation = useApiPost<Product, CreateProductPayload>({
     mutationFn: createProduct,
-    invalidateKeys: [productQueryKeys.all, productQueryKeys.lists()],
-    successMessage: 'Product created successfully',
-    options: {
-      onSuccess: () => {
-        router.push('/admin/products');
-        router.refresh();
-      },
-    },
+    invalidateKeys: [['admin-products']],
   });
 
-  const updateMutation = useApiPut<Product, { _id: string } & CreateProductPayload>({
+  const updateMutation = useApiPut<Product, UpdateProductPayload>({
     mutationFn: updateProduct,
-    invalidateKeys: [productQueryKeys.all, productQueryKeys.lists()],
-    successMessage: 'Product updated successfully',
-    options: {
-      onSuccess: () => {
-        router.push('/admin/products');
-        router.refresh();
-      },
-    },
+    invalidateKeys: [['admin-products']],
   });
 
-  const nameValue = name.trim();
-  const skuValue = sku.trim();
-  const regularPriceValue = toFiniteOrUndefined(regularPrice);
-  const stockValue = toFiniteOrUndefined(stock);
-  const basicsValid = Boolean(nameValue && skuValue);
-  const pricingValid =
-    regularPriceValue !== undefined &&
-    regularPriceValue >= 0 &&
-    stockValue !== undefined &&
-    stockValue >= 0;
-  
-  // Validate variant SKUs
-  const variantsValid = variantItems.every(
-    (v) => v.sku.trim() !== '' && toFiniteOrUndefined(v.price) !== undefined
-  );
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-  const isStepValid = (step: number) =>
-    step === 0 ? basicsValid : step === 1 ? pricingValid : variantsValid;
-
-  const formValid = basicsValid && pricingValid && variantsValid;
-
-  const goNext = () => setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-  const goBack = () => setCurrentStep((s) => Math.max(s - 1, 0));
-
-  const addSpecificationRow = () => setSpecificationRows((rows) => [...rows, emptySpecificationRow()]);
-
-  const updateSpecificationRow = (idx: number, field: 'key' | 'value', value: string) =>
-    setSpecificationRows((rows) => rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
-
-  const removeSpecificationRow = (idx: number) =>
-    setSpecificationRows((rows) => (rows.length === 1 ? rows : rows.filter((_, i) => i !== idx)));
-
-  const buildSpecifications = (): Record<string, string> => {
-    const specs: Record<string, string> = {};
-    specificationRows.forEach((row) => {
-      const key = row.key.trim();
-      const value = row.value.trim();
-      if (key && value) specs[key] = value;
-    });
-    return specs;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formValid) return;
-
-    const salePriceValue = toFiniteOrUndefined(salePrice);
-    const costPriceValue = toFiniteOrUndefined(costPrice);
-    const lowStockValue = toFiniteOrUndefined(lowStock);
-    if (salePriceValue !== undefined && salePriceValue < 0) return;
-    if (costPriceValue !== undefined && costPriceValue < 0) return;
-    if (lowStockValue !== undefined && lowStockValue < 0) return;
-
-    const galleryList = splitCsv(gallery);
-    const payload: CreateProductPayload = {
-      name: nameValue,
-      slug: slug.trim() || undefined,
-      sku: skuValue,
-      barcode: barcode.trim(),
-      shortDescription: shortDescription.trim(),
-      description: description.trim(),
-      category: category.trim(),
-      brand: brand.trim(),
-      collection: collection.trim(),
-      tags,
-      featuredImage: featuredImage.trim(),
-      gallery: galleryList,
-      video: video.trim(),
-      media: {
-        featuredImage: featuredImage.trim(),
-        gallery: galleryList,
-        videoUrl: video.trim(),
-      },
-      regularPrice: regularPriceValue as number,
-      salePrice: salePriceValue,
-      costPrice: costPriceValue,
-      stock: stockValue as number,
-      lowStock: lowStockValue,
-      sold: soldCount,
-      status,
-      isFeatured,
-      isNewArrival,
-      isTrending,
-      gender,
-      material: material.trim(),
-      careInstruction: careInstruction.trim(),
-      specifications: buildSpecifications(),
-      variants: buildVariantPayloads(),
-      seo,
-    };
-
-    if (editing && initialProduct) {
-      updateMutation.mutate({ _id: initialProduct._id, ...payload });
-    } else {
-      createMutation.mutate(payload);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setName(val);
+    if (!editing && !slug) {
+      setSlug(
+        val
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+      );
     }
   };
 
-  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const addSpecRow = () => setSpecifications((prev) => [...prev, emptySpecificationRow()]);
+  const removeSpecRow = (idx: number) => setSpecifications((prev) => prev.filter((_, i) => i !== idx));
+  const updateSpecRow = (idx: number, field: 'key' | 'value', val: string) => {
+    setSpecifications((prev) => {
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], [field]: val };
+      return copy;
+    });
+  };
+
+  const removeGalleryImage = (idx: number) => setGallery((prev) => prev.filter((_, i) => i !== idx));
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
+    );
+  };
+
+  const currentSEO: ProductSEO = useMemo(
+    () => ({
+      title: seoTitle || name,
+      description: seoDescription || shortDescription,
+      focusKeyword,
+      keywords: keywordsInput
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean),
+      canonical: canonicalUrl,
+      robots,
+      ogTitle: ogTitle || seoTitle || name,
+      ogDescription: ogDescription || seoDescription || shortDescription,
+      ogImage: ogImage || featuredImage,
+      twitterTitle: twitterTitle || ogTitle || seoTitle || name,
+      twitterDescription: twitterDescription || ogDescription || seoDescription || shortDescription,
+      twitterImage: twitterImage || ogImage || featuredImage,
+      sitemap: {
+        include: includeInSitemap,
+        priority: Number(sitemapPriority) || 0.8,
+        changefreq: changeFrequency as 'weekly',
+      },
+    }),
+    [
+      seoTitle,
+      name,
+      seoDescription,
+      shortDescription,
+      focusKeyword,
+      keywordsInput,
+      canonicalUrl,
+      robots,
+      ogTitle,
+      ogDescription,
+      ogImage,
+      featuredImage,
+      twitterTitle,
+      twitterDescription,
+      twitterImage,
+      includeInSitemap,
+      sitemapPriority,
+      changeFrequency,
+    ]
+  );
+
+  const validateStep = (stepIdx: number): boolean => {
+    setErrorMsg('');
+
+    if (stepIdx === 0) {
+      if (!name.trim()) {
+        setErrorMsg('Product name is required');
+        return false;
+      }
+      if (!sku.trim()) {
+        setErrorMsg('SKU is required');
+        return false;
+      }
+      if (!category) {
+        setErrorMsg('Category is required');
+        return false;
+      }
+      if (!brand) {
+        setErrorMsg('Brand is required');
+        return false;
+      }
+    }
+
+    if (stepIdx === 1) {
+      if (!regularPrice || isNaN(Number(regularPrice)) || Number(regularPrice) < 0) {
+        setErrorMsg('Valid regular price is required');
+        return false;
+      }
+      if (!stock || isNaN(Number(stock)) || Number(stock) < 0) {
+        setErrorMsg('Valid stock quantity is required');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateStep(activeStep)) {
+      setActiveStep((prev) => Math.min(steps.length - 1, prev + 1));
+    }
+  };
+
+  const handlePrev = () => {
+    setErrorMsg('');
+    setActiveStep((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateStep(0) || !validateStep(1) || !validateStep(2)) {
+      return;
+    }
+
+    const specsRecord: Record<string, string> = {};
+    specifications.forEach((s) => {
+      if (s.key.trim() && s.value.trim()) {
+        specsRecord[s.key.trim()] = s.value.trim();
+      }
+    });
+
+    const payload: CreateProductPayload = {
+      name: name.trim(),
+      sku: sku.trim(),
+      slug: slug.trim() || undefined,
+      barcode: barcode.trim() || undefined,
+      shortDescription: shortDescription.trim() || undefined,
+      description: description.trim() || undefined,
+      category,
+      brand,
+      collection: collection || undefined,
+      tags: selectedTags,
+      featuredImage,
+      gallery,
+      video: videoUrl,
+      media: {
+        featuredImage,
+        gallery,
+        videoUrl,
+      },
+      regularPrice: Number(regularPrice),
+      salePrice: salePrice ? Number(salePrice) : undefined,
+      costPrice: costPrice ? Number(costPrice) : undefined,
+      stock: Number(stock),
+      lowStock: lowStock ? Number(lowStock) : undefined,
+      status,
+      gender,
+      material: material.trim(),
+      careInstruction: careInstruction.trim(),
+      isFeatured,
+      isNewArrival,
+      isTrending,
+      specifications: specsRecord,
+      seo: currentSEO,
+    };
+
+    try {
+      if (editing && initialProduct?._id) {
+        await updateMutation.mutateAsync({ _id: initialProduct._id, ...payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+      router.push('/admin/products');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'An error occurred while saving product';
+      setErrorMsg(msg);
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6">
-      {/* Page header */}
-      <div>
-        <Link
-          href="/admin/products"
-          className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" /> Back to Products
-        </Link>
-        <h1 className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
-          {editing ? 'Edit Product' : 'Create New Product'}
-        </h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {editing
-            ? 'Update product specifications, SEO metadata, gallery media, and variant attributes.'
-            : 'Fill out the product details, organizational hierarchy, gallery images, variants, and SEO attributes.'}
-        </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <Link
+            href="/admin/products"
+            className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors mb-2"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" /> Back to Products
+          </Link>
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+            {editing ? `Edit Product: ${initialProduct?.name}` : 'Create New Product'}
+          </h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Step {activeStep + 1} of 3 — {steps[activeStep].label}
+          </p>
+        </div>
+
+        {editing && (
+          <Link
+            href={`/admin/variants?productId=${initialProduct?._id}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-semibold shadow-xs hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+          >
+            <Layers className="w-4 h-4" />
+            Manage Variants
+          </Link>
+        )}
       </div>
 
       {/* Stepper */}
-      <Stepper steps={steps} currentStep={currentStep} onStepChange={(step) => setCurrentStep(step)} />
+      <div className="bg-white dark:bg-gray-950 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
+        <Stepper
+          steps={steps}
+          currentStep={activeStep}
+          onStepChange={(index: number) => {
+            if (index < activeStep || validateStep(activeStep)) {
+              setActiveStep(index);
+            }
+          }}
+        />
+      </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-        <div className="p-6 space-y-8">
-          {/* Step 1 — Basics & Organization */}
-          {currentStep === 0 && (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>Basics</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product-name">Name *</Label>
-                    <Input
-                      id="product-name"
-                      placeholder="e.g. Premium Silk Evening Dress"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-sku">SKU (Required) *</Label>
-                    <Input
-                      id="product-sku"
-                      placeholder="e.g. DR-SLK-001"
-                      value={sku}
-                      onChange={(e) => setSku(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-slug">Slug</Label>
-                    <Input
-                      id="product-slug"
-                      placeholder="Auto-generated from name"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-barcode">Barcode</Label>
-                    <Input
-                      id="product-barcode"
-                      placeholder="e.g. 8801234567890"
-                      value={barcode}
-                      onChange={(e) => setBarcode(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="product-short-description">Short Description</Label>
-                    <Input
-                      id="product-short-description"
-                      placeholder="One-line summary shown on cards"
-                      value={shortDescription}
-                      onChange={(e) => setShortDescription(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="product-description">Description</Label>
-                    <textarea
-                      id="product-description"
-                      rows={3}
-                      placeholder="Full product description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-              </div>
+      {/* Error Notification */}
+      {errorMsg && (
+        <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-xs font-medium flex items-center gap-2">
+          <Info className="w-4 h-4 flex-shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>Organization</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product-category">Category</Label>
-                    <Select
-                      value={category || null}
-                      onValueChange={(value) => setCategory(value ?? '')}
-                    >
-                      <SelectTrigger id="product-category" className="w-full">
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Select Category</SelectItem>
-                        {categoriesList.map((c) => (
-                          <SelectItem key={c._id || c.name} value={c.name}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-brand">Brand</Label>
-                    <Select
-                      value={brand || null}
-                      onValueChange={(value) => setBrand(value ?? '')}
-                    >
-                      <SelectTrigger id="product-brand" className="w-full">
-                        <SelectValue placeholder="Select Brand" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Select Brand</SelectItem>
-                        {brandsList.map((b) => (
-                          <SelectItem key={b._id || b.name} value={b.name}>
-                            {b.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-collection">Collection</Label>
-                    <Select
-                      value={collection || null}
-                      onValueChange={(value) => setCollection(value ?? '')}
-                    >
-                      <SelectTrigger id="product-collection" className="w-full">
-                        <SelectValue placeholder="Select Collection" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Select Collection</SelectItem>
-                        {collectionsList.map((colItem) => (
-                          <SelectItem key={colItem._id || colItem.name} value={colItem.name}>
-                            {colItem.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Tags</Label>
-                    <div className="space-y-2">
-                      {availableTags.length > 0 && (
-                        <Select
-                          value={null}
-                          onValueChange={(value) => {
-                            if (value) {
-                              setTags((currentTags) =>
-                                currentTags.includes(value) ? currentTags : [...currentTags, value]
-                              );
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select tag to add..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableTags.map((t) => (
-                              <SelectItem key={t._id || t.name} value={t.name}>
-                                {t.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                      {tags.length > 0 && (
-                        <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                          {tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                            >
-                              <TagIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                              <span className="truncate">{tag}</span>
-                              <button
-                                type="button"
-                                onClick={() => setTags((currentTags) => currentTags.filter((t) => t !== tag))}
-                                className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-100"
-                                aria-label={`Remove ${tag}`}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden">
+        {/* ================= STEP 1: BASICS & ORGANIZATION ================= */}
+        {activeStep === 0 && (
+          <div className="p-6 space-y-6">
+            <div className="space-y-5">
+              <h2 className={sectionTitleClass}>
+                <Sparkles className="w-4 h-4 text-purple-500" /> Basic Details
+              </h2>
 
-          {/* Step 2 — Media & Pricing */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>MEDIA (Featured & Gallery Images)</h3>
-                <div className="space-y-6">
-                  {/* Featured Image */}
-                  <div className="space-y-2">
-                    <Label htmlFor="featured-image-file">Featured Main Image *</Label>
-                    {featuredImage ? (
-                      <div className="group relative h-44 w-full sm:w-72 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <Image
-                          src={featuredImage}
-                          alt="Featured Image"
-                          fill
-                          sizes="288px"
-                          className="h-full w-full object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-                          <button
-                            type="button"
-                            onClick={() => document.getElementById('featured-image-file')?.click()}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-800 shadow-sm transition-colors hover:bg-gray-100"
-                            title="Change image"
-                          >
-                            <Upload className="h-4 w-4" />
-                          </button>
-                          <GalleryPickerButton
-                            onSelect={(urls) => {
-                              if (urls[0]) setFeaturedImage(urls[0]);
-                            }}
-                            folder="velour/products"
-                            selectedUrls={selectedImageUrls}
-                            label=""
-                            className="h-8 w-8 rounded-full border-0 bg-white p-0 text-gray-800 shadow-sm hover:bg-gray-100"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setFeaturedImage('')}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 shadow-sm transition-colors hover:bg-gray-100"
-                            title="Remove image"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 p-6 min-h-[140px] text-center transition-colors hover:border-gray-400 dark:hover:border-gray-600">
-                        {uploadingFeatured ? (
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            Uploading featured image...
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => document.getElementById('featured-image-file')?.click()}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                              >
-                                <Upload className="h-4 w-4 text-gray-500" />
-                                Upload Main Image
-                              </button>
-                              <GalleryPickerButton
-                                onSelect={(urls) => {
-                                  if (urls[0]) setFeaturedImage(urls[0]);
-                                }}
-                                folder="velour/products"
-                                selectedUrls={selectedImageUrls}
-                                label="Pick from Library"
-                                className="h-8 px-3 text-xs"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <input
-                      id="featured-image-file"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFeaturedUpload(file);
-                        e.currentTarget.value = '';
-                      }}
-                      className="hidden"
-                    />
-                  </div>
-
-                  {/* Product Gallery Images */}
-                  <div className="space-y-2">
-                    <Label>Product Gallery Images</Label>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="relative group flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                        {uploadingGallery ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => document.getElementById('gallery-files-input')?.click()}
-                              className="flex h-full w-full flex-col items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                              title="Add gallery image"
-                            >
-                              <Plus className="h-6 w-6" />
-                              <span className="text-[10px] mt-1 font-medium">Add Image</span>
-                            </button>
-                            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 rounded-xl">
-                              <button
-                                type="button"
-                                onClick={() => document.getElementById('gallery-files-input')?.click()}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-800 shadow-sm hover:bg-gray-100"
-                                title="Upload file"
-                              >
-                                <Upload className="h-3.5 w-3.5" />
-                              </button>
-                              <GalleryPickerButton
-                                multiple
-                                onSelect={addGalleryImages}
-                                selectedUrls={selectedImageUrls}
-                                label=""
-                                className="h-7 w-7 rounded-full border-0 bg-white p-0 text-gray-800 shadow-sm hover:bg-gray-100"
-                              />
-                            </div>
-                          </>
-                        )}
-                        <input
-                          id="gallery-files-input"
-                          type="file"
-                          multiple
-                          accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
-                          onChange={(e) => {
-                            const files = Array.from(e.target.files || []);
-                            if (files.length > 0) handleGalleryFilesUpload(files);
-                            e.currentTarget.value = '';
-                          }}
-                          className="hidden"
-                        />
-                      </div>
-
-                      {galleryUrls.map((url, index) => (
-                        <div
-                          key={`${url}-${index}`}
-                          className="group relative h-24 w-24 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm"
-                        >
-                          <Image
-                            src={url}
-                            alt={`Gallery image ${index + 1}`}
-                            fill
-                            sizes="96px"
-                            className="h-full w-full object-cover"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-                            <GalleryPickerButton
-                              onSelect={(urls) => {
-                                if (urls[0]) updateGalleryImage(index, urls[0]);
-                              }}
-                              folder="velour/products"
-                              selectedUrls={selectedImageUrls}
-                              label=""
-                              className="h-7 w-7 rounded-full border-0 bg-white p-0 text-gray-800 shadow-sm hover:bg-gray-100"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeGalleryImage(index)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-red-500 shadow-sm transition-colors hover:bg-gray-100"
-                              title="Remove image"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Video URL */}
-                  <div className="space-y-2">
-                    <Label htmlFor="product-video">Video URL</Label>
-                    <Input
-                      id="product-video"
-                      placeholder="https://..."
-                      value={video}
-                      onChange={(e) => setVideo(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>Pricing & Inventory</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product-regular-price">Regular Price ($) *</Label>
-                    <Input
-                      id="product-regular-price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="e.g. 59.99"
-                      value={regularPrice}
-                      onChange={(e) => setRegularPrice(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-sale-price">Sale Price ($)</Label>
-                    <Input
-                      id="product-sale-price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Optional sale price"
-                      value={salePrice}
-                      onChange={(e) => setSalePrice(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-cost-price">Cost Price ($)</Label>
-                    <Input
-                      id="product-cost-price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Optional cost price"
-                      value={costPrice}
-                      onChange={(e) => setCostPrice(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-stock">Stock Quantity *</Label>
-                    <Input
-                      id="product-stock"
-                      type="number"
-                      min="0"
-                      step="1"
-                      placeholder="e.g. 100"
-                      value={stock}
-                      onChange={(e) => setStock(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-low-stock">Low Stock Threshold</Label>
-                    <Input
-                      id="product-low-stock"
-                      type="number"
-                      min="0"
-                      step="1"
-                      placeholder="e.g. 10"
-                      value={lowStock}
-                      onChange={(e) => setLowStock(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Read-only / Automatic Sold Field */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="product-sold">Sold Count</Label>
-                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                        Automatic / Read-Only
-                      </span>
-                    </div>
-                    <Input
-                      id="product-sold"
-                      type="number"
-                      value={soldCount}
-                      readOnly
-                      disabled
-                      className="bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 — Variants, Attributes & SEO */}
-          {currentStep === 2 && (
-            <div className="space-y-8">
-              {/* Product Status & Badges */}
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>Status & Badges</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product-status">Product Status (Draft / Published / Archived)</Label>
-                    <select
-                      id="product-status"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value as ProductStatus)}
-                      className={inputClass}
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                      <option value="archived">Archived</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-gender">Target Gender / Audience</Label>
-                    <select
-                      id="product-gender"
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value as ProductGender)}
-                      className={inputClass}
-                    >
-                      <option value="">None</option>
-                      <option value="men">Men</option>
-                      <option value="women">Women</option>
-                      <option value="unisex">Unisex</option>
-                      <option value="kids">Kids</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-material">Material</Label>
-                    <Input
-                      id="product-material"
-                      placeholder="e.g. 100% Mulberry Silk"
-                      value={material}
-                      onChange={(e) => setMaterial(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product-care-instruction">Care Instruction</Label>
-                    <Input
-                      id="product-care-instruction"
-                      placeholder="e.g. Dry clean only"
-                      value={careInstruction}
-                      onChange={(e) => setCareInstruction(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-6 pt-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="product-is-featured"
-                      type="checkbox"
-                      checked={isFeatured}
-                      onChange={(e) => setIsFeatured(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black/20"
-                    />
-                    <Label htmlFor="product-is-featured">Featured Product</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="product-is-new-arrival"
-                      type="checkbox"
-                      checked={isNewArrival}
-                      onChange={(e) => setIsNewArrival(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black/20"
-                    />
-                    <Label htmlFor="product-is-new-arrival">New Arrival</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="product-is-trending"
-                      type="checkbox"
-                      checked={isTrending}
-                      onChange={(e) => setIsTrending(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black/20"
-                    />
-                    <Label htmlFor="product-is-trending">Trending Item</Label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Visual Variant Builder with Attributes */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className={sectionTitleClass}>Visual Variant Builder</h3>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                      Define unique SKUs, stock levels, prices, and attribute key-value pairs (Color, Size, Material) per variant.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addVariant}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add Variant
-                  </button>
-                </div>
-
-                {variantItems.length === 0 ? (
-                  <div className="text-center py-8 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
-                    <Sparkles className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500">No variants created yet.</p>
-                    <button
-                      type="button"
-                      onClick={addVariant}
-                      className="mt-2 inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 font-medium hover:underline"
-                    >
-                      + Create first variant
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {variantItems.map((variant, vIdx) => (
-                      <div
-                        key={variant.id}
-                        className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/40 dark:bg-gray-900/40 space-y-4"
-                      >
-                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
-                          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                            Variant #{vIdx + 1}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeVariant(variant.id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
-                            title="Remove variant"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {/* Variant fields */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-[11px]">Variant SKU *</Label>
-                            <Input
-                              placeholder="e.g. VAR-BLK-L"
-                              value={variant.sku}
-                              onChange={(e) => updateVariantField(variant.id, 'sku', e.target.value)}
-                              required
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[11px]">Price ($) *</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="Price"
-                              value={variant.price}
-                              onChange={(e) => updateVariantField(variant.id, 'price', e.target.value)}
-                              required
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[11px]">Sale Price ($)</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="Sale price"
-                              value={variant.salePrice}
-                              onChange={(e) => updateVariantField(variant.id, 'salePrice', e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[11px]">Stock *</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="Stock"
-                              value={variant.stock}
-                              onChange={(e) => updateVariantField(variant.id, 'stock', e.target.value)}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        {/* Variant Attributes */}
-                        <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-gray-500">
-                              Attributes (Color, Size, Material, etc.)
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => addVariantAttribute(variant.id)}
-                              className="text-[11px] text-purple-600 dark:text-purple-400 font-medium hover:underline flex items-center gap-1"
-                            >
-                              <Plus className="h-3 w-3" /> Add Attribute
-                            </button>
-                          </div>
-
-                          <div className="space-y-2">
-                            {variant.attributes.map((attr, aIdx) => (
-                              <div key={aIdx} className="flex items-center gap-2">
-                                <Input
-                                  placeholder="Attribute Name (e.g. Color)"
-                                  value={attr.key}
-                                  onChange={(e) =>
-                                    updateVariantAttribute(variant.id, aIdx, 'key', e.target.value)
-                                  }
-                                  className="flex-1 text-xs"
-                                />
-                                <Input
-                                  placeholder="Attribute Value (e.g. Midnight Black)"
-                                  value={attr.value}
-                                  onChange={(e) =>
-                                    updateVariantAttribute(variant.id, aIdx, 'value', e.target.value)
-                                  }
-                                  className="flex-1 text-xs"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeVariantAttribute(variant.id, aIdx)}
-                                  className="p-1 text-gray-400 hover:text-red-500"
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Specifications */}
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>Product Specifications</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  {specificationRows.map((row, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <Input
-                        placeholder="Specification Name (e.g. Fabric)"
-                        value={row.key}
-                        onChange={(e) => updateSpecificationRow(idx, 'key', e.target.value)}
-                        className="flex-1"
-                      />
-                      <Input
-                        placeholder="Specification Value (e.g. 100% Silk)"
-                        value={row.value}
-                        onChange={(e) => updateSpecificationRow(idx, 'value', e.target.value)}
-                        className="flex-1"
+                  <InfoLabel htmlFor="name" info="The full display name of the fashion item.">
+                    Product Name <span className="text-red-500">*</span>
+                  </InfoLabel>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={handleNameChange}
+                    placeholder="e.g. Classic Olive Green Denim Jacket"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="sku" info="Unique Stock Keeping Unit code for inventory tracking.">
+                    SKU Code <span className="text-red-500">*</span>
+                  </InfoLabel>
+                  <Input
+                    id="sku"
+                    value={sku}
+                    onChange={(e) => setSku(e.target.value)}
+                    placeholder="e.g. JKT-OLV-001"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="slug" info="URL-friendly identifier. Auto-generated from name if left empty.">
+                    URL Slug
+                  </InfoLabel>
+                  <Input
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder="classic-olive-green-denim-jacket"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="barcode" info="GTIN / EAN / UPC Barcode number.">
+                    Barcode (GTIN / UPC)
+                  </InfoLabel>
+                  <Input
+                    id="barcode"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    placeholder="e.g. 8901234567890"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <InfoLabel htmlFor="shortDescription" info="A concise summary displayed on product cards.">
+                  Short Description
+                </InfoLabel>
+                <Textarea
+                  id="shortDescription"
+                  rows={2}
+                  value={shortDescription}
+                  onChange={(e) => setShortDescription(e.target.value)}
+                  placeholder="Elevate your everyday look with our tailored olive jacket..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <InfoLabel htmlFor="description" info="Detailed product description, features, fit guide, and highlights.">
+                  Full Description
+                </InfoLabel>
+                <Textarea
+                  id="description"
+                  rows={5}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Crafted from premium 100% organic cotton denim..."
+                />
+              </div>
+            </div>
+
+            {/* Organization */}
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-900 space-y-5">
+              <h2 className={sectionTitleClass}>
+                <TagIcon className="w-4 h-4 text-purple-500" /> Organization & Taxonomy
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="category" info="Primary category classification (Required).">
+                    Category <span className="text-red-500">*</span>
+                  </InfoLabel>
+                  <Select value={category} onValueChange={(val: string | null) => val && setCategory(val)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Category">
+                        {selectedCategoryName || 'Select Category'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="brand" info="Product manufacturer or brand (Required).">
+                    Brand <span className="text-red-500">*</span>
+                  </InfoLabel>
+                  <Select value={brand} onValueChange={(val: string | null) => val && setBrand(val)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Brand">
+                        {selectedBrandName || 'Select Brand'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {brands.map((b) => (
+                        <SelectItem key={b._id} value={b._id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="collection" info="Seasonal or curational collection (Optional).">
+                    Collection
+                  </InfoLabel>
+                  <Select value={collection} onValueChange={(val: string | null) => setCollection(val || '')}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Collection (Optional)">
+                        {selectedCollectionName || 'Select Collection (Optional)'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {collections.map((col) => (
+                        <SelectItem key={col._id} value={col._id}>
+                          {col.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Tags Multi-select */}
+              <div className="space-y-2 w-full">
+                <InfoLabel htmlFor="tags-select" info="Curated tags & taxonomy badges (Optional, multi-select).">
+                  Tags & Badges (Optional)
+                </InfoLabel>
+                <TagMultiSelect
+                  tags={tagsList}
+                  selectedTagIds={selectedTags}
+                  onChange={setSelectedTags}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= STEP 2: MEDIA & PRICING ================= */}
+        {activeStep === 1 && (
+          <div className="p-6 space-y-6">
+            {/* Media */}
+            <div className="space-y-5">
+              <h2 className={sectionTitleClass}>
+                <ImageIcon className="w-4 h-4 text-purple-500" /> Media & Visual Assets
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <InfoLabel info="Primary image shown in product catalogs and card previews.">
+                    Featured Image URL
+                  </InfoLabel>
+                  <div className="flex gap-2">
+                    <Input
+                      value={featuredImage}
+                      onChange={(e) => setFeaturedImage(e.target.value)}
+                      placeholder="https://images.unsplash.com/photo-..."
+                    />
+                    <GalleryPickerButton
+                      label="Browse"
+                      onSelect={(urls: string[]) => {
+                        if (urls[0]) setFeaturedImage(urls[0]);
+                      }}
+                    />
+                  </div>
+
+                  {featuredImage && (
+                    <div className="mt-3 relative w-28 h-28 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-900">
+                      <Image
+                        src={featuredImage}
+                        alt="Featured"
+                        fill
+                        className="object-cover"
+                        unoptimized
                       />
                       <button
                         type="button"
-                        onClick={() => removeSpecificationRow(idx)}
-                        className="p-2 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+                        onClick={() => setFeaturedImage('')}
+                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-xs"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <InfoLabel info="Optional product video link (e.g. YouTube or mp4).">
+                    Video URL (Optional)
+                  </InfoLabel>
+                  <Input
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </div>
+              </div>
+
+              {/* Gallery */}
+              <div className="space-y-2">
+                <InfoLabel info="Secondary product showcase images.">
+                  Product Gallery Images
+                </InfoLabel>
+                <div className="flex gap-2 mb-3">
+                  <GalleryPickerButton
+                    multiple
+                    label="Add Images from Gallery"
+                    onSelect={(urls: string[]) => {
+                      setGallery((prev) => Array.from(new Set([...prev, ...urls])));
+                    }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {gallery.map((imgUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-full h-24 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-900 group"
+                    >
+                      <Image
+                        src={imgUrl}
+                        alt={`Gallery ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(idx)}
+                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={addSpecificationRow}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-700 dark:text-purple-400 hover:text-purple-900"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Add Specification Row
-                </button>
               </div>
+            </div>
 
-              {/* SEO & Sitemap Settings */}
-              <div className="space-y-4">
-                <h3 className={sectionTitleClass}>Search Engine Optimization (SEO) & Sitemap</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Focus Keyword */}
-                  <div className="space-y-2">
-                    <InfoLabel
-                      htmlFor="product-seo-focus-keyword"
-                      info="Primary search term targeted by this product page for ranking."
-                    >
-                      Focus Keyword
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-focus-keyword"
-                      placeholder="e.g. silk evening dress"
-                      value={seo.focusKeyword || ''}
-                      onChange={(e) => setSeo({ ...seo, focusKeyword: e.target.value })}
-                    />
-                  </div>
+            {/* Pricing & Inventory */}
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-900 space-y-5">
+              <h2 className={sectionTitleClass}>
+                <Upload className="w-4 h-4 text-purple-500" /> Pricing & Inventory
+              </h2>
 
-                  {/* SEO Title */}
-                  <div className="space-y-2">
-                    <InfoLabel
-                      htmlFor="product-seo-title"
-                      info="Meta title tag shown in search engine results."
-                    >
-                      SEO Title
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-title"
-                      placeholder="Meta title tag"
-                      value={seo.title}
-                      onChange={(e) => setSeo({ ...seo, title: e.target.value })}
-                    />
-                  </div>
-
-                  {/* SEO Description */}
-                  <div className="space-y-2 sm:col-span-2">
-                    <InfoLabel
-                      htmlFor="product-seo-description"
-                      info="Short summary shown below title tag on Google search snippets."
-                    >
-                      SEO Description
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-description"
-                      placeholder="Short search engine meta description"
-                      value={seo.description}
-                      onChange={(e) => setSeo({ ...seo, description: e.target.value })}
-                    />
-                  </div>
-
-                  {/* OpenGraph Title */}
-                  <div className="space-y-2">
-                    <InfoLabel
-                      htmlFor="product-seo-og-title"
-                      info="Title shown when sharing this product link on Facebook, Twitter, and WhatsApp."
-                    >
-                      OG Title (Social Sharing)
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-og-title"
-                      placeholder="OpenGraph title"
-                      value={seo.ogTitle || ''}
-                      onChange={(e) => setSeo({ ...seo, ogTitle: e.target.value })}
-                    />
-                  </div>
-
-                  {/* OpenGraph Description */}
-                  <div className="space-y-2">
-                    <InfoLabel
-                      htmlFor="product-seo-og-description"
-                      info="Description shown when sharing this product on social platforms."
-                    >
-                      OG Description (Social Sharing)
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-og-description"
-                      placeholder="OpenGraph description"
-                      value={seo.ogDescription || ''}
-                      onChange={(e) => setSeo({ ...seo, ogDescription: e.target.value })}
-                    />
-                  </div>
-
-                  {/* OG Image */}
-                  <div className="space-y-2">
-                    <InfoLabel
-                      htmlFor="product-seo-og-image"
-                      info="Image thumbnail shown in social media preview cards."
-                    >
-                      OG Image URL
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-og-image"
-                      placeholder="https://..."
-                      value={seo.ogImage}
-                      onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Canonical URL */}
-                  <div className="space-y-2">
-                    <InfoLabel
-                      htmlFor="product-seo-canonical"
-                      info="Canonical URL to prevent duplicate content indexing issues."
-                    >
-                      Canonical URL
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-canonical"
-                      placeholder="https://..."
-                      value={seo.canonical}
-                      onChange={(e) => setSeo({ ...seo, canonical: e.target.value })}
-                    />
-                  </div>
-
-                  {/* SEO Keywords */}
-                  <div className="space-y-2 sm:col-span-2">
-                    <InfoLabel
-                      htmlFor="product-seo-keywords"
-                      info="Enter keywords separated by comma or enter key."
-                    >
-                      Secondary SEO Keywords
-                    </InfoLabel>
-                    <Input
-                      id="product-seo-keywords"
-                      placeholder="Type keyword and press Enter"
-                      value={keywordDraft}
-                      onChange={(e) => setKeywordDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ',') {
-                          e.preventDefault();
-                          addSeoKeyword(keywordDraft);
-                        }
-                      }}
-                      onBlur={() => addSeoKeyword(keywordDraft)}
-                    />
-                    {seo.keywords.length > 0 && (
-                      <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        {seo.keywords.map((keyword) => (
-                          <span
-                            key={keyword}
-                            className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                          >
-                            <TagIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                            <span className="truncate">{keyword}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeSeoKeyword(keyword)}
-                              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-gray-400 hover:text-gray-700"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="regularPrice" info="Standard selling price before discounts (Required).">
+                    Regular Price ($) <span className="text-red-500">*</span>
+                  </InfoLabel>
+                  <Input
+                    id="regularPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={regularPrice}
+                    onChange={(e) => setRegularPrice(e.target.value)}
+                    placeholder="99.99"
+                  />
                 </div>
 
-                {/* Sitemap Settings Box */}
-                <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 space-y-4 mt-4">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                    <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200">
-                      Sitemap Settings
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2 pt-2">
-                      <input
-                        id="sitemap-include"
-                        type="checkbox"
-                        checked={seo.sitemap?.include ?? true}
-                        onChange={(e) =>
-                          setSeo({
-                            ...seo,
-                            sitemap: {
-                              include: e.target.checked,
-                              priority: seo.sitemap?.priority ?? 0.8,
-                              changefreq: seo.sitemap?.changefreq ?? 'weekly',
-                            },
-                          })
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black/20"
-                      />
-                      <Label htmlFor="sitemap-include" className="text-xs">
-                        Include in XML Sitemap
-                      </Label>
-                    </div>
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="salePrice" info="Discounted price displayed during sales.">
+                    Sale Price ($)
+                  </InfoLabel>
+                  <Input
+                    id="salePrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={salePrice}
+                    onChange={(e) => setSalePrice(e.target.value)}
+                    placeholder="79.99"
+                  />
+                </div>
 
-                    <div className="space-y-1">
-                      <Label htmlFor="sitemap-priority" className="text-[11px]">
-                        Sitemap Priority
-                      </Label>
-                      <select
-                        id="sitemap-priority"
-                        value={seo.sitemap?.priority ?? 0.8}
-                        onChange={(e) =>
-                          setSeo({
-                            ...seo,
-                            sitemap: {
-                              include: seo.sitemap?.include ?? true,
-                              priority: Number(e.target.value),
-                              changefreq: seo.sitemap?.changefreq ?? 'weekly',
-                            },
-                          })
-                        }
-                        className={inputClass}
-                      >
-                        <option value="1.0">1.0 (Highest)</option>
-                        <option value="0.9">0.9</option>
-                        <option value="0.8">0.8 (Default Product)</option>
-                        <option value="0.7">0.7</option>
-                        <option value="0.5">0.5 (Normal)</option>
-                        <option value="0.3">0.3</option>
-                      </select>
-                    </div>
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="costPrice" info="Internal cost price for profit margin analysis.">
+                    Cost Price ($)
+                  </InfoLabel>
+                  <Input
+                    id="costPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={costPrice}
+                    onChange={(e) => setCostPrice(e.target.value)}
+                    placeholder="35.00"
+                  />
+                </div>
+              </div>
 
-                    <div className="space-y-1">
-                      <Label htmlFor="sitemap-changefreq" className="text-[11px]">
-                        Change Frequency
-                      </Label>
-                      <select
-                        id="sitemap-changefreq"
-                        value={seo.sitemap?.changefreq ?? 'weekly'}
-                        onChange={(e) =>
-                          setSeo({
-                            ...seo,
-                            sitemap: {
-                              include: seo.sitemap?.include ?? true,
-                              priority: seo.sitemap?.priority ?? 0.8,
-                              changefreq: e.target.value as any,
-                            },
-                          })
-                        }
-                        className={inputClass}
-                      >
-                        <option value="always">Always</option>
-                        <option value="hourly">Hourly</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                        <option value="never">Never</option>
-                      </select>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="stock" info="Total available inventory quantity (Required).">
+                    Current Stock <span className="text-red-500">*</span>
+                  </InfoLabel>
+                  <Input
+                    id="stock"
+                    type="number"
+                    min="0"
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value)}
+                    placeholder="50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="lowStock" info="Threshold to trigger low stock alerts.">
+                    Low Stock Threshold
+                  </InfoLabel>
+                  <Input
+                    id="lowStock"
+                    type="number"
+                    min="0"
+                    value={lowStock}
+                    onChange={(e) => setLowStock(e.target.value)}
+                    placeholder="5"
+                  />
+                </div>
+
+                {/* Sold Field (Readonly) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Total Sold Units
+                    </Label>
+                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded font-medium">
+                      Auto-Calculated
+                    </span>
                   </div>
+                  <Input
+                    disabled
+                    readOnly
+                    value={sold}
+                    className="bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500 cursor-not-allowed"
+                  />
+                  <p className="text-[11px] text-gray-400">
+                    Calculated automatically from completed orders.
+                  </p>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Footer navigation */}
-        <div className="px-6 pb-6 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4">
+        {/* ================= STEP 3: ATTRIBUTES & SEO ================= */}
+        {activeStep === 2 && (
+          <div className="p-6 space-y-6">
+            {/* Status & Attributes */}
+            <div className="space-y-5">
+              <h2 className={sectionTitleClass}>
+                <Sparkles className="w-4 h-4 text-purple-500" /> Attributes & Display Badges
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="status" info="Publication state of the product.">
+                    Publishing Status
+                  </InfoLabel>
+                  <Select
+                    value={status}
+                    onValueChange={(val: string | null) => val && setStatus(val as ProductStatus)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="gender" info="Target audience gender classification.">
+                    Target Gender
+                  </InfoLabel>
+                  <Select
+                    value={gender}
+                    onValueChange={(val: string | null) => setGender((val || '') as ProductGender)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Gender (Optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="men">Men</SelectItem>
+                      <SelectItem value="women">Women</SelectItem>
+                      <SelectItem value="unisex">Unisex</SelectItem>
+                      <SelectItem value="kids">Kids</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="material" info="Primary fabric composition (e.g., 100% Cotton).">
+                    Fabric / Material
+                  </InfoLabel>
+                  <Input
+                    id="material"
+                    className="w-full"
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    placeholder="e.g. 100% Organic Cotton"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 w-full">
+                <InfoLabel htmlFor="careInstruction" info="Washing and care directions.">
+                  Care Instructions
+                </InfoLabel>
+                <Input
+                  id="careInstruction"
+                  className="w-full"
+                  value={careInstruction}
+                  onChange={(e) => setCareInstruction(e.target.value)}
+                  placeholder="e.g. Machine wash cold, dry flat"
+                />
+              </div>
+
+              {/* Badges Toggles */}
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                <label className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 cursor-pointer w-full">
+                  <input
+                    type="checkbox"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    className="w-4 h-4 rounded text-black dark:text-white focus:ring-0 cursor-pointer"
+                  />
+                  <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                    Featured Product
+                  </span>
+                </label>
+
+                <label className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 cursor-pointer w-full">
+                  <input
+                    type="checkbox"
+                    checked={isNewArrival}
+                    onChange={(e) => setIsNewArrival(e.target.checked)}
+                    className="w-4 h-4 rounded text-black dark:text-white focus:ring-0 cursor-pointer"
+                  />
+                  <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                    New Arrival
+                  </span>
+                </label>
+
+                <label className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 cursor-pointer w-full">
+                  <input
+                    type="checkbox"
+                    checked={isTrending}
+                    onChange={(e) => setIsTrending(e.target.checked)}
+                    className="w-4 h-4 rounded text-black dark:text-white focus:ring-0 cursor-pointer"
+                  />
+                  <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                    Trending Item
+                  </span>
+                </label>
+              </div>
+
+              {/* Dynamic Specifications */}
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-900 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                    Dynamic Product Specifications
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={addSpecRow}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Field
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {specifications.map((row, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Spec Name (e.g., Fit)"
+                        value={row.key}
+                        onChange={(e) => updateSpecRow(idx, 'key', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Spec Value (e.g., Slim Fit)"
+                        value={row.value}
+                        onChange={(e) => updateSpecRow(idx, 'value', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSpecRow(idx)}
+                        className="p-2 text-red-500 hover:text-red-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Complete SEO Section */}
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-900 space-y-5">
+              <h2 className={sectionTitleClass}>
+                <Globe className="w-4 h-4 text-purple-500" /> Complete Search Engine Optimization (SEO)
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="seoTitle" info="Custom title tag for search engines. Defaults to product name.">
+                    SEO Meta Title
+                  </InfoLabel>
+                  <Input
+                    id="seoTitle"
+                    value={seoTitle}
+                    onChange={(e) => setSeoTitle(e.target.value)}
+                    placeholder="Classic Olive Jacket | Zenvro Fashion"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="focusKeyword" info="Primary keyword target for search optimization.">
+                    Focus Keyword
+                  </InfoLabel>
+                  <Input
+                    id="focusKeyword"
+                    value={focusKeyword}
+                    onChange={(e) => setFocusKeyword(e.target.value)}
+                    placeholder="olive green denim jacket"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <InfoLabel htmlFor="seoDescription" info="Meta description snippet for search results.">
+                  Meta Description
+                </InfoLabel>
+                <Textarea
+                  id="seoDescription"
+                  rows={2}
+                  value={seoDescription}
+                  onChange={(e) => setSeoDescription(e.target.value)}
+                  placeholder="Shop our classic olive green denim jacket. Handcrafted from organic cotton with custom metallic hardware..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="keywordsInput" info="Comma-separated keywords list.">
+                    Keywords (CSV)
+                  </InfoLabel>
+                  <Input
+                    id="keywordsInput"
+                    value={keywordsInput}
+                    onChange={(e) => setKeywordsInput(e.target.value)}
+                    placeholder="jacket, denim, olive green, mens fashion"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <InfoLabel htmlFor="canonicalUrl" info="Canonical URL link rel to prevent duplicate content penalty.">
+                    Canonical URL
+                  </InfoLabel>
+                  <Input
+                    id="canonicalUrl"
+                    value={canonicalUrl}
+                    onChange={(e) => setCanonicalUrl(e.target.value)}
+                    placeholder="https://zenvro.com/products/classic-olive-jacket"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="robots" info="Robots index instructions for search spiders.">
+                    Robots Directive
+                  </InfoLabel>
+                  <Select value={robots} onValueChange={(val: string | null) => val && setRobots(val)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Directive" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="index, follow">index, follow (Recommended)</SelectItem>
+                      <SelectItem value="noindex, follow">noindex, follow</SelectItem>
+                      <SelectItem value="index, nofollow">index, nofollow</SelectItem>
+                      <SelectItem value="noindex, nofollow">noindex, nofollow</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="ogImage" info="Custom image URL for Open Graph shares. Defaults to featured image.">
+                    Open Graph / Facebook Image URL
+                  </InfoLabel>
+                  <Input
+                    id="ogImage"
+                    className="w-full"
+                    value={ogImage}
+                    onChange={(e) => setOgImage(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              {/* Open Graph & Twitter Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-gray-100 dark:border-gray-900 w-full">
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="ogTitle" info="Specific title for Facebook / LinkedIn shares.">
+                    Open Graph Title
+                  </InfoLabel>
+                  <Input
+                    id="ogTitle"
+                    className="w-full"
+                    value={ogTitle}
+                    onChange={(e) => setOgTitle(e.target.value)}
+                    placeholder="Defaults to SEO Title"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="ogDescription" info="Specific description for Facebook / LinkedIn shares.">
+                    Open Graph Description
+                  </InfoLabel>
+                  <Input
+                    id="ogDescription"
+                    className="w-full"
+                    value={ogDescription}
+                    onChange={(e) => setOgDescription(e.target.value)}
+                    placeholder="Defaults to Meta Description"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="twitterTitle" info="Specific title for Twitter / X share cards.">
+                    Twitter Card Title
+                  </InfoLabel>
+                  <Input
+                    id="twitterTitle"
+                    className="w-full"
+                    value={twitterTitle}
+                    onChange={(e) => setTwitterTitle(e.target.value)}
+                    placeholder="Defaults to OG Title"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="twitterDescription" info="Specific description for Twitter / X cards.">
+                    Twitter Card Description
+                  </InfoLabel>
+                  <Input
+                    id="twitterDescription"
+                    className="w-full"
+                    value={twitterDescription}
+                    onChange={(e) => setTwitterDescription(e.target.value)}
+                    placeholder="Defaults to OG Description"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <InfoLabel htmlFor="twitterImage" info="Image URL for Twitter / X share cards.">
+                    Twitter Image URL
+                  </InfoLabel>
+                  <Input
+                    id="twitterImage"
+                    className="w-full"
+                    value={twitterImage}
+                    onChange={(e) => setTwitterImage(e.target.value)}
+                    placeholder="Defaults to OG Image"
+                  />
+                </div>
+              </div>
+
+              {/* Sitemap Settings */}
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 space-y-4 w-full">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                    Include Product in XML Sitemap
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={includeInSitemap}
+                    onChange={(e) => setIncludeInSitemap(e.target.checked)}
+                    className="w-4 h-4 rounded text-black dark:text-white focus:ring-0 cursor-pointer"
+                  />
+                </div>
+
+                {includeInSitemap && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 w-full">
+                    <div className="space-y-1 w-full">
+                      <Label className="text-xs text-gray-600 dark:text-gray-400 block">
+                        Sitemap Priority (0.0 to 1.0)
+                      </Label>
+                      <Input
+                        type="number"
+                        className="w-full"
+                        step="0.1"
+                        min="0"
+                        max="1.0"
+                        value={sitemapPriority}
+                        onChange={(e) => setSitemapPriority(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-1 w-full">
+                      <Label className="text-xs text-gray-600 dark:text-gray-400 block">
+                        Change Frequency
+                      </Label>
+                      <Select
+                        value={changeFrequency}
+                        onValueChange={(val: string | null) => val && setChangeFrequency(val as 'weekly')}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select Frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="always">Always</SelectItem>
+                          <SelectItem value="hourly">Hourly</SelectItem>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                          <SelectItem value="never">Never</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Live SEO Preview */}
+              <div className="pt-2">
+                <SeoPreview
+                  seo={currentSEO}
+                  productName={name}
+                  productSlug={slug}
+                  featuredImage={featuredImage}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Navigation Buttons */}
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <button
             type="button"
-            onClick={goBack}
-            disabled={currentStep === 0}
-            className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={handlePrev}
+            disabled={activeStep === 0}
+            className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
           >
-            Back
+            <ChevronLeft className="w-4 h-4" /> Back
           </button>
 
-          {currentStep < steps.length - 1 ? (
-            <button
-              type="button"
-              onClick={goNext}
-              disabled={!isStepValid(currentStep)}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Continue <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={!formValid || isSaving}
-              className="px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isSaving ? 'Saving Product...' : editing ? 'Update Product' : 'Create Product'}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {activeStep < steps.length - 1 ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-xs"
+              >
+                <span>Continue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>{editing ? 'Update Product' : 'Create Product'}</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </div>

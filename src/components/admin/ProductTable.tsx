@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { Package, Plus, Edit3, Trash2, Star } from 'lucide-react';
 import Link from 'next/link';
-import type { Product, ProductStatus } from '@/types';
+import type { Category, Product, ProductStatus } from '@/types';
 import { useApiGet, useApiDelete, createQueryKeys } from '@/hooks';
 import { getProducts, deleteProduct } from '@/services/product.service';
+import { getCategories } from '@/services/category.service';
 import DataTable, { ColumnDef } from '@/app/admin/_components/common/DataTable';
 import ConfirmDialog from '@/app/admin/_components/common/ConfirmDialog';
 
@@ -27,6 +28,20 @@ export default function ProductTable() {
 
   const products = productResponse?.data || [];
   const meta = productResponse?.meta || { page: 1, limit: 10, total: 0, totalPages: 1 };
+
+  const { data: categoriesResponse } = useApiGet<Category[]>({
+    queryKey: ['admin-categories-select'],
+    queryFn: () => getCategories({ limit: 100 }),
+  });
+
+  const getCategoryName = (value: string | undefined): string => {
+    if (!value) return '';
+    const list = categoriesResponse?.data || [];
+    const byId = list.find((c) => c._id === value);
+    if (byId) return byId.name;
+    const byName = list.find((c) => c.name === value);
+    return byName ? byName.name : value;
+  };
 
   const deleteMutation = useApiDelete({
     mutationFn: deleteProduct,
@@ -82,12 +97,14 @@ export default function ProductTable() {
     {
       key: 'category',
       header: 'Category',
-      render: (product) =>
-        product.category ? (
-          <span className="text-gray-700 dark:text-gray-300">{product.category}</span>
+      render: (product) => {
+        const categoryName = getCategoryName(product.category);
+        return categoryName ? (
+          <span className="text-gray-700 dark:text-gray-300">{categoryName}</span>
         ) : (
           <span className="text-gray-400 text-xs">—</span>
-        ),
+        );
+      },
     },
     {
       key: 'price',
@@ -129,8 +146,8 @@ export default function ProductTable() {
       header: 'Status',
       render: (product) => {
         const tones: Record<ProductStatus, string> = {
-          active: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
-          published: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+          published: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+          active: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
           draft: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700',
           archived: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
         };

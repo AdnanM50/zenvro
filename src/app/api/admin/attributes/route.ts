@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/middlewares';
 import { AttributeModel } from '@/models/attribute.model';
 import { api } from '@/lib/api-response';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
@@ -28,14 +29,21 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { name, values, isVariant } = body;
+    const { name, values, useForVariants, isVariant } = body;
 
-    if (!name) return api.badRequest('Name is required');
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return api.badRequest('Attribute name is required');
+    }
 
     const attr = await AttributeModel.create({
-      name,
-      values: Array.isArray(values) ? values : typeof values === 'string' ? values.split(',').map((s) => s.trim()).filter(Boolean) : [],
-      isVariant: isVariant ?? true,
+      name: name.trim(),
+      values: Array.isArray(values)
+        ? values.map((v) => String(v).trim()).filter(Boolean)
+        : typeof values === 'string'
+        ? values.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+      useForVariants: useForVariants ?? isVariant ?? true,
+      isVariant: useForVariants ?? isVariant ?? true,
     });
 
     return api.created(attr, 'Attribute created');
@@ -51,12 +59,18 @@ export async function PATCH(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { _id, ...updateData } = body;
+    const { _id, useForVariants, isVariant, ...updateData } = body;
 
     if (!_id) return api.badRequest('_id is required');
 
     if (updateData.values && typeof updateData.values === 'string') {
       updateData.values = updateData.values.split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+
+    const flag = useForVariants ?? isVariant;
+    if (flag !== undefined) {
+      updateData.useForVariants = flag;
+      updateData.isVariant = flag;
     }
 
     const updated = await AttributeModel.update(_id, updateData);
