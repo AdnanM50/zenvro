@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateCategoryPayload, requireCategory } from '@/middlewares';
 import { CategoryModel } from '@/models/category.model';
 import { api } from '@/lib/api-response';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
@@ -38,9 +39,10 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { name, slug, parentCategory, image, description, seo, isActive } = body;
+    const validationError = validateCategoryPayload(body);
+    if (validationError) return validationError;
 
-    if (!name) return api.badRequest('Name is required');
+    const { name, slug, parentCategory, image, description, seo, isActive } = body;
 
     const existing = await CategoryModel.findBySlug(slug || name.toLowerCase().replace(/\s+/g, '-'));
     if (existing) return api.conflict('Category with this slug already exists');
@@ -70,7 +72,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { _id, ...updateData } = body;
 
-    if (!_id) return api.badRequest('_id is required');
+    const categoryRes = await requireCategory(request, _id);
+    if (categoryRes instanceof Response) return categoryRes;
 
     const updated = await CategoryModel.update(_id, updateData);
     if (!updated) return api.notFound('Category not found');
@@ -87,10 +90,11 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const { searchParams } = new URL(request.url);
-    const _id = searchParams.get('_id');
+    const categoryRes = await requireCategory(request);
+    if (categoryRes instanceof Response) return categoryRes;
 
-    if (!_id) return api.badRequest('_id is required');
+    const { searchParams } = new URL(request.url);
+    const _id = searchParams.get('_id') || searchParams.get('id')!;
 
     const deleted = await CategoryModel.delete(_id);
     if (!deleted) return api.notFound('Category not found');

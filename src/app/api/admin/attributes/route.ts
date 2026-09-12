@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateAttributePayload, requireAttribute } from '@/middlewares';
 import { AttributeModel } from '@/models/attribute.model';
 import { api } from '@/lib/api-response';
 
@@ -29,11 +29,10 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { name, values, useForVariants, isVariant } = body;
+    const validationError = validateAttributePayload(body);
+    if (validationError) return validationError;
 
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return api.badRequest('Attribute name is required');
-    }
+    const { name, values, useForVariants, isVariant } = body;
 
     const attr = await AttributeModel.create({
       name: name.trim(),
@@ -61,7 +60,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { _id, useForVariants, isVariant, ...updateData } = body;
 
-    if (!_id) return api.badRequest('_id is required');
+    const attrRes = await requireAttribute(request, _id);
+    if (attrRes instanceof Response) return attrRes;
 
     if (updateData.values && typeof updateData.values === 'string') {
       updateData.values = updateData.values.split(',').map((s: string) => s.trim()).filter(Boolean);
@@ -88,10 +88,11 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const { searchParams } = new URL(request.url);
-    const _id = searchParams.get('_id');
+    const attrRes = await requireAttribute(request);
+    if (attrRes instanceof Response) return attrRes;
 
-    if (!_id) return api.badRequest('_id is required');
+    const { searchParams } = new URL(request.url);
+    const _id = searchParams.get('_id') || searchParams.get('id')!;
 
     const deleted = await AttributeModel.delete(_id);
     if (!deleted) return api.notFound('Attribute not found');

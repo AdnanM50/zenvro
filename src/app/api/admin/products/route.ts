@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateProductPayload, requireProduct } from '@/middlewares';
 import { ProductModel } from '@/models/product.model';
 import { api } from '@/lib/api-response';
 import { defaultProductSEO } from '@/types/product';
@@ -177,6 +177,9 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
+    const validationError = validateProductPayload(body);
+    if (validationError) return validationError;
+
     const { name, slug, sku, category, brand, regularPrice, stock, salePrice, costPrice, lowStock, status, gender } = body;
 
     if (typeof name !== 'string' || !name.trim()) {
@@ -411,10 +414,11 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const { searchParams } = new URL(request.url);
-    const _id = searchParams.get('_id');
+    const productRes = await requireProduct(request);
+    if (productRes instanceof Response) return productRes;
 
-    if (!_id) return api.badRequest('_id is required');
+    const { searchParams } = new URL(request.url);
+    const _id = searchParams.get('_id') || searchParams.get('id')!;
 
     const deleted = await ProductModel.delete(_id);
     if (!deleted) return api.notFound('Product not found');

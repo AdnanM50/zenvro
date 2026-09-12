@@ -1,10 +1,8 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateUploadFile } from '@/middlewares';
 import cloudinary from '@/lib/cloudinary';
 import { api } from '@/lib/api-response';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
-const MAX_SIZE = 5 * 1024 * 1024;
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -14,11 +12,10 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null;
     const folder = (formData.get('folder') as string) || 'velour';
 
-    if (!file) return api.badRequest('No file provided');
-    if (!ALLOWED_TYPES.includes(file.type)) return api.badRequest('Invalid file type. Allowed: JPEG, PNG, WebP, GIF, SVG');
-    if (file.size > MAX_SIZE) return api.badRequest('File too large. Max 5MB');
+    const fileValidation = validateUploadFile(file);
+    if (fileValidation) return fileValidation;
 
-    const bytes = await file.arrayBuffer();
+    const bytes = await file!.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
     const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {

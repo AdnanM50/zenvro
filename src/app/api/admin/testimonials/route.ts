@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateTestimonialPayload, requireTestimonial } from '@/middlewares';
 import { TestimonialModel } from '@/models/testimonial.model';
 import { api } from '@/lib/api-response';
 import { revalidatePublicTestimonials } from '@/lib/revalidate-page';
+
 function parseNumber(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const n = Number(value);
@@ -48,19 +49,10 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
+    const validationError = validateTestimonialPayload({ author: body.name, content: body.quote });
+    if (validationError) return validationError;
+
     const { name, role, quote, avatar, rating, reviewCount, isFeatured, status } = body;
-
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return api.badRequest('Name is required');
-    }
-
-    if (!role || typeof role !== 'string' || !role.trim()) {
-      return api.badRequest('Role is required');
-    }
-
-    if (!quote || typeof quote !== 'string' || !quote.trim()) {
-      return api.badRequest('Quote is required');
-    }
 
     const ratingNum = parseNumber(rating);
     if (ratingNum !== undefined && (ratingNum < 1 || ratingNum > 5)) {
@@ -73,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     const testimonial = await TestimonialModel.create({
       name: name.trim(),
-      role: role.trim(),
+      role: role ? role.trim() : 'Customer',
       quote: quote.trim(),
       avatar: typeof avatar === 'string' ? avatar.trim() : undefined,
       rating: ratingNum ?? 5,
@@ -99,9 +91,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { _id, name, role, quote, avatar, rating, reviewCount, isFeatured, status } = body;
 
-    if (!_id || typeof _id !== 'string') {
-      return api.badRequest('_id is required');
-    }
+    const testimonialRes = await requireTestimonial(request, _id);
+    if (testimonialRes instanceof Response) return testimonialRes;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
@@ -169,10 +160,11 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const { searchParams } = new URL(request.url);
-    const _id = searchParams.get('_id');
+    const testimonialRes = await requireTestimonial(request);
+    if (testimonialRes instanceof Response) return testimonialRes;
 
-    if (!_id) return api.badRequest('_id is required');
+    const { searchParams } = new URL(request.url);
+    const _id = searchParams.get('_id') || searchParams.get('id')!;
 
     const deleted = await TestimonialModel.delete(_id);
     if (!deleted) return api.notFound('Testimonial not found');

@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateRedirectPayload, requireRedirectRule } from '@/middlewares';
 import { RedirectModel } from '@/models/redirect.model';
 import { api } from '@/lib/api-response';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
@@ -28,24 +29,11 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
+    const validationError = validateRedirectPayload(body);
+    if (validationError) return validationError;
+
     const { from, to, type, isActive } = body;
 
-    if (!from || typeof from !== 'string' || !from.trim()) {
-      return api.badRequest('"from" path is required');
-    }
-    if (!to || typeof to !== 'string' || !to.trim()) {
-      return api.badRequest('"to" path is required');
-    }
-    if (from.trim() === to.trim()) {
-      return api.badRequest('"from" and "to" cannot be the same');
-    }
-
-    const validTypes = [301, 302, 307, 308];
-    if (type !== undefined && !validTypes.includes(type)) {
-      return api.badRequest('type must be 301, 302, 307, or 308');
-    }
-
-    // Check for duplicate "from" path
     const existing = await RedirectModel.findByFrom(from.trim());
     if (existing) {
       return api.conflict(`A redirect from "${from.trim()}" already exists`);
@@ -72,10 +60,10 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { _id, ...rest } = body;
 
-    if (!_id) return api.badRequest('_id is required');
+    const redirectRes = await requireRedirectRule(request, _id);
+    if (redirectRes instanceof Response) return redirectRes;
 
-    const existing = await RedirectModel.findById(_id);
-    if (!existing) return api.notFound('Redirect not found');
+    const existing = redirectRes.redirect;
 
     const updateData: Record<string, unknown> = {};
     if ('from' in rest && typeof rest.from === 'string') updateData.from = rest.from.trim();
@@ -93,9 +81,8 @@ export async function PATCH(request: NextRequest) {
       return api.badRequest('No update provided');
     }
 
-    // Check from/to not the same
-    const newFrom = (updateData.from as string) || existing.from;
-    const newTo = (updateData.to as string) || existing.to;
+    const newFrom = (updateData.from as string) || (existing.from as string);
+    const newTo = (updateData.to as string) || (existing.to as string);
     if (newFrom === newTo) {
       return api.badRequest('"from" and "to" cannot be the same');
     }
@@ -113,10 +100,11 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const { searchParams } = new URL(request.url);
-    const _id = searchParams.get('_id');
+    const redirectRes = await requireRedirectRule(request);
+    if (redirectRes instanceof Response) return redirectRes;
 
-    if (!_id) return api.badRequest('_id is required');
+    const { searchParams } = new URL(request.url);
+    const _id = searchParams.get('_id') || searchParams.get('id')!;
 
     const deleted = await RedirectModel.delete(_id);
     if (!deleted) return api.notFound('Redirect not found');

@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
-import { requireUser } from '@/middlewares';
+import { requireUser, validateWishlistPayload } from '@/middlewares';
 import { UserModel } from '@/models/user.model';
 import { api } from '@/lib/api-response';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireUser(request, { onUserNotFound: 'unauthorized', checkBlocked: true });
@@ -21,11 +22,10 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { product } = body;
+    const validationError = validateWishlistPayload({ productId: body.product });
+    if (validationError) return validationError;
 
-    if (typeof product !== 'string' || !product.trim()) {
-      return api.badRequest('product is required');
-    }
+    const { product } = body;
 
     const alreadyAdded = await UserModel.isInWishlist(auth.user._id, product.trim());
     if (alreadyAdded) {

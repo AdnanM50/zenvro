@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/middlewares';
+import { requireAdmin, validateTagPayload, requireTag } from '@/middlewares';
 import { TagModel } from '@/models/tag.model';
 import { api } from '@/lib/api-response';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
@@ -28,9 +29,10 @@ export async function POST(request: NextRequest) {
     if (auth instanceof Response) return auth;
 
     const body = await request.json();
-    const { name, slug } = body;
+    const validationError = validateTagPayload(body);
+    if (validationError) return validationError;
 
-    if (!name) return api.badRequest('Name is required');
+    const { name, slug } = body;
 
     const targetSlug = slug || name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     const existing = await TagModel.findBySlug(targetSlug);
@@ -52,7 +54,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { _id, ...updateData } = body;
 
-    if (!_id) return api.badRequest('_id is required');
+    const tagRes = await requireTag(request, _id);
+    if (tagRes instanceof Response) return tagRes;
 
     const updated = await TagModel.update(_id, updateData);
     if (!updated) return api.notFound('Tag not found');
@@ -69,10 +72,11 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAdmin(request);
     if (auth instanceof Response) return auth;
 
-    const { searchParams } = new URL(request.url);
-    const _id = searchParams.get('_id');
+    const tagRes = await requireTag(request);
+    if (tagRes instanceof Response) return tagRes;
 
-    if (!_id) return api.badRequest('_id is required');
+    const { searchParams } = new URL(request.url);
+    const _id = searchParams.get('_id') || searchParams.get('id')!;
 
     const deleted = await TagModel.delete(_id);
     if (!deleted) return api.notFound('Tag not found');

@@ -4,24 +4,19 @@ import { UserModel } from '@/models/user.model';
 import { ContactMessageModel } from '@/models/contact-message.model';
 import { sendContactNotification } from '@/lib/mail';
 import { api } from '@/lib/api-response';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+import { validateContactPayload } from '@/middlewares';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    const validationError = validateContactPayload(body);
+    if (validationError) return validationError;
+
     const { name, email, subject, message } = body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return api.badRequest('Name is required');
-    }
-
-    if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
-      return api.badRequest('A valid email address is required');
-    }
-
-    if (!message || typeof message !== 'string' || !message.trim()) {
-      return api.badRequest('Message is required');
     }
 
     if (message.trim().length > 5000) {
@@ -32,8 +27,6 @@ export async function POST(request: NextRequest) {
       return api.badRequest('Subject cannot exceed 200 characters');
     }
 
-    // Optional: attach the signed-in user to the message so admins can tell
-    // registered users apart from anonymous (unauthorized) visitors.
     let userId: string | undefined;
     let isRegistered = false;
 
@@ -58,8 +51,6 @@ export async function POST(request: NextRequest) {
       isRegistered,
     });
 
-    // Best-effort notification to the admin inbox — never fail the request
-    // if the mail service is unavailable.
     try {
       await sendContactNotification(contactMessage);
     } catch (mailError) {

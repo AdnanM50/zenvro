@@ -153,7 +153,8 @@ export default function CategoryFormModal({
     </>
   );
 
-  const rootCategories = categories.filter((c) => !c.parentCategory);
+  const rootCategories = categories.filter((c) => !c.parentCategory && c._id !== (initialData as any)?._id);
+  const selectedParent = categories.find((c) => c._id === formValues.parentCategory);
 
   return (
     <Modal
@@ -198,14 +199,16 @@ export default function CategoryFormModal({
         <div className="space-y-1.5">
           <Label>Parent Category</Label>
           <Select
-            value={formValues.parentCategory || null}
-            onValueChange={(value) => setValue('parentCategory', value ?? '')}
+            value={formValues.parentCategory || ''}
+            onValueChange={(value) => setValue('parentCategory', value || '')}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="None (Root Category)" />
+              <SelectValue placeholder="None (Root Category)">
+                {selectedParent ? selectedParent.name : 'None (Root Category)'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={null}>None (Root Category)</SelectItem>
+              <SelectItem value="">None (Root Category)</SelectItem>
               {rootCategories.map((c) => (
                 <SelectItem key={c._id} value={c._id}>
                   {c.name}
