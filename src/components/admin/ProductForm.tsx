@@ -104,10 +104,11 @@ function InfoLabel({
 interface TagMultiSelectProps {
   tags: Tag[];
   selectedTagIds: string[];
+  initialTags?: (Tag | string)[];
   onChange: (selectedIds: string[]) => void;
 }
 
-function TagMultiSelect({ tags, selectedTagIds, onChange }: TagMultiSelectProps) {
+function TagMultiSelect({ tags, selectedTagIds, initialTags, onChange }: TagMultiSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -130,8 +131,9 @@ function TagMultiSelect({ tags, selectedTagIds, onChange }: TagMultiSelectProps)
 
   const toggleTag = (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (selectedTagIds.includes(id)) {
-      onChange(selectedTagIds.filter((tId) => tId !== id));
+    const strId = String(id);
+    if (selectedTagIds.map(String).includes(strId)) {
+      onChange(selectedTagIds.filter((tId) => String(tId) !== strId));
     } else {
       onChange([...selectedTagIds, id]);
     }
@@ -139,30 +141,51 @@ function TagMultiSelect({ tags, selectedTagIds, onChange }: TagMultiSelectProps)
 
   const selectedTagObjects = useMemo(() => {
     return selectedTagIds
-      .map((id) => tags.find((t) => t._id === id) || { _id: id, name: id })
+      .map((id) => {
+        const strId = String(id);
+        const foundInList = tags.find((t) => String(t._id) === strId || t.name.toLowerCase() === strId.toLowerCase());
+        if (foundInList) return foundInList;
+
+        if (Array.isArray(initialTags)) {
+          const foundInInitial = initialTags.find(
+            (t) => typeof t === 'object' && t !== null && (String((t as Tag)._id) === strId || (t as Tag).name === strId)
+          );
+          if (foundInInitial && typeof foundInInitial === 'object' && 'name' in foundInInitial) {
+            return foundInInitial as Tag;
+          }
+        }
+
+        // If string is an unresolvable 24-character hexadecimal ObjectId, format as a clean fallback badge
+        if (/^[0-9a-fA-F]{24}$/.test(strId)) {
+          return { _id: id, name: `Tag (${strId.slice(-4)})` };
+        }
+
+        return { _id: id, name: id };
+      })
       .filter(Boolean);
-  }, [selectedTagIds, tags]);
+  }, [selectedTagIds, tags, initialTags]);
 
   return (
     <div ref={containerRef} className="relative w-full">
       <div
         onClick={() => setOpen((prev) => !prev)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-2 px-3 text-sm text-gray-900 dark:text-gray-100 cursor-pointer transition-colors outline-none select-none hover:border-gray-400 dark:hover:border-gray-600 focus-within:ring-4 focus-within:ring-gray-900/10 dark:focus-within:ring-white/10 shadow-xs"
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-1.5 px-3 text-sm text-gray-900 dark:text-gray-100 cursor-pointer transition-[border-color,box-shadow] outline-none select-none hover:border-gray-400 dark:hover:border-gray-600 focus-within:border-gray-900 dark:focus-within:border-white focus-within:ring-4 focus-within:ring-gray-900/10 dark:focus-within:ring-white/10 shadow-sm"
       >
-        <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0 py-0.5">
           {selectedTagObjects.length === 0 ? (
-            <span className="text-gray-400 dark:text-gray-500 text-sm">Select Tags & Badges (Multiple)...</span>
+            <span className="text-gray-400 dark:text-gray-500 text-sm">Select tags & badges...</span>
           ) : (
             selectedTagObjects.map((tag) => (
               <span
                 key={tag._id}
-                className="inline-flex items-center gap-1 bg-black dark:bg-white text-white dark:text-black px-2.5 py-0.5 rounded-full text-xs font-medium shadow-xs"
+                className="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700/80 px-2.5 py-0.5 rounded text-xs font-medium shadow-2xs"
               >
-                {tag.name}
+                <span>{tag.name}</span>
                 <button
                   type="button"
                   onClick={(e) => toggleTag(tag._id, e)}
-                  className="p-0.5 rounded-full hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors"
+                  className="p-0.5 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200/60 dark:hover:bg-gray-700/60 transition-colors"
+                  title="Remove tag"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -170,40 +193,44 @@ function TagMultiSelect({ tags, selectedTagIds, onChange }: TagMultiSelectProps)
             ))
           )}
         </div>
-        <ChevronDown className={`pointer-events-none size-4 text-gray-500 dark:text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`pointer-events-none size-4 text-gray-500 dark:text-gray-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-hidden rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-1.5 text-gray-900 dark:text-gray-100 shadow-2xl ring-1 ring-black/10 dark:ring-white/10 animate-in fade-in-0 zoom-in-95">
-          <div className="p-1 mb-1 border-b border-gray-100 dark:border-gray-800">
-            <Input
+        <div className="absolute left-0 right-0 z-50 mt-1 max-h-64 overflow-hidden rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-1.5 text-gray-900 dark:text-gray-100 shadow-2xl ring-1 ring-black/10 dark:ring-white/10 animate-in fade-in-0 zoom-in-95">
+          <div className="relative mb-1.5 p-0.5">
+            <TagIcon className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+            <input
               type="text"
               placeholder="Search tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-8 text-xs w-full"
               onClick={(e) => e.stopPropagation()}
+              className="h-8 pl-8 pr-3 text-xs w-full rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 outline-none focus:border-gray-400 dark:focus:border-gray-500 transition-colors"
             />
           </div>
 
-          <div className="max-h-44 overflow-y-auto space-y-0.5 scrollbar-thin">
+          <div className="max-h-48 overflow-y-auto space-y-0.5 scrollbar-thin">
             {filteredTags.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-gray-400 text-center">No tags found</div>
+              <div className="px-3 py-3 text-xs text-gray-400 text-center">No tags found</div>
             ) : (
               filteredTags.map((tag) => {
-                const selected = selectedTagIds.includes(tag._id);
+                const selected = selectedTagIds.map(String).includes(String(tag._id));
                 return (
                   <div
                     key={tag._id}
                     onClick={(e) => toggleTag(tag._id, e)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium cursor-pointer transition-colors ${
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors ${
                       selected
-                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold'
+                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium'
                         : 'hover:bg-gray-50 dark:hover:bg-gray-800/60 text-gray-700 dark:text-gray-300'
                     }`}
                   >
-                    <span>{tag.name}</span>
-                    {selected && <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <TagIcon className={`w-3 h-3 shrink-0 ${selected ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`} />
+                      <span className="truncate">{tag.name}</span>
+                    </div>
+                    {selected && <Check className="w-3.5 h-3.5 text-gray-900 dark:text-white shrink-0 ml-2" />}
                   </div>
                 );
               })
@@ -214,6 +241,7 @@ function TagMultiSelect({ tags, selectedTagIds, onChange }: TagMultiSelectProps)
     </div>
   );
 }
+
 
 export default function ProductForm({ productId }: ProductFormProps) {
   const editing = Boolean(productId);
@@ -268,19 +296,19 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
   // Fetch dropdown data
   const { data: categoriesData } = useApiGet<Category[]>({
     queryKey: ['categories'],
-    queryFn: () => getCategories(),
+    queryFn: () => getCategories({ limit: 1000 }),
   });
   const { data: brandsData } = useApiGet<Brand[]>({
     queryKey: ['brands'],
-    queryFn: () => getBrands(),
+    queryFn: () => getBrands({ limit: 1000 }),
   });
   const { data: collectionsData } = useApiGet<CollectionItem[]>({
     queryKey: ['collections'],
-    queryFn: () => getCollections(),
+    queryFn: () => getCollections({ limit: 1000 }),
   });
   const { data: tagsData } = useApiGet<Tag[]>({
     queryKey: ['tags'],
-    queryFn: () => getTags(),
+    queryFn: () => getTags({ limit: 1000 }),
   });
 
   const categories = categoriesData?.data || [];
@@ -518,19 +546,29 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
     return true;
   };
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (validateStep(activeStep)) {
       setActiveStep((prev) => Math.min(steps.length - 1, prev + 1));
     }
   };
 
-  const handlePrev = () => {
+  const handlePrev = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     setErrorMsg('');
     setActiveStep((prev) => Math.max(0, prev - 1));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFinalSubmit = async (e?: React.MouseEvent | React.FormEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    // STRICT GUARD: Must be on Step 3 (the final step) to submit
+    if (activeStep !== steps.length - 1) {
+      return;
+    }
 
     if (!validateStep(0) || !validateStep(1) || !validateStep(2)) {
       return;
@@ -642,7 +680,7 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden">
+      <form onSubmit={handleFinalSubmit} className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-visible">
         {/* ================= STEP 1: BASICS & ORGANIZATION ================= */}
         {activeStep === 0 && (
           <div className="p-6 space-y-6">
@@ -806,6 +844,7 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
                 <TagMultiSelect
                   tags={tagsList}
                   selectedTagIds={selectedTags}
+                  initialTags={initialProduct?.tags}
                   onChange={setSelectedTags}
                 />
               </div>
@@ -1434,6 +1473,7 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
           <div className="flex items-center gap-3">
             {activeStep < steps.length - 1 ? (
               <button
+                key="btn-step-continue"
                 type="button"
                 onClick={handleNext}
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-xs"
@@ -1443,7 +1483,9 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
               </button>
             ) : (
               <button
-                type="submit"
+                key="btn-step-submit"
+                type="button"
+                onClick={handleFinalSubmit}
                 disabled={isSubmitting}
                 className="px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs flex items-center gap-2"
               >
