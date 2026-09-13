@@ -72,7 +72,6 @@ export interface Product {
   careInstruction: string;
   careInstructions?: string;
   specifications: Record<string, string>;
-  variants?: Variant[];
   seo: ProductSEO;
   createdAt: Date;
   updatedAt: Date;
@@ -109,7 +108,6 @@ export interface CreateProductPayload {
   careInstruction?: string;
   careInstructions?: string;
   specifications?: Record<string, string>;
-  variants?: CreateVariantPayload[];
   seo?: ProductSEO;
 }
 

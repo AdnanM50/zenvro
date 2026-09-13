@@ -1,5 +1,11 @@
-/** Map of attribute name -> attribute value, e.g. { Color: 'Olive', Size: 'M' } */
-export type VariantAttributes = Record<string, string>;
+export interface VariantAttributeItem {
+  attributeId: string;
+  attributeName?: string;
+  value: string;
+}
+
+/** Variant attributes can be stored as explicit items array or key-value map */
+export type VariantAttributes = VariantAttributeItem[] | Record<string, string>;
 
 export type VariantStatus = 'active' | 'inactive';
 

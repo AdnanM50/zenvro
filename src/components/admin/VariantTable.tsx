@@ -73,7 +73,7 @@ export default function VariantTable() {
   // Filter ONLY attributes where useForVariants === true
   const variantEnabledAttributes = useMemo(() => {
     const list = attributeResponse?.data || [];
-    return list.filter((attr) => attr.useForVariants ?? attr.isVariant ?? true);
+    return list.filter((attr) => attr.useForVariants === true);
   }, [attributeResponse]);
 
   // Fetch Variants
@@ -152,7 +152,23 @@ export default function VariantTable() {
     setEditingVariant(variant);
     setProductId(variant.productId);
     setSku(variant.sku);
-    setSelectedAttributes(variant.attributes || {});
+
+    const initialAttrMap: Record<string, string> = {};
+    if (Array.isArray(variant.attributes)) {
+      variant.attributes.forEach((item: any) => {
+        if (item && item.attributeId && item.value) {
+          initialAttrMap[item.attributeId] = item.value;
+        } else if (item && item.attributeName && item.value) {
+          initialAttrMap[item.attributeName] = item.value;
+        }
+      });
+    } else if (typeof variant.attributes === 'object' && variant.attributes !== null) {
+      Object.entries(variant.attributes).forEach(([k, v]) => {
+        initialAttrMap[k] = String(v);
+      });
+    }
+    setSelectedAttributes(initialAttrMap);
+
     setPrice(variant.price !== undefined ? String(variant.price) : '');
     setSalePrice(variant.salePrice !== undefined && variant.salePrice !== null ? String(variant.salePrice) : '');
     setCostPrice(variant.costPrice !== undefined && variant.costPrice !== null ? String(variant.costPrice) : '');
@@ -209,10 +225,21 @@ export default function VariantTable() {
       return;
     }
 
+    const formattedAttributes = Object.entries(selectedAttributes)
+      .filter(([_, val]) => Boolean(val))
+      .map(([attrKey, val]) => {
+        const attrMatch = variantEnabledAttributes.find((a) => a._id === attrKey || a.name === attrKey);
+        return {
+          attributeId: attrMatch ? attrMatch._id : attrKey,
+          attributeName: attrMatch ? attrMatch.name : attrKey,
+          value: val,
+        };
+      });
+
     const payload = {
       productId,
       sku: sku.trim(),
-      attributes: selectedAttributes,
+      attributes: formattedAttributes,
       price: priceNum,
       salePrice: salePrice ? Number(salePrice) : undefined,
       costPrice: costPrice ? Number(costPrice) : undefined,
@@ -294,16 +321,28 @@ export default function VariantTable() {
       key: 'attributes',
       header: 'Variant Options',
       render: (v) => {
-        const entries = Object.entries(v.attributes || {});
-        if (entries.length === 0) return <span className="text-gray-400 text-xs">—</span>;
+        let items: { name: string; value: string }[] = [];
+        if (Array.isArray(v.attributes)) {
+          items = v.attributes.map((item: any) => {
+            const attrMatch = variantEnabledAttributes.find((a) => a._id === item.attributeId || a.name === item.attributeId);
+            return {
+              name: item.attributeName || (attrMatch ? attrMatch.name : item.attributeId),
+              value: item.value,
+            };
+          });
+        } else if (typeof v.attributes === 'object' && v.attributes !== null) {
+          items = Object.entries(v.attributes).map(([k, val]) => ({ name: k, value: String(val) }));
+        }
+
+        if (items.length === 0) return <span className="text-gray-400 text-xs">—</span>;
         return (
           <div className="flex flex-wrap gap-1">
-            {entries.map(([k, val]) => (
+            {items.map((item, idx) => (
               <span
-                key={k}
+                key={idx}
                 className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2 py-0.5 rounded text-[11px] font-semibold"
               >
-                {k}: {val}
+                {item.name}: {item.value}
               </span>
             ))}
           </div>
@@ -484,7 +523,7 @@ export default function VariantTable() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {variantEnabledAttributes.map((attr) => {
-                  const currentValue = selectedAttributes[attr.name] || '';
+                  const currentValue = selectedAttributes[attr._id] || selectedAttributes[attr.name] || '';
                   return (
                     <div key={attr._id} className="space-y-1">
                       <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -493,7 +532,7 @@ export default function VariantTable() {
                       {attr.values && attr.values.length > 0 ? (
                         <Select
                           value={currentValue}
-                          onValueChange={(val: string | null) => handleAttributeValueChange(attr.name, val === 'NONE' || !val ? '' : val)}
+                          onValueChange={(val: string | null) => handleAttributeValueChange(attr._id, val === 'NONE' || !val ? '' : val)}
                         >
                           <SelectTrigger className="w-full text-xs bg-white dark:bg-gray-950">
                             <SelectValue placeholder={`Select ${attr.name}`} />
@@ -511,7 +550,7 @@ export default function VariantTable() {
                         <Input
                           placeholder={`Enter ${attr.name}`}
                           value={currentValue}
-                          onChange={(e) => handleAttributeValueChange(attr.name, e.target.value)}
+                          onChange={(e) => handleAttributeValueChange(attr._id, e.target.value)}
                           className="text-xs bg-white dark:bg-gray-950"
                         />
                       )}

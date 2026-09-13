@@ -46,26 +46,65 @@ function toFiniteNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-export function areAttributesEqual(
-  attr1: Record<string, string>,
-  attr2: Record<string, string>
-): boolean {
-  const keys1 = Object.keys(attr1 || {}).sort();
-  const keys2 = Object.keys(attr2 || {}).sort();
-  if (keys1.length !== keys2.length) return false;
-  return keys1.every((key) => attr1[key] === attr2[key]);
+export function normalizeAttributes(attr: unknown): { attributeId: string; attributeName?: string; value: string }[] {
+  if (Array.isArray(attr)) {
+    return attr
+      .map((item) => ({
+        attributeId: String(item.attributeId || item.id || item.name || ''),
+        attributeName: item.attributeName || item.name || undefined,
+        value: String(item.value || ''),
+      }))
+      .filter((item) => item.attributeId && item.value);
+  }
+  if (typeof attr === 'object' && attr !== null) {
+    return Object.entries(attr)
+      .map(([key, val]) => ({
+        attributeId: key,
+        attributeName: key,
+        value: String(val),
+      }))
+      .filter((item) => item.attributeId && item.value);
+  }
+  return [];
+}
+
+export function areAttributesEqual(attr1: unknown, attr2: unknown): boolean {
+  const norm1 = normalizeAttributes(attr1).sort((a, b) => a.attributeId.localeCompare(b.attributeId));
+  const norm2 = normalizeAttributes(attr2).sort((a, b) => a.attributeId.localeCompare(b.attributeId));
+  if (norm1.length !== norm2.length) return false;
+  return norm1.every((item, i) => item.attributeId === norm2[i].attributeId && item.value === norm2[i].value);
+}
+
+export async function recalculateProductStock(productId?: string): Promise<void> {
+  if (!productId) return;
+  try {
+    await connectToDatabase();
+    const activeVariants = await VariantMongooseModel.find({ productId, status: 'active' }).exec();
+    const totalStock = activeVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+
+    const mongoose = (await import('mongoose')).default;
+    const ProductMongooseModel =
+      mongoose.models.Product || mongoose.model('Product');
+    await ProductMongooseModel.updateOne({ _id: productId }, { $set: { stock: totalStock } }).exec();
+  } catch (error) {
+    console.error('Error recalculating product stock from variants:', error);
+  }
 }
 
 export const VariantModel = {
   async create(data: CreateVariantPayload): Promise<Variant> {
     await connectToDatabase();
 
+    if (!data.productId) {
+      throw new Error('Parent productId is required to create a variant.');
+    }
+
     if (data.productId && data.attributes) {
       const existingVariants = await VariantMongooseModel.find({
         productId: data.productId,
       }).exec();
       const duplicate = existingVariants.some((v) =>
-        areAttributesEqual(v.attributes as Record<string, string>, data.attributes || {})
+        areAttributesEqual(v.attributes, data.attributes)
       );
       if (duplicate) {
         throw new Error('A variant with this attribute combination already exists for this product.');
@@ -77,7 +116,7 @@ export const VariantModel = {
       _id,
       productId: data.productId,
       sku: data.sku.trim(),
-      attributes: data.attributes || {},
+      attributes: data.attributes || [],
       price: toFiniteNumber(data.price),
       salePrice: data.salePrice !== undefined && data.salePrice !== null ? toFiniteNumber(data.salePrice) : undefined,
       costPrice: data.costPrice !== undefined && data.costPrice !== null ? toFiniteNumber(data.costPrice) : undefined,
@@ -87,6 +126,8 @@ export const VariantModel = {
       weight: data.weight !== undefined && data.weight !== null ? toFiniteNumber(data.weight) : undefined,
       status: data.status || 'active',
     });
+
+    await recalculateProductStock(data.productId);
 
     return (doc.toObject ? doc.toObject() : doc) as unknown as Variant;
   },
@@ -156,7 +197,7 @@ export const VariantModel = {
         _id: { $ne: _id },
       }).exec();
       const duplicate = otherVariants.some((v) =>
-        areAttributesEqual(v.attributes as Record<string, string>, targetAttributes as Record<string, string>)
+        areAttributesEqual(v.attributes, targetAttributes)
       );
       if (duplicate) {
         throw new Error('A variant with this attribute combination already exists for this product.');
@@ -164,19 +205,33 @@ export const VariantModel = {
     }
 
     const updateFields: Record<string, unknown> = { ...data };
+    delete updateFields.sold; // sold field cannot be updated manually; calculated from orders
+
     const result = await VariantMongooseModel.updateOne({ _id }, { $set: updateFields }).exec();
-    return result.modifiedCount > 0 || result.matchedCount > 0;
+    if (result.modifiedCount > 0 || result.matchedCount > 0) {
+      await recalculateProductStock(targetProductId);
+      return true;
+    }
+    return false;
   },
 
   async delete(_id: string): Promise<boolean> {
     await connectToDatabase();
+    const existing = await VariantMongooseModel.findById(_id).exec();
+    const productId = existing?.productId;
+
     const result = await VariantMongooseModel.deleteOne({ _id }).exec();
-    return result.deletedCount > 0;
+    if (result.deletedCount > 0) {
+      await recalculateProductStock(productId);
+      return true;
+    }
+    return false;
   },
 
   async deleteByProductId(productId: string): Promise<number> {
     await connectToDatabase();
     const result = await VariantMongooseModel.deleteMany({ productId }).exec();
+    await recalculateProductStock(productId);
     return result.deletedCount || 0;
   },
 };
