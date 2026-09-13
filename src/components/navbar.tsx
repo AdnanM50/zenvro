@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { lenisStore } from "@/lib/lenis";
 
 const sectionLinks = [
   { label: "Home", href: "/#home" },
@@ -38,10 +39,26 @@ const Navbar = () => {
   }, [pathname]);
 
   useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyOverscroll = body.style.overscrollBehavior;
+
+    if (isMenuOpen) {
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      body.style.overscrollBehavior = "none";
+      lenisStore.instance?.stop();
+    } else {
+      lenisStore.instance?.start();
+    }
 
     return () => {
-      document.body.style.overflow = "";
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+      body.style.overscrollBehavior = previousBodyOverscroll;
+      lenisStore.instance?.start();
     };
   }, [isMenuOpen]);
 
@@ -62,7 +79,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className={`relative top-0 w-full z-50 flex justify-between items-center px-4 md:px-8 py-4 md:py-6 pointer-events-none ${navBackground} text-foreground`}>
+      <header className={`${isMenuOpen ? "fixed" : "relative"} top-0 w-full z-50 flex h-20 items-center justify-between px-4 pointer-events-none md:h-24 md:px-8 ${navBackground} text-foreground`}>
         <div className="flex items-center pointer-events-auto">
           <button
             type="button"
@@ -141,9 +158,10 @@ const Navbar = () => {
             animate={{ y: 0 }}
             exit={{ y: "-100%" }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className={`fixed inset-0 z-40 min-h-screen overflow-y-auto ${navBackground} text-foreground`}
+            className={`fixed inset-x-0 bottom-0 top-20 z-40 overflow-y-auto overscroll-contain md:top-24 ${navBackground} text-foreground`}
+            data-lenis-prevent
           >
-            <div className="flex min-h-screen flex-col justify-between px-6 pb-8 pt-28 md:px-12 md:pb-12 md:pt-32 lg:px-16">
+            <div className="flex min-h-full flex-col justify-between px-6 pb-8 pt-8 md:px-12 md:pb-12 md:pt-10 lg:px-16">
               <div className="grid gap-12 md:grid-cols-12 md:items-start">
                 <nav className="md:col-span-8" aria-label="Main menu">
                   <p className="font-label text-[10px] font-black uppercase tracking-[0.28em] text-secondary">
