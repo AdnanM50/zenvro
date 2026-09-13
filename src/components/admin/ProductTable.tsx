@@ -135,7 +135,7 @@ export default function ProductTable() {
               ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
               : 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800';
         return (
-          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${tone}`}>
+          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-pre border ${tone}`}>
             {label}
           </span>
         );
