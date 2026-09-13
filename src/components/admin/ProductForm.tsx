@@ -53,6 +53,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import GalleryPickerButton from '../../app/admin/gallery/_components/GalleryPickerButton';
+import GalleryPicker from '../../app/admin/gallery/_components/GalleryPicker';
 import SeoPreview from './SeoPreview';
 
 const steps: StepperStep[] = [
@@ -383,6 +384,10 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
   const [featuredImage, setFeaturedImage] = useState(initialProduct?.media?.featuredImage || initialProduct?.featuredImage || '');
   const [gallery, setGallery] = useState<string[]>(initialProduct?.media?.gallery || initialProduct?.gallery || []);
   const [videoUrl, setVideoUrl] = useState(initialProduct?.media?.videoUrl || '');
+
+  const [openFeaturedGallery, setOpenFeaturedGallery] = useState(false);
+  const [openGalleryModal, setOpenGalleryModal] = useState(false);
+  const [showFeaturedUrlInput, setShowFeaturedUrlInput] = useState(false);
 
   const [regularPrice, setRegularPrice] = useState(initialProduct?.regularPrice ? String(initialProduct.regularPrice) : '');
   const [salePrice, setSalePrice] = useState(initialProduct?.salePrice ? String(initialProduct.salePrice) : '');
@@ -861,95 +866,153 @@ function ProductFormInner({ initialProduct }: { initialProduct?: Product }) {
                 <ImageIcon className="w-4 h-4 text-purple-500" /> Media & Visual Assets
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <InfoLabel info="Primary image shown in product catalogs and card previews.">
-                    Featured Image URL
-                  </InfoLabel>
-                  <div className="flex gap-2">
+              {/* Featured Image Dropzone */}
+              <div className="space-y-2">
+                <InfoLabel info="Primary image shown in product catalogs and card previews (Required).">
+                  Featured Image <span className="text-red-500">*</span>
+                </InfoLabel>
+
+                {featuredImage ? (
+                  <div className="relative w-full max-w-sm h-48 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-900 group shadow-2xs">
+                    <Image
+                      src={featuredImage}
+                      alt="Featured Product Image"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 backdrop-blur-xs">
+                      <button
+                        type="button"
+                        onClick={() => setOpenFeaturedGallery(true)}
+                        className="px-3 py-1.5 bg-white text-gray-900 rounded-xl text-xs font-semibold hover:bg-gray-100 shadow-md transition-transform active:scale-95 flex items-center gap-1.5"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" /> Change
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFeaturedImage('')}
+                        className="p-1.5 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md transition-transform active:scale-95"
+                        title="Remove Featured Image"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => setOpenFeaturedGallery(true)}
+                    className="w-full max-w-sm h-44 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:border-purple-400 dark:hover:border-purple-500 cursor-pointer transition-all flex flex-col items-center justify-center p-5 text-center group"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-xs">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      Upload Image
+                    </p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                      Click to select from media library or upload new file
+                    </p>
+                  </div>
+                )}
+
+                <GalleryPicker
+                  open={openFeaturedGallery}
+                  onClose={() => setOpenFeaturedGallery(false)}
+                  onSelect={(urls: string[]) => {
+                    if (urls[0]) setFeaturedImage(urls[0]);
+                  }}
+                  multiple={false}
+                  selectedUrls={featuredImage ? [featuredImage] : []}
+                />
+
+                <div className="pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowFeaturedUrlInput((prev) => !prev)}
+                    className="text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    <Globe className="w-3 h-3" />
+                    {showFeaturedUrlInput ? 'Hide direct URL input' : 'Paste image URL directly'}
+                  </button>
+                  {showFeaturedUrlInput && (
                     <Input
                       value={featuredImage}
                       onChange={(e) => setFeaturedImage(e.target.value)}
                       placeholder="https://images.unsplash.com/photo-..."
+                      className="mt-1.5 text-xs h-9 max-w-sm"
                     />
-                    <GalleryPickerButton
-                      label="Browse"
-                      onSelect={(urls: string[]) => {
-                        if (urls[0]) setFeaturedImage(urls[0]);
-                      }}
-                    />
-                  </div>
-
-                  {featuredImage && (
-                    <div className="mt-3 relative w-28 h-28 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-900">
-                      <Image
-                        src={featuredImage}
-                        alt="Featured"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setFeaturedImage('')}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-xs"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <InfoLabel info="Optional product video link (e.g. YouTube or mp4).">
-                    Video URL (Optional)
-                  </InfoLabel>
-                  <Input
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://youtube.com/watch?v=..."
-                  />
                 </div>
               </div>
 
-              {/* Gallery */}
-              <div className="space-y-2">
-                <InfoLabel info="Secondary product showcase images.">
-                  Product Gallery Images
+              {/* Product Gallery Grid */}
+              <div className="space-y-2.5 pt-4 border-t border-gray-100 dark:border-gray-900">
+                <InfoLabel info="Secondary product showcase images (Multi-image dropzone).">
+                  Product Gallery
                 </InfoLabel>
-                <div className="flex gap-2 mb-3">
-                  <GalleryPickerButton
-                    multiple
-                    label="Add Images from Gallery"
-                    onSelect={(urls: string[]) => {
-                      setGallery((prev) => Array.from(new Set([...prev, ...urls])));
-                    }}
-                  />
-                </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3.5">
+                  {/* Upload Dropzone Square */}
+                  <div
+                    onClick={() => setOpenGalleryModal(true)}
+                    className="aspect-square rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:border-purple-400 dark:hover:border-purple-500 cursor-pointer transition-all flex flex-col items-center justify-center p-3 text-center group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-xs">
+                      <Plus className="w-4 h-4" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">Add Images</span>
+                  </div>
+
+                  {/* Selected Gallery Items */}
                   {gallery.map((imgUrl, idx) => (
                     <div
                       key={idx}
-                      className="relative w-full h-24 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-900 group"
+                      className="aspect-square relative rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-900 group shadow-xs"
                     >
                       <Image
                         src={imgUrl}
                         alt={`Gallery ${idx + 1}`}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
                         unoptimized
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeGalleryImage(idx)}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 backdrop-blur-xs">
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(idx)}
+                          className="p-1.5 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md transition-transform active:scale-95"
+                          title="Remove Image"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
+
+                <GalleryPicker
+                  open={openGalleryModal}
+                  onClose={() => setOpenGalleryModal(false)}
+                  onSelect={(urls: string[]) => {
+                    setGallery((prev) => Array.from(new Set([...prev, ...urls])));
+                  }}
+                  multiple={true}
+                  selectedUrls={gallery}
+                />
+              </div>
+
+              {/* Video URL */}
+              <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-900 max-w-lg">
+                <InfoLabel info="Optional product video link (e.g. YouTube or MP4 URL).">
+                  Video URL
+                </InfoLabel>
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=... or https://..."
+                  className="h-10 text-xs"
+                />
               </div>
             </div>
 
