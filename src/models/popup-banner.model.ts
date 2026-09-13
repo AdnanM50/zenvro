@@ -1,6 +1,7 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
 import type { PopupBanner, CreatePopupBannerPayload } from '@/types';
+import { paginateCollection } from './common';
 
 const COLLECTION = 'popup-banners';
 
@@ -86,12 +87,12 @@ export const PopupBannerModel = {
   ): Promise<{ banners: PopupBanner[]; total: number }> {
     const c = await col();
     const filter = buildFilters(params);
-    const skip = (page - 1) * limit;
-    const [banners, total] = await Promise.all([
-      c.find(filter).sort({ sortOrder: 1, createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-    return { banners, total };
+    const { items, total } = await paginateCollection<PopupBanner>(c, filter, {
+      page,
+      limit,
+      sort: { sortOrder: 1, createdAt: -1 },
+    });
+    return { banners: items, total };
   },
 
   async update(_id: string, data: Partial<CreatePopupBannerPayload>): Promise<boolean> {

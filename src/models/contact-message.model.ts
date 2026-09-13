@@ -1,5 +1,6 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
 import type {
   ContactMessage,
   ContactMessageStats,
@@ -26,21 +27,22 @@ export const ContactMessageModel = {
     const _id = generateObjectId();
     const now = new Date();
 
-    const contactMessage: ContactMessage = {
+    const messageDoc: ContactMessage = {
       _id,
       name: data.name.trim(),
       email: data.email.trim().toLowerCase(),
-      subject: (data.subject || '').trim(),
+      phone: data.phone ? data.phone.trim() : '',
+      subject: data.subject ? data.subject.trim() : '',
       message: data.message.trim(),
-      userId: isString(data.userId) && data.userId.trim() ? data.userId.trim() : undefined,
-      isRegistered: Boolean(data.isRegistered),
+      userId: data.userId,
+      isRegistered: data.isRegistered ?? false,
       status: 'new',
       createdAt: now,
       updatedAt: now,
     };
 
-    await c.insertOne(contactMessage);
-    return contactMessage;
+    await c.insertOne(messageDoc);
+    return messageDoc;
   },
 
   async findById(_id: string): Promise<ContactMessage | null> {
@@ -66,16 +68,9 @@ export const ContactMessageModel = {
       filter.$or = [{ name: regex }, { email: regex }, { subject: regex }, { message: regex }];
     }
 
-    if (params.status) {
-      filter.status = params.status;
-    }
+    if (params.status) filter.status = params.status;
 
-    const skip = (page - 1) * limit;
-    const [messages, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-
+    const { items: messages, total } = await paginateCollection<ContactMessage>(c, filter, { page, limit });
     return { messages, total };
   },
 

@@ -1,5 +1,6 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
 import type {
   Review,
   ReviewStatus,
@@ -100,12 +101,8 @@ export const ReviewModel = {
   ): Promise<{ reviews: Review[]; total: number }> {
     const c = await col();
     const filter = buildFilters(params);
-    const skip = (page - 1) * limit;
-    const [reviews, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-    return { reviews, total };
+    const { items, total } = await paginateCollection<Review>(c, filter, { page, limit });
+    return { reviews: items, total };
   },
 
   async update(_id: string, data: Partial<CreateReviewPayload>): Promise<boolean> {

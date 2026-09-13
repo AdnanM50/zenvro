@@ -1,16 +1,11 @@
+import { Schema, model, models } from 'mongoose';
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
+import { validateCreateTag, validateUpdateTag } from '@/validations/tag.validation';
 import type { Tag, CreateTagPayload } from '@/types';
 
 const COLLECTION = 'tags';
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function col(): Promise<any> {
@@ -18,18 +13,41 @@ async function col(): Promise<any> {
   return db.collection(COLLECTION);
 }
 
+/**
+ * Clean Mongoose Schema definition for Tag entity
+ */
+export const tagSchema = new Schema<Tag>(
+  {
+    _id: { type: String, default: () => generateObjectId() },
+    name: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, unique: true, index: true, trim: true },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+tagSchema.post<Tag>('save', function (doc: any, next) {
+  if (doc) doc.__v = undefined;
+  next();
+});
+
+export const TagMongooseModel = models.Tag || model<Tag>('Tag', tagSchema);
+
 export const TagModel = {
   async create(data: CreateTagPayload): Promise<Tag> {
     const c = await col();
     const _id = generateObjectId();
     const now = new Date();
+    const validatedData = validateCreateTag(data);
+
     const tag: Tag = {
       _id,
-      name: data.name,
-      slug: data.slug || slugify(data.name),
+      ...validatedData,
       createdAt: now,
       updatedAt: now,
     };
+
     await c.insertOne(tag);
     return tag;
   },
@@ -60,21 +78,13 @@ export const TagModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ name: regex }, { slug: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [tags, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
+    const { items: tags, total } = await paginateCollection<Tag>(c, filter, { page, limit });
     return { tags, total };
   },
 
   async update(_id: string, data: Partial<CreateTagPayload>): Promise<boolean> {
     const c = await col();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateFields: any = { ...data, updatedAt: new Date() };
-    if (data.name && !data.slug) {
-      updateFields.slug = slugify(data.name);
-    }
+    const updateFields = validateUpdateTag(data);
     const result = await c.updateOne({ _id }, { $set: updateFields });
     return result.modifiedCount > 0;
   },

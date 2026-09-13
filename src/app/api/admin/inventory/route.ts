@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       if (typeof variantSku !== 'string') {
         return api.badRequest('variantSku must be a string');
       }
-      const hasVariant = product.variants?.some((v) => v.sku === variantSku.trim());
+      const hasVariant = product.variants?.some((v: any) => v.sku === variantSku.trim());
       if (!hasVariant) {
         return api.notFound(`Variant with SKU "${variantSku}" not found on product`);
       }

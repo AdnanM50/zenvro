@@ -1,6 +1,7 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
 import type { GalleryItem, CreateGalleryPayload } from '@/types';
+import { paginateCollection } from './common';
 
 const COLLECTION = 'gallery';
 
@@ -91,12 +92,7 @@ export const GalleryModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ title: regex }, { altText: regex }, { url: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [items, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-    return { items, total };
+    return paginateCollection<GalleryItem>(c, filter, { page, limit });
   },
 
   async update(_id: string, data: Partial<CreateGalleryPayload>): Promise<boolean> {

@@ -1,5 +1,8 @@
+import { Schema, model, models } from 'mongoose';
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
+import { validateCreateTestimonial, validateUpdateTestimonial } from '@/validations/testimonial.validation';
 import type {
   Testimonial,
   CreateTestimonialPayload,
@@ -15,27 +18,43 @@ async function col(): Promise<any> {
   return db.collection(COLLECTION);
 }
 
-function toFiniteNumber(value: unknown, fallback = 5): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
+/**
+ * Clean Mongoose Schema definition for Testimonial entity
+ */
+export const testimonialSchema = new Schema<Testimonial>(
+  {
+    _id: { type: String, default: () => generateObjectId() },
+    name: { type: String, required: true, trim: true },
+    role: { type: String, required: true, trim: true },
+    quote: { type: String, required: true, trim: true },
+    avatar: { type: String, default: '', trim: true },
+    rating: { type: Number, default: 5, min: 1, max: 5 },
+    reviewCount: { type: Number, default: 0, min: 0 },
+    isFeatured: { type: Boolean, default: false },
+    status: { type: String, default: 'active', enum: ['active', 'inactive'] },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+testimonialSchema.post<Testimonial>('save', function (doc: any, next) {
+  if (doc) doc.__v = undefined;
+  next();
+});
+
+export const TestimonialMongooseModel = models.Testimonial || model<Testimonial>('Testimonial', testimonialSchema);
 
 export const TestimonialModel = {
   async create(data: CreateTestimonialPayload): Promise<Testimonial> {
     const c = await col();
     const _id = generateObjectId();
     const now = new Date();
+    const validatedData = validateCreateTestimonial(data);
 
     const testimonial: Testimonial = {
       _id,
-      name: data.name.trim(),
-      role: data.role.trim(),
-      quote: data.quote.trim(),
-      avatar: data.avatar ? data.avatar.trim() : '',
-      rating: Math.min(5, Math.max(1, toFiniteNumber(data.rating, 5))),
-      reviewCount: data.reviewCount !== undefined ? Math.max(0, toFiniteNumber(data.reviewCount, 0)) : undefined,
-      isFeatured: data.isFeatured ?? false,
-      status: data.status || 'active',
+      ...validatedData,
       createdAt: now,
       updatedAt: now,
     };
@@ -66,38 +85,16 @@ export const TestimonialModel = {
       const regex = { $regex: params.search, $options: 'i' };
       filter.$or = [{ name: regex }, { role: regex }, { quote: regex }];
     }
+    if (params.status) filter.status = params.status;
+    if (params.isFeatured !== undefined) filter.isFeatured = params.isFeatured;
 
-    if (params.status) {
-      filter.status = params.status;
-    }
-
-    if (params.isFeatured !== undefined) {
-      filter.isFeatured = params.isFeatured;
-    }
-
-    const skip = (page - 1) * limit;
-    const [testimonials, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-
+    const { items: testimonials, total } = await paginateCollection<Testimonial>(c, filter, { page, limit });
     return { testimonials, total };
   },
 
   async update(_id: string, data: Partial<UpdateTestimonialPayload>): Promise<boolean> {
     const c = await col();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateFields: any = { updatedAt: new Date() };
-
-    if (data.name !== undefined) updateFields.name = data.name.trim();
-    if (data.role !== undefined) updateFields.role = data.role.trim();
-    if (data.quote !== undefined) updateFields.quote = data.quote.trim();
-    if (data.avatar !== undefined) updateFields.avatar = data.avatar.trim();
-    if (data.rating !== undefined) updateFields.rating = Math.min(5, Math.max(1, toFiniteNumber(data.rating, 5)));
-    if (data.reviewCount !== undefined) updateFields.reviewCount = Math.max(0, toFiniteNumber(data.reviewCount, 0));
-    if (data.isFeatured !== undefined) updateFields.isFeatured = Boolean(data.isFeatured);
-    if (data.status !== undefined) updateFields.status = data.status;
-
+    const updateFields = validateUpdateTestimonial(data);
     const result = await c.updateOne({ _id }, { $set: updateFields });
     return result.modifiedCount > 0;
   },

@@ -1,5 +1,6 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
 import type { Coupon, CreateCouponPayload } from '@/types';
 
 const COLLECTION = 'coupons';
@@ -106,11 +107,7 @@ export const CouponModel = {
   ): Promise<{ coupons: Coupon[]; total: number }> {
     const c = await col();
     const filter = buildFilters(params);
-    const skip = (page - 1) * limit;
-    const [coupons, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
+    const { items: coupons, total } = await paginateCollection<Coupon>(c, filter, { page, limit });
     return { coupons, total };
   },
 

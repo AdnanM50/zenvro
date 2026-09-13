@@ -4,6 +4,7 @@ export interface ContactMessage {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
   subject: string;
   message: string;
   userId?: string;
@@ -19,6 +20,7 @@ export interface ContactMessage {
 export interface CreateContactMessagePayload {
   name: string;
   email: string;
+  phone?: string;
   subject?: string;
   message: string;
   userId?: string;

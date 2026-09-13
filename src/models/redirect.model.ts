@@ -1,6 +1,7 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
 import type { Redirect, CreateRedirectPayload } from '@/types';
+import { paginateCollection } from './common';
 
 const COLLECTION = 'redirects';
 
@@ -53,12 +54,8 @@ export const RedirectModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ from: regex }, { to: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [redirects, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-    return { redirects, total };
+    const { items, total } = await paginateCollection<Redirect>(c, filter, { page, limit });
+    return { redirects: items, total };
   },
 
   async update(_id: string, data: Partial<Omit<Redirect, '_id' | 'createdAt' | 'hits'>>): Promise<boolean> {

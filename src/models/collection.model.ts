@@ -1,5 +1,6 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
 import type { CollectionItem, CreateCollectionPayload } from '@/types';
 
 const COLLECTION = 'collections';
@@ -66,11 +67,7 @@ export const CollectionModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ name: regex }, { slug: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [collections, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
+    const { items: collections, total } = await paginateCollection<CollectionItem>(c, filter, { page, limit });
     return { collections, total };
   },
 

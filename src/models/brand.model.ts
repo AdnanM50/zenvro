@@ -1,16 +1,11 @@
+import { Schema, model, models } from 'mongoose';
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
+import { validateCreateBrand, validateUpdateBrand } from '@/validations/brand.validation';
 import type { Brand, CreateBrandPayload } from '@/types';
 
 const COLLECTION = 'brands';
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function col(): Promise<any> {
@@ -18,22 +13,52 @@ async function col(): Promise<any> {
   return db.collection(COLLECTION);
 }
 
+/**
+ * Clean Mongoose Schema definition for Brand entity
+ */
+export const brandSchema = new Schema<Brand>(
+  {
+    _id: { type: String, default: () => generateObjectId() },
+    name: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, unique: true, index: true, trim: true },
+    logo: { type: String, default: '' },
+    description: { type: String, default: '' },
+    seo: {
+      title: { type: String, default: '' },
+      description: { type: String, default: '' },
+      keywords: [{ type: String }],
+      canonical: { type: String, default: '' },
+      ogImage: { type: String, default: '' },
+      robots: { type: String, default: 'index' },
+    },
+    isActive: { type: Boolean, default: true },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+brandSchema.post<Brand>('save', function (doc: any, next) {
+  if (doc) doc.__v = undefined;
+  next();
+});
+
+export const BrandMongooseModel = models.Brand || model<Brand>('Brand', brandSchema);
+
 export const BrandModel = {
   async create(data: CreateBrandPayload): Promise<Brand> {
     const c = await col();
     const _id = generateObjectId();
     const now = new Date();
+    const validatedData = validateCreateBrand(data);
+
     const brand: Brand = {
       _id,
-      name: data.name,
-      slug: data.slug || slugify(data.name),
-      logo: data.logo || '',
-      description: data.description || '',
-      seo: data.seo || { title: '', description: '', keywords: [], canonical: '', ogImage: '', robots: 'index' },
-      isActive: data.isActive ?? true,
+      ...validatedData,
       createdAt: now,
       updatedAt: now,
     };
+
     await c.insertOne(brand);
     return brand;
   },
@@ -64,21 +89,13 @@ export const BrandModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ name: regex }, { slug: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [brands, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
+    const { items: brands, total } = await paginateCollection<Brand>(c, filter, { page, limit });
     return { brands, total };
   },
 
   async update(_id: string, data: Partial<CreateBrandPayload>): Promise<boolean> {
     const c = await col();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateFields: any = { ...data, updatedAt: new Date() };
-    if (data.name && !data.slug) {
-      updateFields.slug = slugify(data.name);
-    }
+    const updateFields = validateUpdateBrand(data);
     const result = await c.updateOne({ _id }, { $set: updateFields });
     return result.modifiedCount > 0;
   },

@@ -1,5 +1,6 @@
 import mongoose, { Schema, Model } from 'mongoose';
 import connectToDatabase from '@/lib/mongoose';
+import { paginateMongoose } from './common';
 import type {
   Product,
   CreateProductPayload,
@@ -269,15 +270,8 @@ export const ProductModel = {
   ): Promise<{ products: Product[]; total: number }> {
     await connectToDatabase();
     const filter = buildFilters(params);
-    const skip = (page - 1) * limit;
-    const [docs, total] = await Promise.all([
-      ProductMongooseModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-      ProductMongooseModel.countDocuments(filter).exec(),
-    ]);
-    return {
-      products: docs.map((doc) => (doc.toObject ? doc.toObject() : doc) as unknown as Product),
-      total,
-    };
+    const { items: products, total } = await paginateMongoose<Product>(ProductMongooseModel, filter, { page, limit });
+    return { products, total };
   },
 
   async update(_id: string, data: Partial<CreateProductPayload>): Promise<boolean> {

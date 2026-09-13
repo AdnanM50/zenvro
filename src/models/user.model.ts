@@ -1,5 +1,6 @@
 import { ObjectId, type Document, type PullOperator } from 'mongodb';
 import type { UserRole, UserStatus, UserAddress, WishlistItem } from '@/types';
+import { paginateCollection } from './common';
 import {
   User,
   RefreshToken,
@@ -185,17 +186,14 @@ export const UserModel = {
     if (status) query.status = status;
     if (role) query.role = role;
 
-    const total = await col.countDocuments(query);
+    const { items: raws, total } = await paginateCollection<any>(col, query, {
+      page,
+      limit,
+      projection: { password: 0 },
+    });
+
     const totalPages = Math.ceil(total / limit) || 1;
     const safePage = Math.max(1, Math.min(page, totalPages));
-    const skip = (safePage - 1) * limit;
-
-    const raws = await col
-      .find(query, { projection: { password: 0 } })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray();
 
     const users = raws.map((raw) => {
       const { password: _, ...rest } = normalizeUser(raw);

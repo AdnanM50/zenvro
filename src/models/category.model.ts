@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from '@/lib/db';
 import { deleteImages } from '@/lib/cloudinary';
+import { paginateCollection } from './common';
 import type { Category } from '@/types';
 
 export type { Category } from '@/types';
@@ -72,12 +73,7 @@ export const CategoryModel = {
       filter.$or = [{ name: regex }, { slug: regex }];
     }
 
-    const skip = (page - 1) * limit;
-    const [categories, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-
+    const { items: categories, total } = await paginateCollection<Category>(c, filter, { page, limit });
     return { categories, total };
   },
 

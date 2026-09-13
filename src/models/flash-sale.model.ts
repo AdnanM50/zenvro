@@ -1,5 +1,6 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
+import { paginateCollection } from './common';
 import type { FlashSale, CreateFlashSalePayload } from '@/types';
 
 const COLLECTION = 'flash-sales';
@@ -102,11 +103,11 @@ export const FlashSaleModel = {
   ): Promise<{ sales: FlashSale[]; total: number }> {
     const c = await col();
     const filter = buildFilters(params);
-    const skip = (page - 1) * limit;
-    const [sales, total] = await Promise.all([
-      c.find(filter).sort({ sortOrder: 1, createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
+    const { items: sales, total } = await paginateCollection<FlashSale>(c, filter, {
+      page,
+      limit,
+      sort: { sortOrder: 1, createdAt: -1 },
+    });
     return { sales, total };
   },
 

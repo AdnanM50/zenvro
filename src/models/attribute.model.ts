@@ -1,5 +1,6 @@
 import mongoose, { Schema, Model } from 'mongoose';
 import connectToDatabase from '@/lib/mongoose';
+import { paginateMongoose } from './common';
 import type { Attribute, CreateAttributePayload } from '@/types';
 
 const AttributeSchema = new Schema<Attribute>(
@@ -78,15 +79,8 @@ export const AttributeModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ name: regex }, { values: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [docs, total] = await Promise.all([
-      AttributeMongooseModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-      AttributeMongooseModel.countDocuments(filter).exec(),
-    ]);
-    return {
-      attributes: docs.map((doc) => (doc.toObject ? doc.toObject() : doc) as unknown as Attribute),
-      total,
-    };
+    const { items: attributes, total } = await paginateMongoose<Attribute>(AttributeMongooseModel, filter, { page, limit });
+    return { attributes, total };
   },
 
   async update(_id: string, data: Partial<CreateAttributePayload>): Promise<boolean> {

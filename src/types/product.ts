@@ -73,6 +73,7 @@ export interface Product {
   careInstructions?: string;
   specifications: Record<string, string>;
   seo: ProductSEO;
+  variants?: any[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -109,6 +110,7 @@ export interface CreateProductPayload {
   careInstructions?: string;
   specifications?: Record<string, string>;
   seo?: ProductSEO;
+  variants?: any[];
 }
 
 /** Payload for updating an existing product (partial, _id required) */

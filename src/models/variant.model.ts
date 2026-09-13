@@ -1,5 +1,6 @@
 import mongoose, { Schema, Model } from 'mongoose';
 import connectToDatabase from '@/lib/mongoose';
+import { paginateMongoose } from './common';
 import type { Variant, CreateVariantPayload } from '@/types';
 
 const VariantSchema = new Schema<Variant>(
@@ -171,15 +172,8 @@ export const VariantModel = {
       const regex = { $regex: search, $options: 'i' };
       filter.$or = [{ sku: regex }, { image: regex }];
     }
-    const skip = (page - 1) * limit;
-    const [docs, total] = await Promise.all([
-      VariantMongooseModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-      VariantMongooseModel.countDocuments(filter).exec(),
-    ]);
-    return {
-      variants: docs.map((doc) => (doc.toObject ? doc.toObject() : doc) as unknown as Variant),
-      total,
-    };
+    const { items: variants, total } = await paginateMongoose<Variant>(VariantMongooseModel, filter, { page, limit });
+    return { variants, total };
   },
 
   async update(_id: string, data: Partial<CreateVariantPayload>): Promise<boolean> {

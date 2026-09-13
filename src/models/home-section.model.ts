@@ -1,6 +1,7 @@
 import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
 import type { HomeSection, CreateHomeSectionPayload } from '@/types';
+import { paginateCollection } from './common';
 
 const COLLECTION = 'home-sections';
 
@@ -106,12 +107,12 @@ export const HomeSectionModel = {
   ): Promise<{ sections: HomeSection[]; total: number }> {
     const c = await col();
     const filter = buildFilters(params);
-    const skip = (page - 1) * limit;
-    const [sections, total] = await Promise.all([
-      c.find(filter).sort({ sortOrder: 1, createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-    return { sections, total };
+    const { items, total } = await paginateCollection<HomeSection>(c, filter, {
+      page,
+      limit,
+      sort: { sortOrder: 1, createdAt: -1 },
+    });
+    return { sections: items, total };
   },
 
   async update(_id: string, data: Partial<CreateHomeSectionPayload>): Promise<boolean> {

@@ -2,6 +2,7 @@ import { generateObjectId } from '@/lib/id';
 import { getDb } from '@/lib/db';
 import type { InventoryItem, CreateInventoryPayload, InventoryListParams } from '@/types/inventory';
 import { ProductModel } from './product.model';
+import { paginateCollection } from './common';
 
 const COLLECTION = 'inventory';
 
@@ -50,14 +51,14 @@ export const InventoryModel = {
       const product = await ProductModel.findById(data.productId);
       if (product) {
         if (data.variantSku && product.variants && product.variants.length > 0) {
-          const updatedVariants = product.variants.map((v) => {
+          const updatedVariants = product.variants.map((v: any) => {
             if (v.sku === data.variantSku) {
               const newVariantStock = Math.max(0, (v.stock || 0) + stockDelta);
               return { ...v, stock: newVariantStock };
             }
             return v;
           });
-          const totalStock = updatedVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+          const totalStock = updatedVariants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
           await ProductModel.update(product._id, {
             variants: updatedVariants,
             stock: totalStock,
@@ -85,23 +86,11 @@ export const InventoryModel = {
     const c = await col();
     const filter: Record<string, unknown> = {};
 
-    if (params.productId) {
-      filter.productId = params.productId;
-    }
-    if (params.variantSku) {
-      filter.variantSku = params.variantSku;
-    }
-    if (params.movementType) {
-      filter.movementType = params.movementType;
-    }
+    if (params.productId) filter.productId = params.productId;
+    if (params.variantSku) filter.variantSku = params.variantSku;
+    if (params.movementType) filter.movementType = params.movementType;
 
-    const skip = (page - 1) * limit;
-    const [items, total] = await Promise.all([
-      c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-      c.countDocuments(filter),
-    ]);
-
-    return { items, total };
+    return paginateCollection<InventoryItem>(c, filter, { page, limit });
   },
 
   async delete(_id: string): Promise<boolean> {
