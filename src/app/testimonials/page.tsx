@@ -24,7 +24,7 @@ const fallbackTestimonials: Testimonial[] = [
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     isFeatured: true,
-    isActive: true,
+    status: "active",
   },
   {
     _id: "t-2",
@@ -34,7 +34,7 @@ const fallbackTestimonials: Testimonial[] = [
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
     isFeatured: true,
-    isActive: true,
+    status: "active",
   },
   {
     _id: "t-3",
@@ -44,7 +44,7 @@ const fallbackTestimonials: Testimonial[] = [
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
     isFeatured: true,
-    isActive: true,
+    status: "active",
   },
   {
     _id: "t-4",
@@ -54,7 +54,7 @@ const fallbackTestimonials: Testimonial[] = [
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
     isFeatured: false,
-    isActive: true,
+    status: "active",
   },
 ];
 

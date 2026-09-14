@@ -22,7 +22,12 @@ interface HomeTestimonialProps {
 
 const HomeTestimonial = ({ section, initialTestimonials }: HomeTestimonialProps) => {
   const { data } = usePublicTestimonials({ initialTestimonials });
-  const testimonials = data?.data ?? initialTestimonials ?? [];
+  const rawData: any = data?.data;
+  const testimonials: Testimonial[] = Array.isArray(rawData)
+    ? rawData
+    : Array.isArray(rawData?.testimonials)
+    ? rawData.testimonials
+    : (initialTestimonials ?? []);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const headerIndex = section?.data?.headerIndex || "01/8";
