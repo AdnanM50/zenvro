@@ -15,70 +15,21 @@ import {
   staggerItem,
 } from "@/lib/animations";
 
-const fallbackTestimonials: Testimonial[] = [
-  {
-    _id: "t-1",
-    name: "Elena Rostova",
-    role: "Architectural Designer, Berlin",
-    quote: "The drape and weight of the Studio Hanger Coat are unmatched. Structured, minimal, and effortless for everyday studio work.",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    isFeatured: true,
-    status: "active",
-  },
-  {
-    _id: "t-2",
-    name: "Marcus Vance",
-    role: "Creative Director, London",
-    quote: "Velour has redefined daily outer layers for me. The racer leather fits perfectly without feeling overly stiff.",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-    isFeatured: true,
-    status: "active",
-  },
-  {
-    _id: "t-3",
-    name: "Sophia Chen",
-    role: "Fashion Stylist, Tokyo",
-    quote: "Clean lines, high-density fabrics, and thoughtful details. Every drop sells out for a reason.",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-    isFeatured: true,
-    status: "active",
-  },
-  {
-    _id: "t-4",
-    name: "David Sterling",
-    role: "Product Designer, New York",
-    quote: "Fast shipping, impeccable packaging, and garments that hold their shape season after season.",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-    isFeatured: false,
-    status: "active",
-  },
-];
-
 export default function TestimonialsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const { data: testimonialsData, isLoading } = useApiGet<Testimonial[]>({
     queryKey: ["public-testimonials", searchTerm],
     queryFn: () => getPublicTestimonials({ all: true, search: searchTerm || undefined }),
   });
 
-  const testimonials = useMemo(() => {
-    if (testimonialsData?.data && testimonialsData.data.length > 0) {
-      return testimonialsData.data;
-    }
-    if (!searchTerm) return fallbackTestimonials;
-    const s = searchTerm.toLowerCase();
-    return fallbackTestimonials.filter(
-      (t) =>
-        t.name.toLowerCase().includes(s) ||
-        t.role.toLowerCase().includes(s) ||
-        t.quote.toLowerCase().includes(s)
-    );
-  }, [testimonialsData, searchTerm]);
+  const testimonials: Testimonial[] = useMemo(() => {
+    const raw: any = testimonialsData?.data;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.testimonials)) return raw.testimonials;
+    return [];
+  }, [testimonialsData]);
 
   return (
     <main className="bg-surface text-on-surface overflow-hidden min-h-screen">
@@ -232,10 +183,11 @@ export default function TestimonialsPage() {
 
                 {/* Reviewer Profile */}
                 <div className="flex items-center gap-4 border-t border-outline-variant/60 pt-6">
-                  {item.avatar ? (
+                  {item.avatar && !imageErrors[item._id] ? (
                     <img
                       src={item.avatar}
                       alt={item.name}
+                      onError={() => setImageErrors((prev) => ({ ...prev, [item._id]: true }))}
                       className="h-12 w-12 rounded-full object-cover border border-outline-variant"
                     />
                   ) : (

@@ -120,15 +120,18 @@ describe('TestimonialModel Unit Tests (Possible & Impossible Edge Cases)', () =>
       });
 
       expect(res).toEqual({ testimonials: mockArray, total: 1 });
-      expect(mockCollection.find).toHaveBeenCalledWith({
-        $or: [
-          { name: { $regex: 'Emma', $options: 'i' } },
-          { role: { $regex: 'Emma', $options: 'i' } },
-          { quote: { $regex: 'Emma', $options: 'i' } },
-        ],
-        status: 'active',
-        isFeatured: true,
-      });
+      expect(mockCollection.find).toHaveBeenCalledWith(
+        {
+          $or: [
+            { name: { $regex: 'Emma', $options: 'i' } },
+            { role: { $regex: 'Emma', $options: 'i' } },
+            { quote: { $regex: 'Emma', $options: 'i' } },
+          ],
+          status: 'active',
+          isFeatured: true,
+        },
+        expect.objectContaining({ limit: 10, skip: 0 })
+      );
     });
   });
 

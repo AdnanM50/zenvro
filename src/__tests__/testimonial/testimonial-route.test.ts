@@ -12,6 +12,10 @@ jest.mock('next/server', () => {
   };
 });
 
+jest.mock('next/cache', () => ({
+  revalidatePath: jest.fn(),
+}));
+
 jest.mock('@/lib/auth', () => ({
   verifyAccessToken: jest.fn(),
 }));
@@ -25,6 +29,7 @@ jest.mock('@/models/user.model', () => ({
 jest.mock('@/models/testimonial.model', () => ({
   TestimonialModel: {
     findPaginated: jest.fn(),
+    findById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -71,6 +76,12 @@ describe('Testimonials API Route Handlers', () => {
       role: 'admin',
     });
     (UserModel.findById as jest.Mock).mockResolvedValue(adminUser);
+    (TestimonialModel.findById as jest.Mock).mockResolvedValue({
+      _id: 't1',
+      name: 'Emma',
+      role: 'Stylist',
+      quote: 'Great',
+    });
   });
 
   describe('GET /api/admin/testimonials', () => {
@@ -117,7 +128,7 @@ describe('Testimonials API Route Handlers', () => {
       const { status, body } = await parseResponse(res);
 
       expect(status).toBe(400);
-      expect(body.error).toBe('Name is required');
+      expect(body.error).toBe('Testimonial author is required');
     });
 
     it('returns 400 if rating is invalid', async () => {
@@ -155,10 +166,11 @@ describe('Testimonials API Route Handlers', () => {
       const { status, body } = await parseResponse(res);
 
       expect(status).toBe(400);
-      expect(body.error).toBe('_id is required');
+      expect(body.error).toBe('Testimonial ID is required');
     });
 
     it('returns 404 if testimonial is not found', async () => {
+      (TestimonialModel.findById as jest.Mock).mockResolvedValue(null);
       (TestimonialModel.update as jest.Mock).mockResolvedValue(false);
       const req = makeRequest({ method: 'PATCH', body: { _id: 't999', name: 'Updated' } });
       const res = await PATCH(req);
@@ -204,10 +216,11 @@ describe('Testimonials API Route Handlers', () => {
       const { status, body } = await parseResponse(res);
 
       expect(status).toBe(400);
-      expect(body.error).toBe('_id is required');
+      expect(body.error).toBe('Testimonial ID is required');
     });
 
     it('returns 404 if testimonial to delete is not found', async () => {
+      (TestimonialModel.findById as jest.Mock).mockResolvedValue(null);
       (TestimonialModel.delete as jest.Mock).mockResolvedValue(false);
       const req = makeRequest({ method: 'DELETE', url: 'http://localhost/api/admin/testimonials?_id=t999' });
       const res = await DELETE(req);

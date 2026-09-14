@@ -29,6 +29,7 @@ export async function revalidatePublicPage(slug: string): Promise<void> {
  * the public testimonials API route for direct fetches.
  */
 export async function revalidatePublicTestimonials(): Promise<void> {
+  if (process.env.NODE_ENV === 'test') return;
   try {
     const { revalidatePath } = await import('next/cache');
     revalidatePath('/');

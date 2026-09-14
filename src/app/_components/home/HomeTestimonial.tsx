@@ -29,6 +29,7 @@ const HomeTestimonial = ({ section, initialTestimonials }: HomeTestimonialProps)
     ? rawData.testimonials
     : (initialTestimonials ?? []);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const headerIndex = section?.data?.headerIndex || "01/8";
   const tag = section?.data?.tag || "[Testimonial]";
@@ -37,6 +38,7 @@ const HomeTestimonial = ({ section, initialTestimonials }: HomeTestimonialProps)
   // Clamp during render so a shrinking list never yields out-of-bounds index
   const currentIndex = testimonials.length > 0 ? Math.min(activeIndex, testimonials.length - 1) : 0;
   const current = testimonials.length > 0 ? testimonials[currentIndex] : null;
+  const hasValidAvatar = !!current?.avatar && !imageErrors[current._id];
 
   // Refs for GSAP animation targets
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,15 +145,19 @@ const HomeTestimonial = ({ section, initialTestimonials }: HomeTestimonialProps)
               {/* Next.js Optimized Image */}
               <div ref={imageRef} className="relative group overflow-hidden rounded-lg">
                 <div className="absolute inset-0 bg-primary-fixed opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-lg z-10 pointer-events-none"></div>
-                {current.avatar ? (
+                {hasValidAvatar ? (
                   <div className="relative w-full aspect-3/4 shadow-xl geometric-clip overflow-hidden">
                     <Image
                       alt={`${current.name} Profile`}
-                      src={current.avatar}
+                      src={current.avatar!}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       quality={75}
                       priority
+                      unoptimized
+                      onError={() => {
+                        setImageErrors((prev) => ({ ...prev, [current._id]: true }));
+                      }}
                       className="object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700"
                     />
                   </div>
