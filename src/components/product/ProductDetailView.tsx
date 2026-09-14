@@ -94,9 +94,9 @@ export default function ProductDetailView({
                 initial="hidden"
                 animate="visible"
                 custom={0.25}
-                className="mt-7 max-w-[530px] text-sm leading-7 text-secondary md:text-base"
+                className="mt-7 max-w-[530px] text-sm leading-7 text-secondary md:text-base font-medium"
               >
-                {product.description}
+                {product.shortDescription || product.tagline || product.description}
               </motion.p>
             </div>
 
@@ -167,6 +167,18 @@ export default function ProductDetailView({
                 )}
               </div>
 
+              {/* Product Description Section */}
+              {product.description && (
+                <div className="py-6 border-t border-outline-variant/60">
+                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-3">
+                    Description
+                  </p>
+                  <p className="text-sm md:text-base leading-7 text-on-surface font-medium">
+                    {product.description}
+                  </p>
+                </div>
+              )}
+
               {/* Dynamic Product Specifications */}
               {product.specifications && Object.keys(product.specifications).length > 0 && (
                 <div className="py-6 border-t border-outline-variant/60">
@@ -198,7 +210,7 @@ export default function ProductDetailView({
                           key={tag}
                           className="inline-flex items-center px-3 py-1 bg-surface-container text-on-surface font-label text-[10px] font-bold uppercase tracking-[0.16em] border border-outline-variant/60 rounded-sm"
                         >
-                          #{tag}
+                          #{tag.replace(/^#/, '').toUpperCase()}
                         </span>
                       ))}
                   </div>
@@ -229,23 +241,39 @@ export default function ProductDetailView({
                 </div>
               </div>
 
-              {/* Features */}
-              <div className="space-y-3 pb-8">
-                {(product.details || [])
-                  .filter((detail) => Boolean(detail) && !/^[0-9a-fA-F]{24}$/.test(detail))
-                  .map((detail, index) => (
-                    <motion.div
-                      key={detail}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + index * 0.05 }}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <span className="material-symbols-outlined text-[18px] text-primary-fixed">check_circle</span>
-                      <span className="text-sm font-bold">{detail}</span>
-                    </motion.div>
-                  ))}
-              </div>
+              {/* Key Features / Highlights (Only if not matching tags) */}
+              {product.details &&
+                product.details.filter(
+                  (detail) =>
+                    Boolean(detail) &&
+                    !/^[0-9a-fA-F]{24}$/.test(detail) &&
+                    !(product.tags || []).some((t) => t.toLowerCase() === detail.toLowerCase())
+                ).length > 0 && (
+                  <div className="space-y-2 py-4 border-t border-outline-variant/60">
+                    <p className="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-3">
+                      Key Highlights
+                    </p>
+                    {product.details
+                      .filter(
+                        (detail) =>
+                          Boolean(detail) &&
+                          !/^[0-9a-fA-F]{24}$/.test(detail) &&
+                          !(product.tags || []).some((t) => t.toLowerCase() === detail.toLowerCase())
+                      )
+                      .map((detail, index) => (
+                        <motion.div
+                          key={detail}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 + index * 0.05 }}
+                          className="flex items-center gap-3 py-1"
+                        >
+                          <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+                          <span className="text-xs font-bold text-on-surface">{detail}</span>
+                        </motion.div>
+                      ))}
+                  </div>
+                )}
 
               {/* Add to Bag Button */}
               <motion.button
@@ -257,6 +285,82 @@ export default function ProductDetailView({
                 Add to Bag
                 <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
               </motion.button>
+
+              {/* Trust Badges */}
+              <div className="grid grid-cols-3 gap-3 pt-6 border-t border-outline-variant/60">
+                <div className="flex flex-col items-center text-center p-3 bg-surface-container rounded-sm">
+                  <span className="material-symbols-outlined text-[20px] text-primary mb-1">local_shipping</span>
+                  <span className="font-label text-[9px] font-black uppercase tracking-[0.16em]">Free Express</span>
+                  <span className="text-[10px] text-secondary mt-0.5">Orders over $150</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-3 bg-surface-container rounded-sm">
+                  <span className="material-symbols-outlined text-[20px] text-primary mb-1">published_with_changes</span>
+                  <span className="font-label text-[9px] font-black uppercase tracking-[0.16em]">30-Day Returns</span>
+                  <span className="text-[10px] text-secondary mt-0.5">Effortless exchange</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-3 bg-surface-container rounded-sm">
+                  <span className="material-symbols-outlined text-[20px] text-primary mb-1">verified</span>
+                  <span className="font-label text-[9px] font-black uppercase tracking-[0.16em]">100% Authentic</span>
+                  <span className="text-[10px] text-secondary mt-0.5">Velour Direct</span>
+                </div>
+              </div>
+
+              {/* Garment, Wear & Care Guide Accordion */}
+              <div className="border-t border-outline-variant/60 pt-6 space-y-4">
+                <p className="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-2">
+                  Garment, Wear & Care Guide
+                </p>
+
+                <div className="space-y-3">
+                  {/* Wear & Styling */}
+                  <details className="group border border-outline-variant/60 bg-background p-4 rounded-sm transition" open>
+                    <summary className="flex cursor-pointer items-center justify-between font-label text-[10px] font-black uppercase tracking-[0.18em] text-on-surface">
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] text-primary">checkroom</span>
+                        Wear & Styling Notes
+                      </span>
+                      <span className="material-symbols-outlined text-[18px] transition-transform duration-300 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div className="mt-3 pt-3 border-t border-outline-variant/40 text-xs leading-6 text-secondary space-y-1.5">
+                      <p>• <strong>Silhouette:</strong> Designed for an elevated, relaxed drape suitable for multi-season layering.</p>
+                      <p>• <strong>Styling Advice:</strong> Pair with tailored trousers or heavy-weight denim for a refined, modern architectural look.</p>
+                      <p>• <strong>Occasion:</strong> Ideal for urban daily wear, evening transitions, and travel.</p>
+                    </div>
+                  </details>
+
+                  {/* Fabric & Craftsmanship */}
+                  <details className="group border border-outline-variant/60 bg-background p-4 rounded-sm transition">
+                    <summary className="flex cursor-pointer items-center justify-between font-label text-[10px] font-black uppercase tracking-[0.18em] text-on-surface">
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] text-primary">texture</span>
+                        Fabric & Composition
+                      </span>
+                      <span className="material-symbols-outlined text-[18px] transition-transform duration-300 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div className="mt-3 pt-3 border-t border-outline-variant/40 text-xs leading-6 text-secondary space-y-1.5">
+                      <p>• <strong>Material:</strong> {product.material || "High-density cotton & technical weave"}.</p>
+                      <p>• <strong>Hardware & Lining:</strong> Custom hardware with soft breathable inner lining for maximum comfort.</p>
+                      <p>• <strong>Finish:</strong> Matte-coated finish with water-repellent properties.</p>
+                    </div>
+                  </details>
+
+                  {/* Maintenance & Care */}
+                  <details className="group border border-outline-variant/60 bg-background p-4 rounded-sm transition">
+                    <summary className="flex cursor-pointer items-center justify-between font-label text-[10px] font-black uppercase tracking-[0.18em] text-on-surface">
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] text-primary">dry_cleaning</span>
+                        Care & Maintenance
+                      </span>
+                      <span className="material-symbols-outlined text-[18px] transition-transform duration-300 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div className="mt-3 pt-3 border-t border-outline-variant/40 text-xs leading-6 text-secondary space-y-1.5">
+                      <p>• Professional dry clean recommended for optimal texture preservation.</p>
+                      <p>• Store on wide wooden hanger in a cool, dry garment bag.</p>
+                      <p>• Do not tumble dry. Do not bleach. Cool iron on reverse if needed.</p>
+                    </div>
+                  </details>
+                </div>
+              </div>
             </motion.div>
           </div>
 

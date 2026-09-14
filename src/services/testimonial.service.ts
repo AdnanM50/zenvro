@@ -13,7 +13,7 @@ export function getTestimonials(params: TestimonialListParams = {}) {
   return httpGet<Testimonial[]>(`${BASE_URL}${buildQueryString(params)}`);
 }
 
-export function getPublicTestimonials(params: { limit?: number } = {}) {
+export function getPublicTestimonials(params: TestimonialListParams & { all?: boolean } = {}) {
   return httpGet<Testimonial[]>(`${PUBLIC_BASE_URL}${buildQueryString(params)}`);
 }
 

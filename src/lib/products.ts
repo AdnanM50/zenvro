@@ -20,6 +20,7 @@ export type Product = {
   rating: string;
   reviewsCount: number;
   tagline: string;
+  shortDescription?: string;
   description: string;
   image: string;
   images: string[];
@@ -205,9 +206,9 @@ export function formatProductForUI(
     categoryName = 'Apparel';
   }
 
-  // Process details/tags: map Tag ObjectIDs to Tag Names and filter out raw hex IDs
-  const rawTags: string[] = Array.isArray(p.tags) ? p.tags : (Array.isArray(p.details) ? p.details : []);
-  const mappedDetails: string[] = [];
+  // Process tags: map Tag ObjectIDs to Tag Names and filter out raw hex IDs
+  const rawTags: string[] = Array.isArray(p.tags) ? p.tags : [];
+  const mappedTags: string[] = [];
 
   for (const t of rawTags) {
     if (typeof t !== 'string') continue;
@@ -215,15 +216,27 @@ export function formatProductForUI(
     if (!cleanT) continue;
 
     if (tagMap && (tagMap[cleanT] || tagMap[cleanT.toLowerCase()])) {
-      mappedDetails.push(tagMap[cleanT] || tagMap[cleanT.toLowerCase()]);
+      mappedTags.push(tagMap[cleanT] || tagMap[cleanT.toLowerCase()]);
     } else if (!/^[0-9a-fA-F]{24}$/.test(cleanT)) {
-      mappedDetails.push(cleanT);
+      mappedTags.push(cleanT);
     }
   }
 
-  const finalDetails = mappedDetails.length > 0
-    ? Array.from(new Set(mappedDetails))
-    : [categoryName, p.brand, p.material].filter((item): item is string => Boolean(item) && !/^[0-9a-fA-F]{24}$/.test(item));
+  const resolvedTags = mappedTags.length > 0 ? Array.from(new Set(mappedTags)) : [];
+
+  // Process details: filter out raw hex ObjectIDs and items that match tags
+  const rawDetails: string[] = Array.isArray(p.details) ? p.details : [];
+  const cleanDetails = rawDetails.filter((d: string) => {
+    if (typeof d !== 'string') return false;
+    const clean = d.trim();
+    if (!clean || /^[0-9a-fA-F]{24}$/.test(clean)) return false;
+    const lower = clean.toLowerCase();
+    return !resolvedTags.some((t) => t.toLowerCase() === lower);
+  });
+
+  const finalDetails = cleanDetails.length > 0
+    ? Array.from(new Set(cleanDetails))
+    : ['Tailored contemporary silhouette', 'High-density fabric construction', 'Reinforced stitching & premium hardware'];
 
   // If already matches UI Product structure
   if (
@@ -237,7 +250,8 @@ export function formatProductForUI(
     return {
       ...p,
       category: categoryName,
-      details: finalDetails.length > 0 ? finalDetails : ['Premium finish', 'Thoughtfully designed'],
+      details: finalDetails,
+      tags: resolvedTags.length > 0 ? resolvedTags : (p.tags || []),
     } as Product;
   }
 
@@ -273,7 +287,8 @@ export function formatProductForUI(
     price: formattedPrice,
     rating: p.rating ? String(p.rating) : '4.9',
     reviewsCount: typeof p.reviewsCount === 'number' ? p.reviewsCount : 12,
-    tagline: p.shortDescription || p.name || '',
+    tagline: p.shortDescription || p.tagline || p.name || '',
+    shortDescription: p.shortDescription || p.tagline || '',
     description: p.description || p.shortDescription || '',
     image: featuredImg,
     images: imagesList.length > 0 ? imagesList : [featuredImg],
@@ -281,9 +296,9 @@ export function formatProductForUI(
     material,
     fit,
     sizes,
-    details: finalDetails.length > 0 ? finalDetails : ['Premium finish', 'Thoughtfully designed'],
+    details: finalDetails,
     specifications: specs,
-    tags: finalDetails.length > 0 ? finalDetails : [],
+    tags: resolvedTags,
     reviews: p.reviews || [
       { name: 'Customer', rating: 5, comment: 'Exceptional quality and modern fit.' }
     ],

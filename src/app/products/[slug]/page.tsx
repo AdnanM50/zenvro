@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ProductDetailView from "@/components/product/ProductDetailView";
 import { ProductModel } from "@/models/product.model";
 import { CategoryModel } from "@/models/category.model";
+import { TagModel } from "@/models/tag.model";
 import {
   getProductBySlug,
   getRelatedProducts,
@@ -44,13 +45,23 @@ async function fetchProductAndRelated(slug: string): Promise<{
       });
     } catch {}
 
+    let tagMap: Record<string, string> = {};
+    try {
+      const tags = await TagModel.findAll();
+      tags.forEach((t) => {
+        if (t._id) tagMap[t._id] = t.name;
+        if (t.slug) tagMap[t.slug] = t.name;
+        if (t.name) tagMap[t.name] = t.name;
+      });
+    } catch {}
+
     let dbProduct = await ProductModel.findBySlug(slug);
     if (!dbProduct) {
       dbProduct = await ProductModel.findById(slug);
     }
 
     if (dbProduct && dbProduct.status === "published") {
-      const formatted = formatProductForUI(JSON.parse(JSON.stringify(dbProduct)), categoryMap);
+      const formatted = formatProductForUI(JSON.parse(JSON.stringify(dbProduct)), categoryMap, tagMap);
 
       // Fetch related published products from same category
       const catResult = await ProductModel.findPaginated(1, 10, {
@@ -64,7 +75,7 @@ async function fetchProductAndRelated(slug: string): Promise<{
         .slice(0, 3);
 
       let formattedRelated = relatedRaw.map((p) =>
-        formatProductForUI(JSON.parse(JSON.stringify(p)), categoryMap)
+        formatProductForUI(JSON.parse(JSON.stringify(p)), categoryMap, tagMap)
       );
 
       if (formattedRelated.length < 3) {

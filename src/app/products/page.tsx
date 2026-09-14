@@ -5,6 +5,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { products as fallbackProducts, type Product } from "@/lib/products";
 import { useGetPublicProducts } from "@/hooks/use-products";
+import { useApiGet } from "@/hooks/use-api";
+import { getPublicCategories } from "@/services/category.service";
+import type { Category } from "@/types";
 import {
   EASE_LUXURY,
   VIEWPORT_CONFIG,
@@ -32,6 +35,11 @@ export default function ProductsPage() {
   const [sort, setSort] = useState<SortKey>("featured");
   const [isSortOpen, setIsSortOpen] = useState(false);
 
+  const { data: categoriesData } = useApiGet<Category[]>({
+    queryKey: ["public-categories"],
+    queryFn: () => getPublicCategories({ all: true }),
+  });
+
   const { data: publicData, isLoading } = useGetPublicProducts({
     params: {
       sort,
@@ -44,14 +52,18 @@ export default function ProductsPage() {
     : fallbackProducts;
 
   const categories = useMemo(() => {
-    const list = rawProductsList.map((p) => p.category).filter(Boolean);
-    return ["All", ...Array.from(new Set(list))];
-  }, [rawProductsList]);
+    const fromApi = Array.isArray(categoriesData?.data) ? categoriesData.data.map((c) => c.name) : [];
+    const fromProducts = rawProductsList.map((p) => p.category).filter(Boolean);
+    const combined = Array.from(new Set([...fromApi, ...fromProducts]));
+    return ["All", ...combined];
+  }, [categoriesData, rawProductsList]);
 
   const filtered = useMemo(() => {
     const list = activeCategory === "All"
       ? [...rawProductsList]
-      : rawProductsList.filter((p) => p.category === activeCategory);
+      : rawProductsList.filter(
+          (p) => p.category.toLowerCase() === activeCategory.toLowerCase() || p.category === activeCategory
+        );
 
     switch (sort) {
       case "price-asc":
@@ -261,7 +273,7 @@ export default function ProductsPage() {
         initial="hidden"
         whileInView="visible"
         viewport={VIEWPORT_CONFIG}
-        className="border-t border-outline-variant bg-black px-5 py-16 text-white md:px-10 lg:px-16"
+        className="border-b border-outline-variant bg-black px-5 py-16 text-white md:px-10 lg:px-16"
       >
         <div className="mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div>
@@ -273,7 +285,7 @@ export default function ProductsPage() {
             </h2>
           </div>
           <Link
-            href="/#collections-section"
+            href="/collections"
             className="inline-flex h-14 items-center gap-3 border border-white px-8 font-label text-[11px] font-black uppercase tracking-[0.2em] transition hover:bg-white hover:text-black"
           >
             Explore collections

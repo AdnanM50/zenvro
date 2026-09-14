@@ -20,6 +20,7 @@ import {
 } from '@/lib/http-client';
 
 const BASE_URL = '/api/admin/categories';
+const PUBLIC_BASE_URL = '/api/categories';
 
 // ── Params & payload types ─────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ export interface CategoryListParams {
   page?: number;
   limit?: number;
   search?: string;
+  all?: boolean;
 }
 
 /** Payload for creating a category (loose — matches the form's optional fields) */
@@ -48,9 +50,14 @@ export interface UpdateCategoryPayload extends Partial<CreateCategoryPayload> {
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
-/** GET a paginated/filtered list of categories */
+/** GET a paginated/filtered list of categories (Admin) */
 export function getCategories(params: CategoryListParams = {}) {
   return httpGet<Category[]>(`${BASE_URL}${buildQueryString(params)}`);
+}
+
+/** GET public categories (Public) */
+export function getPublicCategories(params: CategoryListParams = {}) {
+  return httpGet<Category[]>(`${PUBLIC_BASE_URL}${buildQueryString(params)}`);
 }
 
 /** POST — create a new category */

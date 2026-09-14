@@ -5,11 +5,6 @@ import { api } from '@/lib/api-response';
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
-/**
- * Parses the `limit` query param into a safe integer.
- * Falls back to DEFAULT_LIMIT when the value is missing, empty, non-numeric,
- * zero, or negative; caps the result at MAX_LIMIT.
- */
 function parseLimit(value: string | null): number {
   if (value === null || value === '') return DEFAULT_LIMIT;
   const n = Number(value);
@@ -19,22 +14,49 @@ function parseLimit(value: string | null): number {
 
 /**
  * PUBLIC testimonials endpoint (no auth required).
- *
- * Serves only active testimonials, featured first, as managed from the
- * private admin API (`/api/admin/testimonials`). The homepage consumes this
- * via `usePublicTestimonials` and the ISR-seeded server data.
+ * Serves only active testimonials, featured first.
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseLimit(searchParams.get('limit'));
+    const search = searchParams.get('search') || undefined;
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+    const all = searchParams.get('all') === 'true';
 
-    const testimonials = await TestimonialModel.findAllActive();
-    const data = testimonials.slice(0, limit);
+    let testimonials = await TestimonialModel.findAllActive();
 
-    return api.ok(data, 'Testimonials fetched');
+    if (search) {
+      const s = search.toLowerCase();
+      testimonials = testimonials.filter(
+        (t) =>
+          t.name.toLowerCase().includes(s) ||
+          t.role.toLowerCase().includes(s) ||
+          t.quote.toLowerCase().includes(s)
+      );
+    }
+
+    if (all || (!pageParam && searchParams.get('limit') === null)) {
+      const limit = parseLimit(limitParam);
+      const data = testimonials.slice(0, limit);
+      return api.ok(data, 'Testimonials fetched');
+    }
+
+    const page = Math.max(1, parseInt(pageParam || '1', 10));
+    const limit = parseLimit(limitParam);
+
+    const startIndex = (page - 1) * limit;
+    const paginatedData = testimonials.slice(startIndex, startIndex + limit);
+    const total = testimonials.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return api.paginated(
+      paginatedData,
+      { page, limit, total, totalPages },
+      'Testimonials fetched'
+    );
   } catch (error) {
     console.error('Get public testimonials error:', error);
-    return api.serverError();
+    return api.serverError('Failed to fetch testimonials');
   }
 }

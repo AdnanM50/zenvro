@@ -11,9 +11,9 @@ import { lenisStore } from "@/lib/lenis";
 const sectionLinks = [
   { label: "Home", href: "/#home" },
   { label: "About", href: "/about" },
-  { label: "Testimonials", href: "/#testimonials" },
+  { label: "Testimonials", href: "/testimonials" },
   { label: "Featured Product", href: "/#products" },
-  { label: "Collections", href: "/#collections-section" },
+  { label: "Collections", href: "/collections" },
 ];
 
 const pageLinks = [

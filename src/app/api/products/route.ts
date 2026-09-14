@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             c.slug.toLowerCase() === categoryParam!.toLowerCase()
         );
         if (matched) {
-          categoryParam = matched._id;
+          categoryParam = { $in: [matched._id, matched.name, matched.slug] } as any;
         }
       }
     } catch (e) {
