@@ -2,37 +2,58 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { products } from "@/lib/products";
+import { products as fallbackProducts, type Product as UIProduct } from "@/lib/products";
+import { useGetPublicProducts } from "@/hooks/use-products";
 import {
   fadeUp, fadeIn,
   VIEWPORT_CONFIG, EASE_LUXURY,
 } from "@/lib/animations";
 
-const Product = () => {
+interface ProductProps {
+  initialProducts?: UIProduct[] | null;
+}
+
+const Product: React.FC<ProductProps> = ({ initialProducts }) => {
+  const { data: publicData } = useGetPublicProducts({
+    params: { limit: 20, isFeatured: true },
+  });
+
+  const productsList = (publicData?.data && publicData.data.length > 0)
+    ? publicData.data
+    : (initialProducts && initialProducts.length > 0)
+    ? initialProducts
+    : fallbackProducts;
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
 
+  const listLength = productsList.length;
+
   const nextSlide = useCallback(() => {
     setDirection(1);
-    setActiveIndex((p) => (p + 1) % products.length);
-  }, []);
+    setActiveIndex((p) => (p + 1) % listLength);
+  }, [listLength]);
 
   const prevSlide = useCallback(() => {
     setDirection(-1);
-    setActiveIndex((p) => (p - 1 + products.length) % products.length);
-  }, []);
+    setActiveIndex((p) => (p - 1 + listLength) % listLength);
+  }, [listLength]);
 
-  const activeProduct = products[activeIndex];
-  const prevProduct = products[(activeIndex - 1 + products.length) % products.length];
-  const nextProduct = products[(activeIndex + 1) % products.length];
+  const safeIndex = activeIndex % listLength;
+  const activeProduct = productsList[safeIndex] || productsList[0];
+  const prevProduct = productsList[(safeIndex - 1 + listLength) % listLength] || activeProduct;
+  const nextProduct = productsList[(safeIndex + 1) % listLength] || activeProduct;
+  const farLeftProduct = productsList[(safeIndex - 2 + listLength) % listLength] || prevProduct;
+  const farRightProduct = productsList[(safeIndex + 2) % listLength] || nextProduct;
 
   // Auto-play carousel
   useEffect(() => {
-    if (isHovering) return;
+    if (isHovering || listLength <= 1) return;
     const timer = setInterval(nextSlide, 4000);
     return () => clearInterval(timer);
-  }, [isHovering, nextSlide]);
+  }, [isHovering, nextSlide, listLength]);
+
 
   // Slide variants for AnimatePresence
   const slideVariants = {
@@ -122,9 +143,9 @@ const Product = () => {
           >
             <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative overflow-hidden">
               <img
-                alt={products[(activeIndex - 2 + products.length) % products.length].name}
+                alt={farLeftProduct.name}
                 className="w-full h-full object-cover"
-                src={products[(activeIndex - 2 + products.length) % products.length].image}
+                src={farLeftProduct.image}
               />
             </div>
           </motion.div>
@@ -180,11 +201,11 @@ const Product = () => {
                     />
                     {/* Hover overlay */}
                     <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                      <div className="bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center justify-between gap-4">
+                      <div className="bg-white/90 backdrop-blur-sm pl-4 pr-12 py-3 flex items-center justify-between gap-4">
                         <span className="font-label text-[10px] md:text-xs font-black tracking-[0.18em] uppercase">
                           {activeProduct.name}
                         </span>
-                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        <span className="material-symbols-outlined text-[18px] shrink-0">arrow_forward</span>
                       </div>
                     </div>
                   </motion.div>
@@ -208,7 +229,7 @@ const Product = () => {
               </AnimatePresence>
 
               <div className="flex gap-2">
-                {products.map((product, dot) => (
+                {productsList.map((product, dot) => (
                   <motion.span
                     key={product.slug}
                     onClick={() => {
@@ -258,9 +279,9 @@ const Product = () => {
           >
             <div className="w-full aspect-4/5 geometric-clip-product bg-surface-container relative overflow-hidden">
               <img
-                alt={products[(activeIndex + 2) % products.length].name}
+                alt={farRightProduct.name}
                 className="w-full h-full object-cover"
-                src={products[(activeIndex + 2) % products.length].image}
+                src={farRightProduct.image}
               />
             </div>
           </motion.div>

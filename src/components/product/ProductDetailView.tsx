@@ -147,19 +147,63 @@ export default function ProductDetailView({
 
               {/* Product Details Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
-                <div className="flex justify-between gap-4 pb-3 border-b border-outline-variant/50">
-                  <span className="text-secondary text-sm">Color</span>
-                  <span className="font-bold text-sm">{product.color}</span>
-                </div>
-                <div className="flex justify-between gap-4 pb-3 border-b border-outline-variant/50">
-                  <span className="text-secondary text-sm">Material</span>
-                  <span className="text-right font-bold text-sm">{product.material}</span>
-                </div>
-                <div className="flex justify-between gap-4 pb-3 border-b border-outline-variant/50 md:col-span-2">
-                  <span className="text-secondary text-sm">Fit</span>
-                  <span className="text-right font-bold text-sm">{product.fit}</span>
-                </div>
+                {product.color && (
+                  <div className="flex justify-between gap-4 pb-3 border-b border-outline-variant/50">
+                    <span className="text-secondary text-sm">Color</span>
+                    <span className="font-bold text-sm">{product.color}</span>
+                  </div>
+                )}
+                {product.material && (
+                  <div className="flex justify-between gap-4 pb-3 border-b border-outline-variant/50">
+                    <span className="text-secondary text-sm">Material</span>
+                    <span className="text-right font-bold text-sm">{product.material}</span>
+                  </div>
+                )}
+                {product.fit && (
+                  <div className="flex justify-between gap-4 pb-3 border-b border-outline-variant/50 md:col-span-2">
+                    <span className="text-secondary text-sm">Fit</span>
+                    <span className="text-right font-bold text-sm">{product.fit}</span>
+                  </div>
+                )}
               </div>
+
+              {/* Dynamic Product Specifications */}
+              {product.specifications && Object.keys(product.specifications).length > 0 && (
+                <div className="py-6 border-t border-outline-variant/60">
+                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-4">
+                    Product Specifications
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(product.specifications).map(([key, val]) => (
+                      <div key={key} className="flex justify-between gap-4 pb-3 border-b border-outline-variant/40">
+                        <span className="text-secondary text-sm font-medium">{key}</span>
+                        <span className="text-right font-bold text-sm text-on-surface">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tags Section */}
+              {product.tags && product.tags.filter((t) => Boolean(t) && !/^[0-9a-fA-F]{24}$/.test(t)).length > 0 && (
+                <div className="py-4 border-t border-outline-variant/60">
+                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-3">
+                    Tags
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags
+                      .filter((tag) => Boolean(tag) && !/^[0-9a-fA-F]{24}$/.test(tag))
+                      .map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center px-3 py-1 bg-surface-container text-on-surface font-label text-[10px] font-bold uppercase tracking-[0.16em] border border-outline-variant/60 rounded-sm"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
 
               {/* Size Selection */}
               <div className="py-6">
@@ -167,7 +211,7 @@ export default function ProductDetailView({
                   Select Size
                 </p>
                 <div className="grid grid-cols-5 gap-2">
-                  {product.sizes.map((size) => (
+                  {(product.sizes || ["S", "M", "L"]).map((size) => (
                     <motion.button
                       key={size}
                       whileHover={{ scale: 1.02 }}
@@ -187,18 +231,20 @@ export default function ProductDetailView({
 
               {/* Features */}
               <div className="space-y-3 pb-8">
-                {product.details.map((detail, index) => (
-                  <motion.div
-                    key={detail}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + index * 0.05 }}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <span className="material-symbols-outlined text-[18px] text-primary-fixed">check_circle</span>
-                    <span className="text-sm font-bold">{detail}</span>
-                  </motion.div>
-                ))}
+                {(product.details || [])
+                  .filter((detail) => Boolean(detail) && !/^[0-9a-fA-F]{24}$/.test(detail))
+                  .map((detail, index) => (
+                    <motion.div
+                      key={detail}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.05 }}
+                      className="flex items-center gap-3 py-2"
+                    >
+                      <span className="material-symbols-outlined text-[18px] text-primary-fixed">check_circle</span>
+                      <span className="text-sm font-bold">{detail}</span>
+                    </motion.div>
+                  ))}
               </div>
 
               {/* Add to Bag Button */}
@@ -342,7 +388,7 @@ export default function ProductDetailView({
             viewport={VIEWPORT_CONFIG}
             className="lg:col-span-4 space-y-4"
           >
-            {product.reviews.map((review) => (
+            {(product.reviews || []).map((review) => (
               <motion.article key={review.name} variants={staggerItem} className="border border-outline-variant p-5">
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="font-black">{review.name}</h3>
@@ -369,7 +415,7 @@ export default function ProductDetailView({
           >
             <div className="border border-outline-variant p-5">
               <div className="space-y-4">
-                {product.comments.map((comment) => (
+                {(product.comments || []).map((comment) => (
                   <div key={`${comment.author}-${comment.time}`} className="border-b border-outline-variant pb-4 last:border-b-0 last:pb-0">
                     <div className="flex items-center justify-between gap-4">
                       <p className="font-bold">{comment.author}</p>

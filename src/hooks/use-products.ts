@@ -134,6 +134,41 @@ export function useGetProduct(productId: string, { options }: UseGetProductParam
   });
 }
 
+// ── Public Product Hooks ───────────────────────────────────────────────────
+
+interface UseGetPublicProductsParams {
+  params?: ProductListParams & { sort?: string };
+  initialData?: ApiSuccessResponse<import('@/lib/products').Product[]>;
+  options?: Partial<
+    Omit<
+      UseQueryOptions<ApiSuccessResponse<import('@/lib/products').Product[]>, ApiError>,
+      'queryKey' | 'queryFn'
+    >
+  >;
+}
+
+export function useGetPublicProducts({ params = {}, initialData, options }: UseGetPublicProductsParams = {}) {
+  return useQuery<ApiSuccessResponse<import('@/lib/products').Product[]>, ApiError>({
+    queryKey: ['public-products', params],
+    queryFn: () => productApi.getPublicProducts(params),
+    staleTime: STALE_TIME,
+    initialData,
+    placeholderData: (previousData) => previousData,
+    ...options,
+  });
+}
+
+export function useGetPublicProduct(slug: string, options?: Partial<Omit<UseQueryOptions<ApiSuccessResponse<{ product: import('@/lib/products').Product; relatedProducts: import('@/lib/products').Product[] }>, ApiError>, 'queryKey' | 'queryFn'>>) {
+  return useQuery<ApiSuccessResponse<{ product: import('@/lib/products').Product; relatedProducts: import('@/lib/products').Product[] }>, ApiError>({
+    queryKey: ['public-product-detail', slug],
+    queryFn: () => productApi.getPublicProductBySlug(slug),
+    enabled: Boolean(slug),
+    staleTime: STALE_TIME,
+    ...options,
+  });
+}
+
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 4. MUTATION HOOKS
 // ═══════════════════════════════════════════════════════════════════════════

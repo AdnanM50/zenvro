@@ -11,7 +11,7 @@ export type ProductComment = {
 };
 
 export type Product = {
-  id: number;
+  id: number | string;
   slug: string;
   name: string;
   category: string;
@@ -28,6 +28,8 @@ export type Product = {
   fit: string;
   sizes: string[];
   details: string[];
+  specifications?: Record<string, string>;
+  tags?: string[];
   reviews: ProductReview[];
   comments: ProductComment[];
 };
@@ -173,4 +175,120 @@ export function getProductBySlug(slug: string) {
 
 export function getRelatedProducts(slug: string) {
   return products.filter((product) => product.slug !== slug).slice(0, 3);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function formatProductForUI(
+  rawProduct: any,
+  categoryMap?: Record<string, string>,
+  tagMap?: Record<string, string>
+): Product {
+  if (!rawProduct) {
+    return products[0];
+  }
+
+  const p = typeof rawProduct.toObject === 'function' ? rawProduct.toObject() : rawProduct;
+
+  let rawCat = p.categoryName || p.category || 'Apparel';
+  let categoryName = rawCat;
+
+  if (categoryMap) {
+    if (categoryMap[rawCat]) {
+      categoryName = categoryMap[rawCat];
+    } else if (categoryMap[rawCat.toLowerCase()]) {
+      categoryName = categoryMap[rawCat.toLowerCase()];
+    }
+  }
+
+  // If category is a 24-character hexadecimal ObjectId and couldn't be mapped, fallback to clean name
+  if (/^[0-9a-fA-F]{24}$/.test(categoryName)) {
+    categoryName = 'Apparel';
+  }
+
+  // Process details/tags: map Tag ObjectIDs to Tag Names and filter out raw hex IDs
+  const rawTags: string[] = Array.isArray(p.tags) ? p.tags : (Array.isArray(p.details) ? p.details : []);
+  const mappedDetails: string[] = [];
+
+  for (const t of rawTags) {
+    if (typeof t !== 'string') continue;
+    const cleanT = t.trim();
+    if (!cleanT) continue;
+
+    if (tagMap && (tagMap[cleanT] || tagMap[cleanT.toLowerCase()])) {
+      mappedDetails.push(tagMap[cleanT] || tagMap[cleanT.toLowerCase()]);
+    } else if (!/^[0-9a-fA-F]{24}$/.test(cleanT)) {
+      mappedDetails.push(cleanT);
+    }
+  }
+
+  const finalDetails = mappedDetails.length > 0
+    ? Array.from(new Set(mappedDetails))
+    : [categoryName, p.brand, p.material].filter((item): item is string => Boolean(item) && !/^[0-9a-fA-F]{24}$/.test(item));
+
+  // If already matches UI Product structure
+  if (
+    p.price &&
+    typeof p.price === 'string' &&
+    p.image &&
+    Array.isArray(p.images) &&
+    p.tagline &&
+    !/^[0-9a-fA-F]{24}$/.test(p.category)
+  ) {
+    return {
+      ...p,
+      category: categoryName,
+      details: finalDetails.length > 0 ? finalDetails : ['Premium finish', 'Thoughtfully designed'],
+    } as Product;
+  }
+
+  const numPrice = p.salePrice > 0 ? p.salePrice : (p.regularPrice || 0);
+  const formattedPrice = `$${numPrice}`;
+
+  const featuredImg = p.featuredImage || p.media?.featuredImage || (p.gallery?.[0]) || '';
+  const galleryImgs: string[] = p.gallery || p.media?.gallery || [];
+
+  const imagesList = Array.from(new Set([featuredImg, ...galleryImgs].filter(Boolean)));
+  if (imagesList.length === 0 && featuredImg) {
+    imagesList.push(featuredImg);
+  }
+
+  const specs = p.specifications || {};
+  const sizesStr = specs.Sizes || specs.sizes;
+  const sizes = sizesStr
+    ? sizesStr.split(',').map((s: string) => s.trim())
+    : ['XS', 'S', 'M', 'L', 'XL'];
+
+  const color = specs.Color || specs.color || p.material || 'Standard';
+  const material = p.material || specs.Material || 'Premium Fabric';
+  const fit = specs.Fit || specs.fit || 'Regular Fit';
+
+  const year = p.createdAt ? new Date(p.createdAt).getFullYear().toString() : '2026';
+
+  return {
+    id: p._id || p.id || String(Math.random()),
+    slug: p.slug || 'product',
+    name: p.name || 'Untitled Product',
+    category: categoryName,
+    year,
+    price: formattedPrice,
+    rating: p.rating ? String(p.rating) : '4.9',
+    reviewsCount: typeof p.reviewsCount === 'number' ? p.reviewsCount : 12,
+    tagline: p.shortDescription || p.name || '',
+    description: p.description || p.shortDescription || '',
+    image: featuredImg,
+    images: imagesList.length > 0 ? imagesList : [featuredImg],
+    color,
+    material,
+    fit,
+    sizes,
+    details: finalDetails.length > 0 ? finalDetails : ['Premium finish', 'Thoughtfully designed'],
+    specifications: specs,
+    tags: finalDetails.length > 0 ? finalDetails : [],
+    reviews: p.reviews || [
+      { name: 'Customer', rating: 5, comment: 'Exceptional quality and modern fit.' }
+    ],
+    comments: p.comments || [
+      { author: 'Verified Buyer', text: 'Loved the silhouette and material.', time: 'Recent' }
+    ],
+  };
 }

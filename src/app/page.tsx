@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import type { Testimonial } from "@/types";
 import { PageModel } from "@/models/page.model";
 import { TestimonialModel } from "@/models/testimonial.model";
+import { ProductModel } from "@/models/product.model";
+import { CategoryModel } from "@/models/category.model";
+import { formatProductForUI, type Product as UIProduct } from "@/lib/products";
 import { buildPageMetadata } from "@/lib/pageMetadata";
 import HomeClientView from "@/app/_components/home/HomeClientView";
 import Product from "@/components/Product";
@@ -32,6 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   let initialPage = null;
   let initialTestimonials: Testimonial[] | null = null;
+  let initialProducts: UIProduct[] | null = null;
 
   try {
     await PageModel.seedDefaults();
@@ -44,9 +48,24 @@ export default async function Home() {
     if (initialTestimonials) {
       initialTestimonials = JSON.parse(JSON.stringify(initialTestimonials));
     }
+
+    let categoryMap: Record<string, string> = {};
+    try {
+      const cats = await CategoryModel.findAll();
+      cats.forEach((c) => {
+        if (c._id) categoryMap[c._id] = c.name;
+        if (c.slug) categoryMap[c.slug] = c.name;
+      });
+    } catch {}
+
+    const { products: dbProducts } = await ProductModel.findPaginated(1, 20, { status: 'published' });
+    if (dbProducts && dbProducts.length > 0) {
+      initialProducts = dbProducts.map((p) => formatProductForUI(JSON.parse(JSON.stringify(p)), categoryMap));
+    }
   } catch (error) {
     console.error("Server fetch home page error:", error);
   }
+
 
   // Schema.org Structured Data (JSON-LD) for Brand & WebSite SEO
   const jsonLd = {
@@ -94,8 +113,9 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HomeClientView initialPage={initialPage} initialTestimonials={initialTestimonials} />
-      <Product />
+      <Product initialProducts={initialProducts} />
       <Collections />
     </main>
   );
 }
+

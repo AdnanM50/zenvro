@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { products, type Product } from "@/lib/products";
+import { products as fallbackProducts, type Product } from "@/lib/products";
+import { useGetPublicProducts } from "@/hooks/use-products";
 import {
   EASE_LUXURY,
   VIEWPORT_CONFIG,
@@ -12,8 +13,6 @@ import {
 } from "@/lib/animations";
 
 type SortKey = "featured" | "price-asc" | "price-desc" | "rating" | "name";
-
-const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
 
 const sortOptions: { value: SortKey; label: string }[] = [
   { value: "featured", label: "Featured" },
@@ -33,10 +32,26 @@ export default function ProductsPage() {
   const [sort, setSort] = useState<SortKey>("featured");
   const [isSortOpen, setIsSortOpen] = useState(false);
 
+  const { data: publicData, isLoading } = useGetPublicProducts({
+    params: {
+      sort,
+      category: activeCategory !== "All" ? activeCategory : undefined,
+    },
+  });
+
+  const rawProductsList = (publicData?.data && publicData.data.length > 0)
+    ? publicData.data
+    : fallbackProducts;
+
+  const categories = useMemo(() => {
+    const list = rawProductsList.map((p) => p.category).filter(Boolean);
+    return ["All", ...Array.from(new Set(list))];
+  }, [rawProductsList]);
+
   const filtered = useMemo(() => {
     const list = activeCategory === "All"
-      ? [...products]
-      : products.filter((p) => p.category === activeCategory);
+      ? [...rawProductsList]
+      : rawProductsList.filter((p) => p.category === activeCategory);
 
     switch (sort) {
       case "price-asc":
@@ -55,7 +70,8 @@ export default function ProductsPage() {
         break;
     }
     return list;
-  }, [activeCategory, sort]);
+  }, [activeCategory, sort, rawProductsList]);
+
 
   return (
     <main className="bg-surface text-on-surface overflow-hidden">
@@ -288,11 +304,11 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 
           {/* Hover overlay */}
           <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-            <div className="flex items-center justify-between gap-4 bg-white/90 px-4 py-3 backdrop-blur-sm dark:bg-black/80">
+            <div className="flex items-center justify-between gap-4 bg-white/90 pl-4 pr-12 py-3 backdrop-blur-sm dark:bg-black/80">
               <span className="font-label text-[10px] font-black uppercase tracking-[0.18em]">
                 {product.name}
               </span>
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              <span className="material-symbols-outlined text-[18px] shrink-0">arrow_forward</span>
             </div>
           </div>
 
