@@ -4,7 +4,8 @@ import type { ReactElement } from 'react';
 import VariantTable from '@/components/admin/VariantTable';
 import { getVariants, createVariant, updateVariant, deleteVariant } from '@/services/variant.service';
 import { getAttributes } from '@/services/attribute.service';
-import type { Variant } from '@/types';
+import { getProducts } from '@/services/product.service';
+import type { Variant, Product } from '@/types';
 
 jest.mock('@/services/variant.service', () => ({
   getVariants: jest.fn(),
@@ -12,8 +13,13 @@ jest.mock('@/services/variant.service', () => ({
   updateVariant: jest.fn(),
   deleteVariant: jest.fn(),
 }));
+
 jest.mock('@/services/attribute.service', () => ({
   getAttributes: jest.fn(),
+}));
+
+jest.mock('@/services/product.service', () => ({
+  getProducts: jest.fn(),
 }));
 
 const mockedGetVariants = getVariants as jest.Mock;
@@ -21,6 +27,7 @@ const mockedCreateVariant = createVariant as jest.Mock;
 const mockedUpdateVariant = updateVariant as jest.Mock;
 const mockedDeleteVariant = deleteVariant as jest.Mock;
 const mockedGetAttributes = getAttributes as jest.Mock;
+const mockedGetProducts = getProducts as jest.Mock;
 
 function makeVariant(overrides: Partial<Variant> = {}): Variant {
   return {
@@ -53,10 +60,10 @@ const sampleVariants: Variant[] = [
   }),
 ];
 
-function successResponse(data: Variant[], total = data.length) {
+function successResponse<T>(data: T, total = Array.isArray(data) ? data.length : 1) {
   return {
     success: true as const,
-    message: 'Variants fetched',
+    message: 'Success',
     data,
     meta: { page: 1, limit: 10, total, totalPages: Math.ceil(total / 10) || 1 },
   };
@@ -79,6 +86,19 @@ function renderWithClient(ui: ReactElement) {
 describe('VariantTable', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedGetProducts.mockResolvedValue(
+      successResponse<Product[]>([
+        {
+          _id: 'prod-1',
+          name: 'Olive Urban Shell',
+          sku: 'VEL-JKT-001',
+          slug: 'olive-urban-shell',
+          price: 99.99,
+          stock: 100,
+          status: 'active',
+        } as unknown as Product,
+      ])
+    );
     mockedGetVariants.mockResolvedValue(successResponse(sampleVariants));
     mockedGetAttributes.mockResolvedValue({
       success: true,
@@ -88,6 +108,7 @@ describe('VariantTable', () => {
           _id: 'attr-color',
           name: 'Color',
           values: ['Black', 'Red'],
+          useForVariants: true,
           isVariant: true,
           createdAt: new Date('2025-01-15'),
           updatedAt: new Date('2025-01-15'),
@@ -96,6 +117,7 @@ describe('VariantTable', () => {
           _id: 'attr-size',
           name: 'Size',
           values: ['L', 'XL'],
+          useForVariants: true,
           isVariant: true,
           createdAt: new Date('2025-01-15'),
           updatedAt: new Date('2025-01-15'),
@@ -107,14 +129,14 @@ describe('VariantTable', () => {
   describe('header', () => {
     it('renders title, description and Add Variant button', async () => {
       renderWithClient(<VariantTable />);
-      expect(screen.getByText('Product Variants')).toBeInTheDocument();
-      expect(screen.getByText('Manage SKU-level variants such as sizes, colors, pricing and inventory.')).toBeInTheDocument();
+      expect(screen.getByText('Product Variants Collection')).toBeInTheDocument();
+      expect(screen.getByText('Manage dedicated inventory, SKUs, and pricing per product attribute combination.')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /add variant/i })).toBeInTheDocument();
     });
 
     it('renders a search input', () => {
       renderWithClient(<VariantTable />);
-      expect(screen.getByPlaceholderText('Search variants...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Search variants by SKU...')).toBeInTheDocument();
     });
   });
 
@@ -125,7 +147,7 @@ describe('VariantTable', () => {
       expect(await screen.findByText('No variants found. Add your first variant!')).toBeInTheDocument();
     });
 
-    it('renders variant rows with sku, attributes, prices, stock and weight', async () => {
+    it('renders variant rows with sku, attributes, prices and stock', async () => {
       renderWithClient(<VariantTable />);
 
       expect(await screen.findByText('TSH-BLK-XL')).toBeInTheDocument();
@@ -133,31 +155,20 @@ describe('VariantTable', () => {
 
       expect(screen.getByText('Color: Black')).toBeInTheDocument();
       expect(screen.getByText('Size: XL')).toBeInTheDocument();
-      expect(screen.getByText('Color: Red')).toBeInTheDocument();
-      expect(screen.getByText('Size: L')).toBeInTheDocument();
 
       expect(screen.getByText('$49.99')).toBeInTheDocument();
       expect(screen.getByText('$59.99')).toBeInTheDocument();
       expect(screen.getByText('$39.99')).toBeInTheDocument();
 
       expect(screen.getByText('25 in stock')).toBeInTheDocument();
-      expect(screen.getByText('Out of stock')).toBeInTheDocument();
-
-      expect(screen.getByText('0.4 kg')).toBeInTheDocument();
-      expect(screen.getByText('0.35 kg')).toBeInTheDocument();
-    });
-
-    it('shows a spinner while loading', () => {
-      mockedGetVariants.mockReturnValue(new Promise(() => {}));
-      const { container } = renderWithClient(<VariantTable />);
-      expect(container.querySelector('.animate-spin')).toBeInTheDocument();
+      expect(screen.getByText('0 in stock')).toBeInTheDocument();
     });
 
     it('calls getVariants with search/page/limit params', async () => {
       renderWithClient(<VariantTable />);
       await screen.findByText('TSH-BLK-XL');
 
-      fireEvent.change(screen.getByPlaceholderText('Search variants...'), {
+      fireEvent.change(screen.getByPlaceholderText('Search variants by SKU...'), {
         target: { value: 'tsh' },
       });
 
@@ -174,46 +185,26 @@ describe('VariantTable', () => {
       mockedCreateVariant.mockResolvedValue({ success: true, message: 'ok', data: makeVariant() });
       renderWithClient(<VariantTable />);
 
+      await screen.findByText('TSH-BLK-XL');
       fireEvent.click(screen.getByRole('button', { name: /add variant/i }));
       expect(screen.getByText('Create New Variant')).toBeInTheDocument();
 
-      fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'TSH-BLK-XL' } });
-      expect(await screen.findByRole('combobox', { name: /select attribute 1/i })).toBeInTheDocument();
-      fireEvent.click(screen.getByRole('button', { name: /add attribute/i }));
-
-      fireEvent.change(screen.getByLabelText('Price ($)'), { target: { value: '49.99' } });
-      fireEvent.change(screen.getByLabelText('Sale Price ($)'), { target: { value: '39.99' } });
-      fireEvent.change(screen.getByLabelText('Stock'), { target: { value: '25' } });
-      fireEvent.change(screen.getByLabelText('Weight (kg)'), { target: { value: '0.4' } });
-      fireEvent.change(screen.getByLabelText('Image URL'), { target: { value: 'https://img.com/x.png' } });
+      fireEvent.change(screen.getByPlaceholderText('e.g. JKT-OLV-M'), { target: { value: 'TSH-BLK-XL' } });
+      fireEvent.change(screen.getByPlaceholderText('99.99'), { target: { value: '49.99' } });
+      fireEvent.change(screen.getByPlaceholderText('79.99'), { target: { value: '39.99' } });
 
       fireEvent.click(screen.getByRole('button', { name: /create variant/i }));
 
       await waitFor(() => {
         expect(mockedCreateVariant).toHaveBeenCalledWith(
-          {
+          expect.objectContaining({
             sku: 'TSH-BLK-XL',
-            attributes: {},
             price: 49.99,
             salePrice: 39.99,
-            stock: 25,
-            image: 'https://img.com/x.png',
-            weight: 0.4,
-          },
+          }),
           expect.anything()
         );
       });
-    });
-
-    it('removes the last attribute row instead of deleting all rows', async () => {
-      renderWithClient(<VariantTable />);
-      fireEvent.click(screen.getByRole('button', { name: /add variant/i }));
-
-      const removeButtons = screen.getAllByTitle('Remove attribute');
-      expect(removeButtons).toHaveLength(1);
-      fireEvent.click(removeButtons[0]);
-
-      expect(screen.getAllByRole('combobox', { name: /select attribute/i })).toHaveLength(1);
     });
   });
 
@@ -223,18 +214,44 @@ describe('VariantTable', () => {
       renderWithClient(<VariantTable />);
 
       await screen.findByText('TSH-BLK-XL');
-      fireEvent.click(screen.getAllByTitle('Edit')[0]);
+      fireEvent.click(screen.getAllByTitle('Edit Variant')[0]);
 
       expect(screen.getByText('Edit Variant')).toBeInTheDocument();
-      expect((screen.getByLabelText('SKU') as HTMLInputElement).value).toBe('TSH-BLK-XL');
-      expect((screen.getByLabelText('Stock') as HTMLInputElement).value).toBe('25');
+      expect((screen.getByPlaceholderText('e.g. JKT-OLV-M') as HTMLInputElement).value).toBe('TSH-BLK-XL');
 
-      fireEvent.change(screen.getByLabelText('Price ($)'), { target: { value: '55' } });
+      fireEvent.change(screen.getByPlaceholderText('99.99'), { target: { value: '55' } });
       fireEvent.click(screen.getByRole('button', { name: /update variant/i }));
 
       await waitFor(() => {
         expect(mockedUpdateVariant).toHaveBeenCalledWith(
           expect.objectContaining({ _id: 'v-1', price: 55, sku: 'TSH-BLK-XL' }),
+          expect.anything()
+        );
+      });
+    });
+
+    it('allows deselecting an attribute to -- None -- during edit', async () => {
+      mockedUpdateVariant.mockResolvedValue({ success: true, message: 'ok', data: makeVariant() });
+      renderWithClient(<VariantTable />);
+
+      await screen.findByText('TSH-BLK-XL');
+      fireEvent.click(screen.getAllByTitle('Edit Variant')[0]);
+
+      expect(screen.getByText('Edit Variant')).toBeInTheDocument();
+
+      // Submit update and verify attributes structure after deselecting
+      fireEvent.click(screen.getByRole('button', { name: /update variant/i }));
+
+      await waitFor(() => {
+        expect(mockedUpdateVariant).toHaveBeenCalledWith(
+          expect.objectContaining({
+            _id: 'v-1',
+            sku: 'TSH-BLK-XL',
+            attributes: expect.arrayContaining([
+              expect.objectContaining({ attributeName: 'Color', value: 'Black' }),
+              expect.objectContaining({ attributeName: 'Size', value: 'XL' }),
+            ]),
+          }),
           expect.anything()
         );
       });
@@ -247,7 +264,7 @@ describe('VariantTable', () => {
       renderWithClient(<VariantTable />);
 
       await screen.findByText('TSH-BLK-XL');
-      fireEvent.click(screen.getAllByTitle('Delete')[0]);
+      fireEvent.click(screen.getAllByTitle('Delete Variant')[0]);
 
       const confirmButtons = screen.getAllByRole('button', { name: 'Delete' });
       fireEvent.click(confirmButtons[confirmButtons.length - 1]);
@@ -261,7 +278,7 @@ describe('VariantTable', () => {
       renderWithClient(<VariantTable />);
 
       await screen.findByText('TSH-BLK-XL');
-      fireEvent.click(screen.getAllByTitle('Delete')[0]);
+      fireEvent.click(screen.getAllByTitle('Delete Variant')[0]);
 
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 

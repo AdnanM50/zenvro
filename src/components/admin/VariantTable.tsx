@@ -30,7 +30,7 @@ const formatPrice = (value: number | undefined) =>
 
 export default function VariantTable() {
   const searchParams = useSearchParams();
-  const initialProductId = searchParams.get('productId') || '';
+  const initialProductId = searchParams?.get('productId') || '';
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -156,15 +156,23 @@ export default function VariantTable() {
     const initialAttrMap: Record<string, string> = {};
     if (Array.isArray(variant.attributes)) {
       variant.attributes.forEach((item: any) => {
-        if (item && item.attributeId && item.value) {
-          initialAttrMap[item.attributeId] = item.value;
-        } else if (item && item.attributeName && item.value) {
-          initialAttrMap[item.attributeName] = item.value;
+        const attrMatch = variantEnabledAttributes.find(
+          (a) => a._id === item.attributeId || a.name === item.attributeName || a.name === item.attributeId
+        );
+        const key = attrMatch ? attrMatch._id : item.attributeId || item.attributeName;
+        if (key && item.value) {
+          initialAttrMap[key] = item.value;
         }
       });
     } else if (typeof variant.attributes === 'object' && variant.attributes !== null) {
       Object.entries(variant.attributes).forEach(([k, v]) => {
-        initialAttrMap[k] = String(v);
+        const attrMatch = variantEnabledAttributes.find(
+          (a) => a._id === k || a.name.toLowerCase() === k.toLowerCase()
+        );
+        const key = attrMatch ? attrMatch._id : k;
+        if (key && v) {
+          initialAttrMap[key] = String(v);
+        }
       });
     }
     setSelectedAttributes(initialAttrMap);
@@ -187,13 +195,13 @@ export default function VariantTable() {
     resetForm();
   };
 
-  const handleAttributeValueChange = (attrName: string, val: string) => {
+  const handleAttributeValueChange = (attrId: string, attrName: string, val: string) => {
     setSelectedAttributes((prev) => {
       const copy = { ...prev };
-      if (val) {
-        copy[attrName] = val;
-      } else {
-        delete copy[attrName];
+      delete copy[attrId];
+      if (attrName) delete copy[attrName];
+      if (val && val !== 'NONE') {
+        copy[attrId] = val;
       }
       return copy;
     });
@@ -531,8 +539,10 @@ export default function VariantTable() {
                       </Label>
                       {attr.values && attr.values.length > 0 ? (
                         <Select
-                          value={currentValue}
-                          onValueChange={(val: string | null) => handleAttributeValueChange(attr._id, val === 'NONE' || !val ? '' : val)}
+                          value={currentValue || 'NONE'}
+                          onValueChange={(val: string | null) =>
+                            handleAttributeValueChange(attr._id, attr.name, val === 'NONE' || !val ? '' : val)
+                          }
                         >
                           <SelectTrigger className="w-full text-xs bg-white dark:bg-gray-950">
                             <SelectValue placeholder={`Select ${attr.name}`} />
@@ -550,7 +560,7 @@ export default function VariantTable() {
                         <Input
                           placeholder={`Enter ${attr.name}`}
                           value={currentValue}
-                          onChange={(e) => handleAttributeValueChange(attr._id, e.target.value)}
+                          onChange={(e) => handleAttributeValueChange(attr._id, attr.name, e.target.value)}
                           className="text-xs bg-white dark:bg-gray-950"
                         />
                       )}

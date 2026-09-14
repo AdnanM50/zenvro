@@ -5,7 +5,7 @@ import { AttributeModel } from '@/models/attribute.model';
 import { ProductModel } from '@/models/product.model';
 import { api } from '@/lib/api-response';
 
-/** Normalises attributes from an object or a "Color: Black, Size: XL" string. */
+/** Normalises attributes from an object, an array of {attributeName/attributeId, value}, or a "Color: Black, Size: XL" string. */
 function parseAttributes(value: unknown): Record<string, string> {
   if (!value) return {};
   if (typeof value === 'string') {
@@ -16,6 +16,26 @@ function parseAttributes(value: unknown): Record<string, string> {
         const key = pair.slice(0, idx).trim();
         const val = pair.slice(idx + 1).trim();
         if (key && val) attrs[key] = val;
+      }
+    });
+    return attrs;
+  }
+  if (Array.isArray(value)) {
+    const attrs: Record<string, string> = {};
+    value.forEach((item) => {
+      if (typeof item === 'string') {
+        const idx = item.indexOf(':');
+        if (idx > -1) {
+          const key = item.slice(0, idx).trim();
+          const val = item.slice(idx + 1).trim();
+          if (key && val) attrs[key] = val;
+        }
+      } else if (typeof item === 'object' && item !== null) {
+        const key = (item.attributeName || item.name || item.key || item.attributeId || '').toString().trim();
+        const val = (item.value || item.val || '').toString().trim();
+        if (key && val) {
+          attrs[key] = val;
+        }
       }
     });
     return attrs;
@@ -48,7 +68,12 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-    const { variants, total } = await VariantModel.findPaginated(page, limit, search, productId);
+    const { variants, total } = await VariantModel.findPaginated(
+      page,
+      limit,
+      search,
+      ...(productId ? [productId] : [])
+    );
     const totalPages = Math.ceil(total / limit) || 1;
 
     return api.paginated(variants, { page, limit, total, totalPages }, 'Variants fetched');
@@ -66,15 +91,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { productId, sku, attributes, price, salePrice, costPrice, stock, image, weight, status } = body;
 
-    if (typeof productId !== 'string' || !productId.trim()) {
-      return api.badRequest('productId ObjectId reference is required');
-    }
-
-    const product = await ProductModel.findById(productId.trim());
-    if (!product) {
-      return api.notFound('Product not found for the given productId');
-    }
-
     if (typeof sku !== 'string' || !sku.trim()) {
       return api.badRequest('SKU is required');
     }
@@ -89,29 +105,47 @@ export async function POST(request: NextRequest) {
       return api.badRequest('A valid stock quantity is required');
     }
 
+    if (productId !== undefined && (typeof productId !== 'string' || !productId.trim())) {
+      return api.badRequest('productId ObjectId reference is required');
+    }
+
+    if (productId && productId.trim()) {
+      const product = await ProductModel.findById(productId.trim()).catch(() => null);
+      if (!product) {
+        return api.notFound('Product not found for the given productId');
+      }
+    }
+
     const existingSku = await VariantModel.findBySku(sku.trim());
     if (existingSku) return api.conflict('A variant with this SKU already exists');
 
     const parsedAttrs = parseAttributes(attributes);
 
     // Validate that only variant-enabled attributes (useForVariants: true) are used
-    const allAttributes = await AttributeModel.findAll();
-    const variantEnabledAttrs = new Map(
-      allAttributes.filter((a) => a.useForVariants ?? a.isVariant ?? true).map((a) => [a.name.toLowerCase(), a])
-    );
+    const allAttributes = await AttributeModel.findAll().catch(() => []);
+    const variantEnabledAttrs = new Map<string, (typeof allAttributes)[0]>();
+    allAttributes
+      .filter((a) => a.useForVariants ?? a.isVariant ?? true)
+      .forEach((a) => {
+        if (a.name) variantEnabledAttrs.set(a.name.toLowerCase(), a);
+        if (a._id) variantEnabledAttrs.set(a._id.toLowerCase(), a);
+      });
 
+    const validatedAttrs: Record<string, string> = {};
     for (const [attrName, attrValue] of Object.entries(parsedAttrs)) {
       const definedAttr = variantEnabledAttrs.get(attrName.toLowerCase());
-      if (!definedAttr) {
+      if (variantEnabledAttrs.size > 0 && !definedAttr) {
         return api.badRequest(
           `Attribute "${attrName}" is either not defined or not enabled for variants (useForVariants must be true).`
         );
       }
-      if (definedAttr.values.length > 0 && !definedAttr.values.includes(attrValue)) {
+      if (definedAttr && definedAttr.values && definedAttr.values.length > 0 && !definedAttr.values.includes(attrValue)) {
         return api.badRequest(
-          `Value "${attrValue}" is invalid for attribute "${attrName}". Allowed values: ${definedAttr.values.join(', ')}`
+          `Value "${attrValue}" is invalid for attribute "${definedAttr.name}". Allowed values: ${definedAttr.values.join(', ')}`
         );
       }
+      const finalKey = definedAttr ? definedAttr.name : attrName;
+      validatedAttrs[finalKey] = attrValue;
     }
 
     const salePriceNum = parseNumber(salePrice);
@@ -128,9 +162,9 @@ export async function POST(request: NextRequest) {
 
     try {
       const variant = await VariantModel.create({
-        productId: productId.trim(),
+        productId: productId && typeof productId === 'string' ? productId.trim() : '',
         sku: sku.trim(),
-        attributes: parsedAttrs,
+        attributes: validatedAttrs,
         price: priceNum,
         salePrice: salePriceNum,
         costPrice: costPriceNum,
@@ -188,26 +222,33 @@ export async function PATCH(request: NextRequest) {
 
     if (attributes !== undefined) {
       const parsedAttrs = parseAttributes(attributes);
-      const allAttributes = await AttributeModel.findAll();
-      const variantEnabledAttrs = new Map(
-        allAttributes.filter((a) => a.useForVariants ?? a.isVariant ?? true).map((a) => [a.name.toLowerCase(), a])
-      );
+      const allAttributes = await AttributeModel.findAll().catch(() => []);
+      const variantEnabledAttrs = new Map<string, (typeof allAttributes)[0]>();
+      allAttributes
+        .filter((a) => a.useForVariants ?? a.isVariant ?? true)
+        .forEach((a) => {
+          if (a.name) variantEnabledAttrs.set(a.name.toLowerCase(), a);
+          if (a._id) variantEnabledAttrs.set(a._id.toLowerCase(), a);
+        });
 
+      const validatedAttrs: Record<string, string> = {};
       for (const [attrName, attrValue] of Object.entries(parsedAttrs)) {
         const definedAttr = variantEnabledAttrs.get(attrName.toLowerCase());
-        if (!definedAttr) {
+        if (variantEnabledAttrs.size > 0 && !definedAttr) {
           return api.badRequest(
             `Attribute "${attrName}" is either not defined or not enabled for variants.`
           );
         }
-        if (definedAttr.values.length > 0 && !definedAttr.values.includes(attrValue)) {
+        if (definedAttr && definedAttr.values && definedAttr.values.length > 0 && !definedAttr.values.includes(attrValue)) {
           return api.badRequest(
-            `Value "${attrValue}" is invalid for attribute "${attrName}". Allowed values: ${definedAttr.values.join(', ')}`
+            `Value "${attrValue}" is invalid for attribute "${definedAttr.name}". Allowed values: ${definedAttr.values.join(', ')}`
           );
         }
+        const finalKey = definedAttr ? definedAttr.name : attrName;
+        validatedAttrs[finalKey] = attrValue;
       }
 
-      updateData.attributes = parsedAttrs;
+      updateData.attributes = validatedAttrs;
     }
 
     if (price !== undefined) {

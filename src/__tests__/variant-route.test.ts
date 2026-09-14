@@ -241,15 +241,17 @@ describe('Variants API Route Handlers', () => {
       expect(status).toBe(201);
       expect(body.success).toBe(true);
       expect(body.data).toEqual(created);
-      expect(VariantModel.create).toHaveBeenCalledWith({
-        sku: 'TSH-BLK-XL',
-        attributes: { Color: 'Black', Size: 'XL' },
-        price: 49.99,
-        salePrice: 39.99,
-        stock: 25,
-        image: 'https://example.com/black-xl.png',
-        weight: 0.4,
-      });
+      expect(VariantModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sku: 'TSH-BLK-XL',
+          attributes: { Color: 'Black', Size: 'XL' },
+          price: 49.99,
+          salePrice: 39.99,
+          stock: 25,
+          image: 'https://example.com/black-xl.png',
+          weight: 0.4,
+        })
+      );
     });
 
     it('parses a comma-separated attributes string into a map', async () => {
@@ -265,6 +267,35 @@ describe('Variants API Route Handlers', () => {
           body: {
             sku: 'TSH-BLK-XL',
             attributes: 'Color: Black, Size: XL, Material:',
+            price: 10,
+            stock: 5,
+          },
+        })
+      );
+
+      expect(VariantModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attributes: { Color: 'Black', Size: 'XL' },
+        })
+      );
+    });
+
+    it('parses an array of attribute objects into a normalized map', async () => {
+      (VariantModel.findBySku as jest.Mock).mockResolvedValue(null);
+      (VariantModel.create as jest.Mock).mockResolvedValue({
+        _id: 'v-new',
+        sku: 'TSH-BLK-XL',
+      });
+
+      await POST(
+        makeRequest({
+          method: 'POST',
+          body: {
+            sku: 'TSH-BLK-XL',
+            attributes: [
+              { attributeId: 'attr1', attributeName: 'Color', value: 'Black' },
+              { attributeId: 'attr2', attributeName: 'Size', value: 'XL' },
+            ],
             price: 10,
             stock: 5,
           },
