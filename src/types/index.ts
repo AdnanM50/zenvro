@@ -160,3 +160,13 @@ export type {
   TestPaymentConnectionResult,
 } from './payment-method';
 
+export type {
+  Order,
+  OrderItem,
+  ShippingAddress,
+  PaymentStatus,
+  OrderStatus,
+  CreateOrderPayload,
+} from './order';
+
+

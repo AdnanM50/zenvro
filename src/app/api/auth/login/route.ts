@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
       user = await UserModel.seedAdmin('admin@gmail.com', password);
     }
 
+    if (!user && normalizedEmail === 'nafip82705@hideam.com') {
+      user = await UserModel.seedUser('nafip82705@hideam.com', password, 'Nafi P');
+    }
+
     if (!user) return api.unauthorized('Invalid email or password');
 
     let isValid = false;
@@ -41,13 +45,23 @@ export async function POST(request: NextRequest) {
 
     // Fallback if DB had plain text password
     if (!isValid && user.password === password) {
-      await UserModel.seedAdmin(user.email, password);
+      if (normalizedEmail === 'admin@gmail.com') {
+        await UserModel.seedAdmin(user.email, password);
+      } else {
+        await UserModel.seedUser(user.email, password);
+      }
       isValid = true;
     }
 
     // Auto-repair admin account if using default admin credentials
     if (!isValid && normalizedEmail === 'admin@gmail.com' && (password === '123456' || password === 'admin123')) {
       user = await UserModel.seedAdmin('admin@gmail.com', password);
+      isValid = true;
+    }
+
+    // Auto-repair requested user account if needed
+    if (!isValid && normalizedEmail === 'nafip82705@hideam.com' && password === '123456') {
+      user = await UserModel.seedUser('nafip82705@hideam.com', password, 'Nafi P');
       isValid = true;
     }
 

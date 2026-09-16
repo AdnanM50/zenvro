@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import type { Product } from "@/lib/products";
 import { useCart } from "@/contexts/CartContext";
@@ -37,8 +37,10 @@ export default function ProductDetailView({
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const { addItem } = useCart();
   
-  // Support single image or multiple images
-  const images = product.images || [product.image];
+  const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000";
+  const rawImages = product.images && product.images.length > 0 ? product.images : [product.image];
+  const images = rawImages.filter((img) => Boolean(img) && typeof img === "string" && img.trim() !== "");
+  if (images.length === 0) images.push(DEFAULT_IMAGE);
 
   const handleAddToBag = () => {
     if (!selectedSize) {
@@ -49,8 +51,16 @@ export default function ProductDetailView({
     toast.success(`${product.name} added to bag`);
   };
 
+  // Trigger Lenis resize on mount / image change to guarantee smooth full-page scrolling
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [selectedImage]);
+
   return (
-    <main className="bg-surface text-on-surface overflow-hidden">
+    <main className="bg-surface text-on-surface overflow-x-hidden min-h-screen">
       <section className="min-h-screen pt-28 md:pt-32 pb-14 px-5 md:px-10 lg:px-16">
         <motion.div
           variants={pageEnter}

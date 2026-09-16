@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useCart, formatPrice } from "@/contexts/CartContext";
@@ -18,6 +19,7 @@ const FREE_SHIPPING_THRESHOLD = 300;
 const SHIPPING_COST = 15;
 
 export default function CartPage() {
+  const router = useRouter();
   const { items, subtotal, count, updateQuantity, removeItem, clearCart } = useCart();
 
   const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
@@ -29,11 +31,15 @@ export default function CartPage() {
     .slice(0, 3);
 
   const handleCheckout = () => {
-    toast("Checkout is coming soon — watch this space.");
+    if (items.length === 0) {
+      toast.error("Your bag is empty");
+      return;
+    }
+    router.push("/checkout");
   };
 
   return (
-    <main className="bg-surface text-on-surface overflow-hidden">
+    <main className="bg-surface text-on-surface overflow-x-hidden min-h-screen">
       {/* ─── Header ─── */}
       <section className="pt-28 md:pt-36 pb-8 px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-[1400px]">

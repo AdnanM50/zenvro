@@ -45,7 +45,16 @@ export default function SmoothScrollProvider({
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
+    // Observe body height changes to automatically update Lenis scroll bounds
+    const resizeObserver = new ResizeObserver(() => {
+      lenis.resize();
+    });
+    if (document.body) {
+      resizeObserver.observe(document.body);
+    }
+
     return () => {
+      resizeObserver.disconnect();
       gsap.ticker.remove(tick);
       lenis.destroy();
       lenisRef.current = null;

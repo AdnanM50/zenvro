@@ -258,13 +258,15 @@ export function formatProductForUI(
   const numPrice = p.salePrice > 0 ? p.salePrice : (p.regularPrice || 0);
   const formattedPrice = `$${numPrice}`;
 
-  const featuredImg = p.featuredImage || p.media?.featuredImage || (p.gallery?.[0]) || '';
-  const galleryImgs: string[] = p.gallery || p.media?.gallery || [];
+  const DEFAULT_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000";
 
-  const imagesList = Array.from(new Set([featuredImg, ...galleryImgs].filter(Boolean)));
-  if (imagesList.length === 0 && featuredImg) {
-    imagesList.push(featuredImg);
-  }
+  const rawFeaturedImg = p.featuredImage || p.media?.featuredImage || (p.gallery?.[0]) || '';
+  const featuredImg = rawFeaturedImg && rawFeaturedImg.trim() !== '' ? rawFeaturedImg : DEFAULT_FALLBACK_IMAGE;
+
+  const galleryImgs: string[] = (p.gallery || p.media?.gallery || []).filter((img: string) => Boolean(img) && img.trim() !== '');
+
+  const validImages = Array.from(new Set([featuredImg, ...galleryImgs].filter(Boolean)));
+  const imagesList = validImages.length > 0 ? validImages : [DEFAULT_FALLBACK_IMAGE];
 
   const specs = p.specifications || {};
   const sizesStr = specs.Sizes || specs.sizes;
@@ -291,7 +293,7 @@ export function formatProductForUI(
     shortDescription: p.shortDescription || p.tagline || '',
     description: p.description || p.shortDescription || '',
     image: featuredImg,
-    images: imagesList.length > 0 ? imagesList : [featuredImg],
+    images: imagesList,
     color,
     material,
     fit,

@@ -65,7 +65,7 @@ export default function CollectionsPage() {
   }, [collectionsData]);
 
   return (
-    <main className="bg-surface text-on-surface overflow-hidden">
+    <main className="bg-surface text-on-surface overflow-x-hidden min-h-screen">
       {/* ─── Header ─── */}
       <section className="pt-28 md:pt-36 pb-12 px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-[1400px]">

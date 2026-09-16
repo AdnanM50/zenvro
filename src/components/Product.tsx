@@ -80,6 +80,9 @@ const Product: React.FC<ProductProps> = ({ initialProducts }) => {
     hover: { y: -6, scale: 1.03 },
   };
 
+  const DEFAULT_IMG = "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000";
+  const getImageUrl = (url?: string) => (url && url.trim() !== "" ? url : DEFAULT_IMG);
+
   return (
     <section
       id="products"
@@ -145,7 +148,7 @@ const Product: React.FC<ProductProps> = ({ initialProducts }) => {
               <img
                 alt={farLeftProduct.name}
                 className="w-full h-full object-cover"
-                src={farLeftProduct.image}
+                src={getImageUrl(farLeftProduct.image)}
               />
             </div>
           </motion.div>
@@ -165,7 +168,7 @@ const Product: React.FC<ProductProps> = ({ initialProducts }) => {
               <img
                 alt={prevProduct.name}
                 className="w-full h-full object-cover"
-                src={prevProduct.image}
+                src={getImageUrl(prevProduct.image)}
               />
             </div>
           </motion.div>
@@ -197,7 +200,7 @@ const Product: React.FC<ProductProps> = ({ initialProducts }) => {
                     <img
                       alt={activeProduct.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      src={activeProduct.image}
+                      src={getImageUrl(activeProduct.image)}
                     />
                     {/* Hover overlay */}
                     <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
@@ -264,7 +267,7 @@ const Product: React.FC<ProductProps> = ({ initialProducts }) => {
               <img
                 alt={nextProduct.name}
                 className="w-full h-full object-cover"
-                src={nextProduct.image}
+                src={getImageUrl(nextProduct.image)}
               />
             </div>
           </motion.div>
@@ -281,7 +284,7 @@ const Product: React.FC<ProductProps> = ({ initialProducts }) => {
               <img
                 alt={farRightProduct.name}
                 className="w-full h-full object-cover"
-                src={farRightProduct.image}
+                src={getImageUrl(farRightProduct.image)}
               />
             </div>
           </motion.div>

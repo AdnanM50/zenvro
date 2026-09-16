@@ -77,6 +77,39 @@ export const UserModel = {
     }
   },
 
+  async seedUser(userEmail: string, userPassword = '123456', userName = 'Nafi P'): Promise<User> {
+    const col = await usersCol();
+    const email = userEmail.toLowerCase().trim();
+    const existing = await col.findOne({ email });
+    const { hashPassword } = await import('@/lib/auth');
+    const hashedPassword = await hashPassword(userPassword);
+
+    if (!existing) {
+      const _id = new ObjectId();
+      const doc = {
+        _id,
+        email,
+        password: hashedPassword,
+        name: userName,
+        role: 'user' as UserRole,
+        status: 'active' as UserStatus,
+        addresses: [],
+        wishlist: [],
+        createdAt: new Date(),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await col.insertOne(doc as any);
+      return normalizeUser(doc);
+    } else {
+      await col.updateOne(
+        { email },
+        { $set: { password: hashedPassword, status: 'active' } }
+      );
+      const updated = await col.findOne({ email });
+      return normalizeUser(updated);
+    }
+  },
+
   async findById(id: string): Promise<User | null> {
     const col = await usersCol();
     const raw = await col.findOne(buildIdQuery(id));
