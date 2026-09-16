@@ -88,7 +88,7 @@ export function useApiGet<TData>({
   return useQuery<ApiSuccessResponse<TData>, ApiError>({
     queryKey,
     queryFn,
-    staleTime: options?.staleTime ?? 0,
+    staleTime: options?.staleTime ?? DEFAULT_STALE_TIME,
     ...options,
   });
 }

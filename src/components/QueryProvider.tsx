@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const STALE_TIME = 0; // 0 ms for real-time responsiveness on mutations
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes stale time to prevent continuous background re-fetching
 
 export default function QueryProvider({
   children,
@@ -29,7 +29,7 @@ export default function QueryProvider({
           queries: {
             staleTime: STALE_TIME,
             retry: 1,
-            refetchOnWindowFocus: true,
+            refetchOnWindowFocus: false,
           },
           mutations: {
             retry: false,

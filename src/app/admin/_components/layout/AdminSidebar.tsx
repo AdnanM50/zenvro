@@ -18,6 +18,7 @@ import {
   MoreVertical,
   MessageSquare,
   Quote,
+  Receipt,
   Search,
   Settings,
   ShoppingCart,
@@ -56,7 +57,7 @@ const navItems: NavItemType[] = [
       { label: "Variants", href: "/admin/variants" },
     ],
   },
-  { label: "Orders", icon: ShoppingCart, href: "#" },
+  { label: "Orders", icon: ShoppingCart, href: "/admin/orders" },
   { label: "Customers", icon: Users, href: "#" },
   { label: "Users", icon: Users, href: "/admin/users" },
   { label: "Reviews", icon: Star, href: "/admin/reviews" },
@@ -86,9 +87,16 @@ const navItems: NavItemType[] = [
       { label: "Analytics", href: "/admin/seo/analytics" },
     ],
   },
-  { label: "Reports", icon: BarChart3, href: "#" },
+  { label: "Reports", icon: BarChart3, href: "/admin/reports" },
   { label: "Media Library", icon: Images, href: "/admin/gallery" },
-  { label: "Payment Methods", icon: CreditCard, href: "/admin/payment-methods" },
+  {
+    label: "Payments",
+    icon: CreditCard,
+    children: [
+      { label: "Payment History", href: "/admin/payment-history" },
+      { label: "Payment Methods", href: "/admin/payment-methods" },
+    ],
+  },
   { label: "Settings", icon: Settings, href: "#" },
 ];
 

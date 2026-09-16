@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Tag, Plus, Edit3, Trash2 } from 'lucide-react';
 import type {
   Coupon,
@@ -44,8 +44,13 @@ export default function CouponTable() {
 
   const formRef = useRef<CouponFormHandle>(null);
 
+  const queryKey = useMemo(
+    () => couponQueryKeys.list({ search, page, limit }),
+    [search, page, limit]
+  );
+
   const { data: couponResponse, isLoading, refetch } = useApiGet<Coupon[]>({
-    queryKey: couponQueryKeys.list({ search, page, limit }),
+    queryKey,
     queryFn: () => getCoupons({ page, limit, search }),
   });
 

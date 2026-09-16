@@ -113,4 +113,89 @@ export const OrderModel = {
     await c.updateOne(query, { $set: update });
     return this.findById(orderId);
   },
+
+  async updateOrderStatus(
+    orderId: string,
+    orderStatus: Order['orderStatus'],
+    paymentStatus?: Order['paymentStatus']
+  ): Promise<Order | null> {
+    const c = await col();
+    let query: Record<string, unknown> = { orderNumber: orderId };
+    if (ObjectId.isValid(orderId)) {
+      query = { $or: [{ _id: new ObjectId(orderId) }, { orderNumber: orderId }] };
+    }
+
+    const update: Record<string, unknown> = {
+      orderStatus,
+      updatedAt: new Date().toISOString(),
+    };
+    if (paymentStatus) {
+      update.paymentStatus = paymentStatus;
+    }
+
+    await c.updateOne(query, { $set: update });
+    return this.findById(orderId);
+  },
+
+  async findAll(params?: {
+    search?: string;
+    orderStatus?: string;
+    paymentStatus?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ orders: Order[]; total: number }> {
+    try {
+      const c = await col();
+      const filter: Record<string, unknown> = {};
+
+      if (params?.orderStatus && params.orderStatus !== 'all') {
+        filter.orderStatus = params.orderStatus;
+      }
+      if (params?.paymentStatus && params.paymentStatus !== 'all') {
+        filter.paymentStatus = params.paymentStatus;
+      }
+      if (params?.search) {
+        const regex = new RegExp(params.search, 'i');
+        filter.$or = [
+          { orderNumber: regex },
+          { userEmail: regex },
+          { 'shippingAddress.fullName': regex },
+          { 'shippingAddress.city': regex }
+        ];
+      }
+
+      const page = params?.page || 1;
+      const limit = params?.limit || 50;
+      const skip = (page - 1) * limit;
+
+      const [docs, total] = await Promise.all([
+        c.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+        c.countDocuments(filter)
+      ]);
+
+      const orders = docs.map((doc: { _id: ObjectId; [key: string]: unknown }) => ({
+        ...doc,
+        _id: doc._id.toString(),
+      })) as Order[];
+
+      return { orders, total };
+    } catch {
+      return { orders: [], total: 0 };
+    }
+  },
+
+  async delete(orderId: string): Promise<boolean> {
+    try {
+      const c = await col();
+      let query: Record<string, unknown> = { orderNumber: orderId };
+      if (ObjectId.isValid(orderId)) {
+        query = { $or: [{ _id: new ObjectId(orderId) }, { orderNumber: orderId }] };
+      }
+      const res = await c.deleteOne(query);
+      return res.deletedCount > 0;
+    } catch {
+      return false;
+    }
+  }
 };
+
