@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useCart, formatPrice } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   EASE_LUXURY,
   VIEWPORT_CONFIG,
@@ -20,7 +22,15 @@ const SHIPPING_COST = 15;
 
 export default function CartPage() {
   const router = useRouter();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { items, subtotal, count, updateQuantity, removeItem, clearCart } = useCart();
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      toast.error("Please sign in to access your bag");
+      router.push("/login?redirect=/cart");
+    }
+  }, [user, isAuthLoading, router]);
 
   const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const total = subtotal + shipping;
@@ -31,6 +41,11 @@ export default function CartPage() {
     .slice(0, 3);
 
   const handleCheckout = () => {
+    if (!user) {
+      toast.error("Please sign in to proceed to checkout");
+      router.push("/login?redirect=/checkout");
+      return;
+    }
     if (items.length === 0) {
       toast.error("Your bag is empty");
       return;

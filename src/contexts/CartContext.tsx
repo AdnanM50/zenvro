@@ -9,7 +9,9 @@ import {
   useMemo,
   ReactNode,
 } from 'react';
+import toast from 'react-hot-toast';
 import type { Product } from '@/lib/products';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type CartItem = {
   key: string;
@@ -63,18 +65,37 @@ function loadStoredItems(): CartItem[] {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(loadStoredItems);
+  const { user } = useAuth();
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadStoredItems();
+  });
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+      setItems([]);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Ignore storage errors
+      }
+      return;
+    }
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
       // Ignore storage errors
     }
-  }, [items]);
+  }, [items, user]);
 
   const addItem = useCallback((product: Product, size: string, quantity = 1) => {
+    if (!user) {
+      toast.error('Please sign in to add items to your cart');
+      return;
+    }
+
     const price = parsePrice(product.price);
     const key = `${product.slug}-${size}`;
 
@@ -100,7 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         },
       ];
     });
-  }, []);
+  }, [user]);
 
   const removeItem = useCallback((key: string) => {
     setItems((prev) => prev.filter((item) => item.key !== key));

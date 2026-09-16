@@ -23,7 +23,14 @@ import { fadeUp } from "@/lib/animations";
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      toast.error("Please sign in to proceed to checkout");
+      router.push("/login?redirect=/checkout");
+    }
+  }, [user, isAuthLoading, router]);
 
   // Payment configuration from backend
   const [paymentConfig, setPaymentConfig] = useState<{

@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +23,8 @@ export default function LoginPage() {
     const result = await login(email, password);
 
     if (result.success) {
-      router.push(result.role === 'admin' ? '/admin' : '/user-dashboard');
+      const target = redirect || (result.role === 'admin' ? '/admin' : '/user-dashboard');
+      router.push(target);
     } else {
       setError(result.error || 'Login failed');
     }
@@ -103,5 +106,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-on-surface">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
