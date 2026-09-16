@@ -151,3 +151,12 @@ export type {
   CreateRedirectPayload,
   UpdateRedirectPayload,
 } from './seo';
+
+export type {
+  PaymentMethodProvider,
+  PaymentMethodConfig,
+  UpdatePaymentMethodPayload,
+  TestPaymentConnectionPayload,
+  TestPaymentConnectionResult,
+} from './payment-method';
+

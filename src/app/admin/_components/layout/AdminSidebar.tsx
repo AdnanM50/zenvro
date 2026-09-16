@@ -7,6 +7,7 @@ import {
   Box,
   Boxes,
   ChevronDown,
+  CreditCard,
   FileText,
   Home,
   Images,
@@ -87,6 +88,7 @@ const navItems: NavItemType[] = [
   },
   { label: "Reports", icon: BarChart3, href: "#" },
   { label: "Media Library", icon: Images, href: "/admin/gallery" },
+  { label: "Payment Methods", icon: CreditCard, href: "/admin/payment-methods" },
   { label: "Settings", icon: Settings, href: "#" },
 ];
 
