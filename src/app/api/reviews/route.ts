@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth';
 import { UserModel } from '@/models/user.model';
 import { ReviewModel } from '@/models/review.model';
+import { OrderModel } from '@/models/order.model';
 import { api } from '@/lib/api-response';
 import type { ReviewRating } from '@/types';
 
@@ -77,6 +78,23 @@ export async function POST(request: NextRequest) {
       return api.badRequest('Rating must be a number between 1 and 5');
     }
 
+    // Verify user has purchased this product before allowing review
+    const targetProduct = product.trim().toLowerCase();
+    const orders = await OrderModel.findByUser(user.email, user._id);
+    const hasPurchased = orders.some((order) =>
+      order.items?.some(
+        (item) =>
+          item.slug?.toLowerCase() === targetProduct ||
+          item.key?.toLowerCase() === targetProduct ||
+          item.name?.toLowerCase() === targetProduct ||
+          (item as any)._id?.toString() === targetProduct
+      )
+    );
+
+    if (!hasPurchased) {
+      return api.forbidden('You can only review products that you have purchased.');
+    }
+
     const review = await ReviewModel.create({
       product: product.trim(),
       user: user._id,
@@ -84,6 +102,7 @@ export async function POST(request: NextRequest) {
       title: title.trim(),
       comment: comment.trim(),
       images: parseStringList(images),
+      isVerifiedPurchase: true,
     });
 
     return api.created(review, 'Review submitted');

@@ -79,14 +79,14 @@ const Navbar = () => {
 
   return (
     <>
-      <header className={`${isMenuOpen ? "fixed" : "relative"} top-0 w-full z-50 flex h-20 items-center justify-between px-4 pointer-events-none md:h-24 md:px-8 ${navBackground} text-foreground`}>
+      <header className={`fixed bottom-4 left-4 right-4 z-50 flex h-14 items-center justify-between px-4 rounded-full border border-outline-variant/40 shadow-2xl backdrop-blur-xl bg-background/90 text-foreground transition-all duration-300 md:static md:bottom-auto md:left-0 md:right-0 md:z-50 md:h-24 md:rounded-none md:border-none md:shadow-none md:backdrop-blur-none md:px-8 ${navBackground}`}>
         <div className="flex items-center pointer-events-auto">
           <button
             type="button"
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((open) => !open)}
-            className="group relative h-10 w-10 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+            className="group relative h-9 w-9 md:h-10 md:w-10 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
           >
             <span className="sr-only">{isMenuOpen ? "Close menu" : "Open menu"}</span>
             <span className="relative block h-4 w-6">
@@ -111,31 +111,31 @@ const Navbar = () => {
 
         <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto">
           <Link href="/" onClick={() => setIsMenuOpen(false)}>
-            <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground italic">VELOUR</h1>
+            <h1 className="text-lg md:text-2xl font-black tracking-tight text-foreground italic">VELOUR</h1>
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <button className="hidden md:flex w-10 h-10 items-center justify-center hover:scale-105 transition-transform cursor-pointer">
-            <span className="material-symbols-outlined text-xl">search</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+          <button className="flex w-8 h-8 sm:w-10 sm:h-10 items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+            <span className="material-symbols-outlined text-lg sm:text-xl">search</span>
           </button>
-          <Link
-            href="/cart"
-            onClick={() => setIsMenuOpen(false)}
-            className="relative w-10 h-10 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-xl">shopping_bag</span>
-            {count > 0 && (
-              <span className="absolute top-0 right-0 min-w-4 h-4 px-1 rounded-full bg-[#ff5c00] text-white text-[10px] font-bold flex items-center justify-center">
+          {count > 0 && (
+            <Link
+              href="/cart"
+              onClick={() => setIsMenuOpen(false)}
+              className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-lg sm:text-xl">shopping_bag</span>
+              <span className="absolute -top-1 -right-1 sm:top-0 sm:right-0 min-w-4 h-4 px-1 rounded-full bg-[#ff5c00] text-white text-[10px] font-bold flex items-center justify-center">
                 {count}
               </span>
-            )}
-          </Link>
+            </Link>
+          )}
           {user ? (
             <Link
               href={user.role === "admin" ? "/admin" : "/user-dashboard"}
               onClick={() => setIsMenuOpen(false)}
-              className="hidden md:flex w-10 h-10 items-center justify-center bg-foreground text-background rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer"
+              className="flex w-8 h-8 sm:w-10 sm:h-10 items-center justify-center bg-foreground text-background rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer"
             >
               <span className="text-[10px] font-bold font-mono">{user.email?.charAt(0).toUpperCase()}</span>
             </Link>
@@ -143,9 +143,9 @@ const Navbar = () => {
             <Link
               href="/login"
               onClick={() => setIsMenuOpen(false)}
-              className="hidden md:flex w-10 h-10 items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+              className="flex w-8 h-8 sm:w-10 sm:h-10 items-center justify-center hover:scale-105 transition-transform cursor-pointer"
             >
-              <span className="material-symbols-outlined text-xl">person</span>
+              <span className="material-symbols-outlined text-lg sm:text-xl">person</span>
             </Link>
           )}
         </div>
@@ -154,11 +154,11 @@ const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.section
-            initial={{ y: "-100%" }}
+            initial={{ y: "100%" }}
             animate={{ y: 0 }}
-            exit={{ y: "-100%" }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className={`fixed inset-x-0 bottom-0 top-20 z-40 overflow-y-auto overscroll-contain md:top-24 ${navBackground} text-foreground`}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className={`fixed inset-0 z-40 overflow-y-auto overscroll-contain pb-24 pt-6 md:top-24 md:pt-10 ${navBackground} text-foreground`}
             data-lenis-prevent
           >
             <div className="flex min-h-full flex-col justify-between px-6 pb-8 pt-8 md:px-12 md:pb-12 md:pt-10 lg:px-16">

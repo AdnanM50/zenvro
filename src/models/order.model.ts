@@ -74,10 +74,19 @@ export const OrderModel = {
     } as Order;
   },
 
-  async findByUser(email: string): Promise<Order[]> {
+  async findByUser(email: string, userId?: string): Promise<Order[]> {
     const c = await col();
+    const query = userId
+      ? {
+          $or: [
+            { userEmail: email.toLowerCase().trim() },
+            { userId: userId.toString() },
+          ],
+        }
+      : { userEmail: email.toLowerCase().trim() };
+
     const docs = await c
-      .find({ userEmail: email.toLowerCase().trim() })
+      .find(query)
       .sort({ createdAt: -1 })
       .toArray();
 

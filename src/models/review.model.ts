@@ -94,6 +94,14 @@ export const ReviewModel = {
       .toArray();
   },
 
+  async findByUser(userId: string): Promise<Review[]> {
+    const c = await col();
+    return c
+      .find({ user: userId })
+      .sort({ createdAt: -1 })
+      .toArray();
+  },
+
   async findPaginated(
     page: number,
     limit: number,
