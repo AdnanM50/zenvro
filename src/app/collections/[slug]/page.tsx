@@ -97,6 +97,8 @@ async function fetchCollectionData(slug: string) {
   };
 }
 
+import { generateCollectionMetadata, CollectionJsonLd, BreadcrumbJsonLd } from "@/seo";
+
 export async function generateMetadata({
   params,
 }: CollectionPageProps): Promise<Metadata> {
@@ -106,13 +108,11 @@ export async function generateMetadata({
   if (!collection) {
     return {
       title: "Collection Not Found | VELOUR",
+      robots: { index: false, follow: false },
     };
   }
 
-  return {
-    title: `${collection.name} | VELOUR Collection`,
-    description: collection.description || `Explore the ${collection.name} collection by VELOUR.`,
-  };
+  return generateCollectionMetadata(collection);
 }
 
 export default async function CollectionDetailPage({ params }: CollectionPageProps) {
@@ -123,11 +123,33 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
     notFound();
   }
 
+  const structuredItems = products.map((p) => ({
+    name: p.name,
+    url: `/products/${p.slug}`,
+    image: p.image,
+  }));
+
   return (
-    <main className="bg-surface text-on-surface min-h-screen">
-      {/* ─── Hero Banner ─── */}
-      <section className="relative pt-28 md:pt-36 pb-16 px-5 md:px-10 lg:px-16 border-b border-outline-variant bg-background">
-        <div className="mx-auto max-w-[1400px]">
+    <>
+      {/* Schema.org Collection and Breadcrumb Rich Snippets */}
+      <CollectionJsonLd
+        name={collection.name}
+        description={collection.description}
+        url={`/collections/${collection.slug}`}
+        items={structuredItems}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Collections", url: "/collections" },
+          { name: collection.name, url: `/collections/${collection.slug}` },
+        ]}
+      />
+
+      <main className="bg-surface text-on-surface min-h-screen">
+        {/* ─── Hero Banner ─── */}
+        <section className="relative pt-28 md:pt-36 pb-16 px-5 md:px-10 lg:px-16 border-b border-outline-variant bg-background">
+          <div className="mx-auto max-w-[1400px]">
           <Link
             href="/collections"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant bg-background text-on-surface transition hover:bg-primary hover:text-background mb-8"
@@ -199,5 +221,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
         </div>
       </section>
     </main>
+    </>
   );
 }
+

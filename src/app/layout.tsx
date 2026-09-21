@@ -12,6 +12,8 @@ import QueryProvider from "@/components/QueryProvider";
 import CustomToaster from "@/components/common/CustomToaster";
 import { cn } from "@/lib/utils";
 
+import { SITE_URL, DEFAULT_SEO } from "@/seo/config";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -28,30 +30,39 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const seo = await SeoSettingsModel.get();
     return {
-      metadataBase: new URL(seo.canonicalDomain || "https://zenvro.com"),
+      metadataBase: new URL(seo.canonicalDomain || SITE_URL),
+      manifest: "/site.webmanifest",
       title: {
-        default: seo.defaultTitle || "VELOUR | International Fashion",
-        template: seo.titleTemplate || "%s | VELOUR",
+        default: seo.defaultTitle || DEFAULT_SEO.defaultTitle,
+        template: seo.titleTemplate || DEFAULT_SEO.titleTemplate,
       },
-      description: seo.defaultDescription || "Explore curated collections and everyday essentials thoughtfully designed.",
-      keywords: seo.defaultKeywords,
+      description: seo.defaultDescription || DEFAULT_SEO.defaultDescription,
+      keywords: seo.defaultKeywords?.length ? seo.defaultKeywords : DEFAULT_SEO.defaultKeywords,
       openGraph: {
-        title: seo.defaultTitle,
-        description: seo.defaultDescription,
-        siteName: seo.siteName,
+        title: seo.defaultTitle || DEFAULT_SEO.defaultTitle,
+        description: seo.defaultDescription || DEFAULT_SEO.defaultDescription,
+        siteName: seo.siteName || DEFAULT_SEO.siteName,
         locale: "en_US",
         type: "website",
-        ...(seo.defaultOgImage
-          ? { images: [{ url: seo.defaultOgImage, width: 1200, height: 630 }] }
-          : {}),
+        images: [{ url: seo.defaultOgImage || DEFAULT_SEO.defaultOgImage, width: 1200, height: 630 }],
       },
       twitter: {
         card: "summary_large_image",
-        title: seo.defaultTitle,
-        description: seo.defaultDescription,
-        ...(seo.defaultOgImage ? { images: [seo.defaultOgImage] } : {}),
+        title: seo.defaultTitle || DEFAULT_SEO.defaultTitle,
+        description: seo.defaultDescription || DEFAULT_SEO.defaultDescription,
+        images: [seo.defaultOgImage || DEFAULT_SEO.defaultOgImage],
       },
-      robots: seo.robotsDefault || "index, follow",
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+          "max-video-preview": -1,
+        },
+      },
       verification: {
         ...(seo.googleVerification ? { google: seo.googleVerification } : {}),
         ...(seo.yandexVerification ? { yandex: seo.yandexVerification } : {}),
@@ -63,8 +74,11 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch {
     return {
-      title: "VELOUR | International Fashion",
-      description: "Explore curated collections and everyday essentials thoughtfully designed.",
+      metadataBase: new URL(SITE_URL),
+      manifest: "/site.webmanifest",
+      title: DEFAULT_SEO.defaultTitle,
+      description: DEFAULT_SEO.defaultDescription,
+      robots: DEFAULT_SEO.robotsDefault,
     };
   }
 }
@@ -84,17 +98,52 @@ export default async function RootLayout({
     // Fallback if DB connection is unavailable
   }
 
-  const schemas = [];
+  const schemas: Record<string, unknown>[] = [];
+
+  // Organization Schema
   if (seo?.schemaOrganization && Object.keys(seo.schemaOrganization).length > 0) {
     schemas.push({
       "@context": "https://schema.org",
       ...seo.schemaOrganization,
     });
+  } else {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: DEFAULT_SEO.organization.name,
+      legalName: DEFAULT_SEO.organization.legalName,
+      url: SITE_URL,
+      logo: DEFAULT_SEO.organization.logo,
+      sameAs: DEFAULT_SEO.organization.sameAs,
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: DEFAULT_SEO.organization.contactPoint.telephone,
+        contactType: DEFAULT_SEO.organization.contactPoint.contactType,
+        areaServed: DEFAULT_SEO.organization.contactPoint.areaServed,
+      },
+    });
   }
+
+  // WebSite Schema with Sitelinks Search
   if (seo?.schemaWebsite && Object.keys(seo.schemaWebsite).length > 0) {
     schemas.push({
       "@context": "https://schema.org",
       ...seo.schemaWebsite,
+    });
+  } else {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: DEFAULT_SEO.siteName,
+      url: SITE_URL,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE_URL}/products?search={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
     });
   }
 
@@ -105,6 +154,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="manifest" href="/site.webmanifest" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"

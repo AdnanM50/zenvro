@@ -105,22 +105,36 @@ async function fetchProductAndRelated(slug: string): Promise<{
   return { product: null, relatedProducts: [] };
 }
 
+import { generateProductMetadata, ProductJsonLd, BreadcrumbJsonLd } from "@/seo";
+
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const { product } = await fetchProductAndRelated(slug);
+  try {
+    const dbProduct = await ProductModel.findBySlug(slug) || await ProductModel.findById(slug);
+    if (dbProduct) {
+      return generateProductMetadata(JSON.parse(JSON.stringify(dbProduct)));
+    }
+  } catch {}
 
+  const { product } = await fetchProductAndRelated(slug);
   if (!product) {
     return {
       title: "Product Not Found | VELOUR",
+      robots: { index: false, follow: false },
     };
   }
 
-  return {
-    title: `${product.name} | VELOUR`,
+  return generateProductMetadata({
+    name: product.name,
+    slug: product.slug,
     description: product.description,
-  };
+    price: parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0,
+    images: product.images?.length ? product.images : [product.image],
+    status: 'published',
+    category: product.category,
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -131,10 +145,42 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const numericPrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0;
+  const numericRating = parseFloat(product.rating) || 4.8;
+  const productImages = product.images?.length ? product.images : [product.image];
+
   return (
-    <ProductDetailView
-      product={product}
-      relatedProducts={relatedProducts}
-    />
+    <>
+      {/* Schema.org Product Structured Data for SERP Rich Badges */}
+      <ProductJsonLd
+        name={product.name}
+        description={product.shortDescription || product.description}
+        images={productImages}
+        price={numericPrice}
+        currency="USD"
+        sku={String(product.id || product.slug)}
+        category={product.category}
+        ratingValue={numericRating}
+        reviewCount={product.reviewsCount || 1}
+        availability="InStock"
+        url={`/products/${product.slug}`}
+      />
+
+      {/* Schema.org Breadcrumbs */}
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Products", url: "/products" },
+          { name: product.category, url: `/categories/${product.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` },
+          { name: product.name, url: `/products/${product.slug}` },
+        ]}
+      />
+
+      <ProductDetailView
+        product={product}
+        relatedProducts={relatedProducts}
+      />
+    </>
   );
 }
+
