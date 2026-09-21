@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import {
   ShoppingCart,
-  Search,
-  Filter,
-  CheckCircle2,
+ 
   Clock,
   Truck,
   PackageCheck,
@@ -17,12 +15,174 @@ import {
   Copy,
   DollarSign,
   ChevronRight,
+  ChevronDown,
+  Check,
   User,
   MapPin,
   CreditCard,
   Sparkles,
 } from "lucide-react";
 import type { Order, OrderStatus, PaymentStatus } from "@/types/order";
+import DataTable, { ColumnDef } from "@/app/admin/_components/common/DataTable";
+
+interface StatusOption<T extends string> {
+  value: T;
+  label: string;
+  badgeClass: string;
+  dotClass: string;
+}
+
+const PAYMENT_STATUS_OPTIONS: StatusOption<PaymentStatus>[] = [
+  {
+    value: "paid",
+    label: "Paid",
+    badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/60 shadow-xs",
+    dotClass: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]",
+  },
+  {
+    value: "pending",
+    label: "Pending",
+    badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:border-amber-500/60 shadow-xs",
+    dotClass: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]",
+  },
+  {
+    value: "failed",
+    label: "Failed",
+    badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-500/60 shadow-xs",
+    dotClass: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]",
+  },
+];
+
+const ORDER_STATUS_OPTIONS: StatusOption<OrderStatus>[] = [
+  {
+    value: "processing",
+    label: "Processing",
+    badgeClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 hover:border-purple-500/60 shadow-xs",
+    dotClass: "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]",
+  },
+  {
+    value: "confirmed",
+    label: "Confirmed",
+    badgeClass: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30 hover:border-indigo-500/60 shadow-xs",
+    dotClass: "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]",
+  },
+  {
+    value: "shipped",
+    label: "Shipped",
+    badgeClass: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 hover:border-sky-500/60 shadow-xs",
+    dotClass: "bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]",
+  },
+  {
+    value: "delivered",
+    label: "Delivered",
+    badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/60 shadow-xs",
+    dotClass: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]",
+  },
+  {
+    value: "cancelled",
+    label: "Cancelled",
+    badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-500/60 shadow-xs",
+    dotClass: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]",
+  },
+];
+
+const ORDER_FILTER_OPTIONS: StatusOption<string>[] = [
+  { value: "all", label: "All Order Statuses", badgeClass: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700", dotClass: "bg-gray-400" },
+  { value: "processing", label: "Processing", badgeClass: "bg-purple-500/10 text-purple-600 border-purple-500/30", dotClass: "bg-purple-500" },
+  { value: "confirmed", label: "Confirmed", badgeClass: "bg-indigo-500/10 text-indigo-600 border-indigo-500/30", dotClass: "bg-indigo-500" },
+  { value: "shipped", label: "Shipped", badgeClass: "bg-sky-500/10 text-sky-600 border-sky-500/30", dotClass: "bg-sky-500" },
+  { value: "delivered", label: "Delivered", badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", dotClass: "bg-emerald-500" },
+  { value: "cancelled", label: "Cancelled", badgeClass: "bg-rose-500/10 text-rose-600 border-rose-500/30", dotClass: "bg-rose-500" },
+];
+
+const PAYMENT_FILTER_OPTIONS: StatusOption<string>[] = [
+  { value: "all", label: "All Payment Statuses", badgeClass: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700", dotClass: "bg-gray-400" },
+  { value: "paid", label: "Paid Only", badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", dotClass: "bg-emerald-500" },
+  { value: "pending", label: "Pending Only", badgeClass: "bg-amber-500/10 text-amber-600 border-amber-500/30", dotClass: "bg-amber-500" },
+  { value: "failed", label: "Failed Only", badgeClass: "bg-rose-500/10 text-rose-600 border-rose-500/30", dotClass: "bg-rose-500" },
+];
+
+function CustomStatusSelect<T extends string>({
+  value,
+  options,
+  onChange,
+  className = "",
+}: {
+  value: T;
+  options: StatusOption<T>[];
+  onChange: (value: T) => void;
+  className?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className={`relative inline-block text-left ${className}`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border flex items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 ${
+          selectedOption.badgeClass
+        }`}
+      >
+        <span className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${selectedOption.dotClass}`} />
+        <span>{selectedOption.label}</span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-200 opacity-70 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 mt-2 z-50 min-w-[155px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl p-1.5 shadow-2xl border border-gray-200/80 dark:border-gray-800 animate-in fade-in zoom-in-95 duration-150">
+          <div className="space-y-0.5">
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 font-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${opt.dotClass}`} />
+                    <span className="text-[10px] font-black">{opt.label}</span>
+                  </div>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -160,6 +320,141 @@ export default function AdminOrdersPage() {
     toast.success(`${label} copied to clipboard`);
   };
 
+  const columns: ColumnDef<Order>[] = [
+    {
+      key: "orderNumber",
+      header: "Order #",
+      render: (ord) => (
+        <span className="font-mono whitespace-pre font-black text-gray-900 dark:text-white text-xs bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700">
+          {ord.orderNumber}
+        </span>
+      ),
+    },
+    {
+      key: "customer",
+      header: "Customer",
+      render: (ord) => (
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 font-bold flex items-center justify-center text-xs shrink-0">
+            {(ord.shippingAddress?.fullName || ord.userEmail).charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-gray-900 dark:text-white text-xs truncate max-w-[140px]">
+              {ord.shippingAddress?.fullName || ord.userEmail}
+            </p>
+            <p className="text-[11px] text-gray-400 truncate max-w-[140px]">
+              {ord.userEmail}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "items",
+      header: "Items",
+      render: (ord) => (
+        <div className="flex items-center gap-2.5">
+          {ord.items?.[0]?.image ? (
+            <img
+              src={ord.items[0].image}
+              alt={ord.items[0].name}
+              className="w-9 h-9 object-cover rounded-lg shrink-0 border border-gray-200 dark:border-gray-700 shadow-xs"
+            />
+          ) : (
+            <div className="w-9 h-9 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-400 shrink-0">
+              IMG
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[130px]">
+              {ord.items?.[0]?.name || "Garment Item"}
+            </p>
+            <span className="text-[10px] text-gray-400 font-semibold block">
+              {ord.items?.length || 1} item(s) total
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "gateway",
+      header: "Gateway",
+      render: (ord) => (
+        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+          {ord.paymentMethod}
+        </span>
+      ),
+    },
+    {
+      key: "paymentStatus",
+      header: "Payment Status",
+      render: (ord) => (
+        <CustomStatusSelect
+          value={ord.paymentStatus}
+          options={PAYMENT_STATUS_OPTIONS}
+          onChange={(newStatus) =>
+            handleUpdatePaymentStatus(ord.orderNumber, newStatus)
+          }
+        />
+      ),
+    },
+    {
+      key: "orderStatus",
+      header: "Fulfillment Status",
+      render: (ord) => (
+        <CustomStatusSelect
+          value={ord.orderStatus}
+          options={ORDER_STATUS_OPTIONS}
+          onChange={(newStatus) =>
+            handleUpdateOrderStatus(ord.orderNumber, newStatus)
+          }
+        />
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Date",
+      render: (ord) => (
+        <span className="text-xs text-gray-500 whitespace-pre dark:text-gray-400 font-medium">
+          {formatDate(ord.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: "total",
+      header: "Total",
+      align: "right",
+      render: (ord) => (
+        <span className="font-black text-gray-900 dark:text-white text-sm">
+          {formatCurrency(ord.total)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (ord) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            onClick={() => setSelectedOrder(ord)}
+            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors cursor-pointer"
+            title="View Order Details"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setInvoiceModalOrder(ord)}
+            className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 text-violet-600 dark:text-violet-400 transition-colors cursor-pointer"
+            title="Print Invoice"
+          >
+            <Printer className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   const getOrderStatusBadgeClass = (status: OrderStatus) => {
     switch (status) {
       case "delivered":
@@ -284,215 +579,36 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="rounded-2xl border border-surface-container bg-surface-container-low p-4 space-y-3 shadow-xs">
-        <div className="flex flex-col md:flex-row items-center gap-3">
-          {/* Search Box */}
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by Order #, Customer Name, or Email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-background border border-surface-container-high rounded-full pl-10 pr-4 py-2 text-xs font-medium outline-none focus:border-primary transition"
+      {/* High-Grade Admin Data Table */}
+      <DataTable
+        title="Order Records List"
+        description="Real-time checkout records, customer details & fulfillment status management."
+        columns={columns}
+        data={orders}
+        keyExtractor={(ord) => ord.orderNumber || ord._id || ""}
+        loading={loading}
+        emptyMessage="No orders found matching search criteria."
+        emptyIcon={<ShoppingCart className="h-10 w-10 mb-2 text-gray-400 opacity-50" />}
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: "Search order #, customer name, email...",
+        }}
+        headerActions={
+          <div className="flex flex-wrap items-center gap-2">
+            <CustomStatusSelect
+              value={orderStatusFilter}
+              options={ORDER_FILTER_OPTIONS}
+              onChange={(val) => setOrderStatusFilter(val)}
+            />
+            <CustomStatusSelect
+              value={paymentStatusFilter}
+              options={PAYMENT_FILTER_OPTIONS}
+              onChange={(val) => setPaymentStatusFilter(val)}
             />
           </div>
-
-          {/* Order Status Select */}
-          <div className="flex items-center gap-2 border border-surface-container-high bg-background px-4 py-2 rounded-full w-full md:w-auto">
-            <Filter className="w-3.5 h-3.5 text-secondary" />
-            <select
-              value={orderStatusFilter}
-              onChange={(e) => setOrderStatusFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-on-surface outline-none cursor-pointer w-full"
-            >
-              <option value="all">All Order Statuses</option>
-              <option value="processing">Processing</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          {/* Payment Status Select */}
-          <div className="flex items-center gap-2 border border-surface-container-high bg-background px-4 py-2 rounded-full w-full md:w-auto">
-            <CreditCard className="w-3.5 h-3.5 text-secondary" />
-            <select
-              value={paymentStatusFilter}
-              onChange={(e) => setPaymentStatusFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-on-surface outline-none cursor-pointer w-full"
-            >
-              <option value="all">All Payment Statuses</option>
-              <option value="paid">Paid Only</option>
-              <option value="pending">Pending Only</option>
-              <option value="failed">Failed Only</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Orders Table Container */}
-      <div className="rounded-2xl border border-surface-container bg-surface-container-low overflow-hidden shadow-xs">
-        <div className="p-5 border-b border-outline-variant/60 flex items-center justify-between">
-          <div>
-            <h3 className="font-headline font-black text-lg text-on-surface">
-              Order Records List
-            </h3>
-            <p className="text-xs text-secondary">
-              Real-time checkout records & status management
-            </p>
-          </div>
-          <span className="text-xs font-bold text-primary">
-            {orders.length} Orders Displayed
-          </span>
-        </div>
-
-        <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
-          {loading ? (
-            <div className="p-12 text-center text-xs font-bold text-secondary">
-              Loading orders list...
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="p-12 text-center text-xs text-secondary font-medium">
-              No orders found matching search criteria.
-            </div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 z-10 bg-surface-container-lowest shadow-xs">
-                <tr className="border-b border-outline-variant text-[11px] font-black uppercase tracking-wider text-secondary">
-                  <th className="py-3.5 px-5">Order #</th>
-                  <th className="py-3.5 px-5">Customer</th>
-                  <th className="py-3.5 px-5">Items</th>
-                  <th className="py-3.5 px-5">Gateway</th>
-                  <th className="py-3.5 px-5">Payment Status</th>
-                  <th className="py-3.5 px-5">Fulfillment Status</th>
-                  <th className="py-3.5 px-5">Date</th>
-                  <th className="py-3.5 px-5 text-right">Total</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/60 text-sm">
-                {orders.map((ord) => (
-                  <tr
-                    key={ord.orderNumber}
-                    className="hover:bg-surface-container-high/30 transition"
-                  >
-                    <td className="py-3.5 px-5">
-                      <span className="font-mono font-black text-on-surface text-xs">
-                        {ord.orderNumber}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <div>
-                        <p className="font-bold text-on-surface text-xs">
-                          {ord.shippingAddress?.fullName || ord.userEmail}
-                        </p>
-                        <p className="text-[11px] text-secondary">
-                          {ord.userEmail}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <div className="flex items-center gap-2">
-                        {ord.items?.[0]?.image ? (
-                          <img
-                            src={ord.items[0].image}
-                            alt={ord.items[0].name}
-                            className="w-8 h-8 object-cover rounded-lg shrink-0 border border-surface-container-high"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 bg-surface-container-high rounded-lg flex items-center justify-center text-[10px] font-bold">
-                            VL
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-xs font-bold text-on-surface line-clamp-1">
-                            {ord.items?.[0]?.name || "Garment Product"}
-                          </p>
-                          <span className="text-[10px] text-secondary font-medium">
-                            {ord.items?.length || 1} items total
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-5 text-xs font-black uppercase text-secondary">
-                      {ord.paymentMethod}
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <select
-                        value={ord.paymentStatus}
-                        onChange={(e) =>
-                          handleUpdatePaymentStatus(
-                            ord.orderNumber,
-                            e.target.value as PaymentStatus
-                          )
-                        }
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border cursor-pointer outline-none ${
-                          ord.paymentStatus === "paid"
-                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                            : ord.paymentStatus === "pending"
-                            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                            : "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                        }`}
-                      >
-                        <option value="paid">Paid</option>
-                        <option value="pending">Pending</option>
-                        <option value="failed">Failed</option>
-                      </select>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <select
-                        value={ord.orderStatus}
-                        onChange={(e) =>
-                          handleUpdateOrderStatus(
-                            ord.orderNumber,
-                            e.target.value as OrderStatus
-                          )
-                        }
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border cursor-pointer outline-none ${getOrderStatusBadgeClass(
-                          ord.orderStatus
-                        )}`}
-                      >
-                        <option value="processing">Processing</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </td>
-                    <td className="py-3.5 px-5 text-xs text-secondary">
-                      {formatDate(ord.createdAt)}
-                    </td>
-                    <td className="py-3.5 px-5 font-black text-on-surface text-right">
-                      {formatCurrency(ord.total)}
-                    </td>
-                    <td className="py-3.5 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => setSelectedOrder(ord)}
-                          title="View Order Details"
-                          className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setInvoiceModalOrder(ord)}
-                          title="Print Invoice"
-                          className="p-1.5 rounded-full bg-surface-container-high text-secondary hover:text-on-surface transition cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Order Detail Modal */}
       {selectedOrder && (
@@ -654,8 +770,8 @@ export default function AdminOrdersPage() {
 
       {/* Invoice Printable Modal */}
       {invoiceModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl bg-white text-black border border-gray-300 rounded-3xl p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:p-0 print:bg-white print:static">
+          <div className="print-invoice-modal relative w-full max-w-2xl bg-white text-black border border-gray-300 rounded-3xl p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-gray-200 pb-4 print:hidden">
               <span className="font-bold text-xs uppercase tracking-wider text-gray-500">
                 Official Order Invoice
@@ -680,7 +796,7 @@ export default function AdminOrdersPage() {
               <div className="flex items-center justify-between border-b border-black pb-4">
                 <div>
                   <h2 className="text-2xl font-black uppercase tracking-widest">
-                    VELOUR DIRECT
+                    ZENVRO
                   </h2>
                   <p className="text-xs text-gray-500 font-bold uppercase">
                     Order Invoice & Receipt
@@ -688,7 +804,7 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="text-right text-xs">
                   <p className="font-mono font-black text-sm">
-                    {invoiceModalOrder.orderNumber}
+                    #{invoiceModalOrder.orderNumber}
                   </p>
                   <p className="text-gray-500">
                     {formatDate(invoiceModalOrder.createdAt)}
@@ -721,7 +837,7 @@ export default function AdminOrdersPage() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-gray-300 font-bold bg-gray-100">
-                    <th className="py-2 px-2">Garment Description</th>
+                    <th className="py-2 px-2">Item Description</th>
                     <th className="py-2 px-2">Size</th>
                     <th className="py-2 px-2">Qty</th>
                     <th className="py-2 px-2 text-right">Unit Price</th>

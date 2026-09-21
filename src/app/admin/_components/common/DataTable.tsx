@@ -38,6 +38,7 @@ export interface DataTableProps<T> {
     itemUnitName?: string;
   };
   className?: string;
+  maxHeight?: string;
 }
 
 export default function DataTable<T>({
@@ -53,6 +54,7 @@ export default function DataTable<T>({
   search,
   pagination,
   className = '',
+  maxHeight = 'max-h-[550px]',
 }: DataTableProps<T>) {
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
@@ -83,10 +85,10 @@ export default function DataTable<T>({
       )}
       {/* Main Table Container */}
       <div className="bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className={`overflow-auto custom-scrollbar ${maxHeight}`}>
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-xs">
+              <tr className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">
                 {columns.map((col) => {
                   const alignClass =
                     col.align === 'center'

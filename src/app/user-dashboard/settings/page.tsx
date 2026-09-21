@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import toast from "react-hot-toast";
+import { LogOut } from "lucide-react";
 
 export default function UserSettingsPage() {
+  const router = useRouter();
+  const { logout } = useAuth();
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
@@ -28,6 +34,17 @@ export default function UserSettingsPage() {
       })
       .catch(() => {});
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast.error("Failed to log out");
+    }
+  };
 
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -220,7 +237,26 @@ export default function UserSettingsPage() {
             </button>
           </form>
         </div>
+
+        {/* Account Session & Danger Zone */}
+        <div className="lg:col-span-12 bg-red-50/50 dark:bg-red-950/20 p-4 sm:p-6 rounded-2xl sm:rounded-[2.5rem] border border-red-100 dark:border-red-900/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+              <LogOut className="w-4 h-4" /> Account Session & Logout
+            </h3>
+            <p className="text-xs text-red-600/70 dark:text-red-300/70 mt-1">
+              Sign out from your current device session. You can log back in anytime with your email & password.
+            </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2.5 bg-red-600 text-white rounded-full text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer shadow-md flex items-center gap-2 shrink-0"
+          >
+            <LogOut className="w-4 h-4" /> Log Out Account
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+

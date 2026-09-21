@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import toast from "react-hot-toast";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { LogOut } from "lucide-react";
 
 export default function UserDashboardLayout({
   children,
@@ -11,6 +14,8 @@ export default function UserDashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [userOrdersCount, setUserOrdersCount] = useState<number>(0);
   const [wishlistCount, setWishlistCount] = useState<number>(0);
   const [userName, setUserName] = useState<string>("Customer");
@@ -43,6 +48,17 @@ export default function UserDashboardLayout({
       })
       .catch(() => {});
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast.error("Failed to log out");
+    }
+  };
 
   const navItems = [
     { href: "/user-dashboard", icon: "home", label: "Dashboard" },
@@ -93,6 +109,18 @@ export default function UserDashboardLayout({
                 </Link>
               );
             })}
+
+            {/* Logout Sidebar Button */}
+            <button
+              onClick={handleLogout}
+              className="w-10 h-10 md:w-12 md:h-12 md:group-hover:w-full flex items-center justify-center md:justify-start md:px-3 rounded-full transition-all duration-300 shrink-0 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 cursor-pointer"
+              title="Log Out"
+            >
+              <NavIcon name="logout" />
+              <span className="hidden md:group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-3 font-semibold whitespace-nowrap text-sm text-red-600 dark:text-red-400">
+                Log Out
+              </span>
+            </button>
           </nav>
         </div>
         <div className="hidden md:flex flex-col items-center gap-2 shrink-0">
@@ -157,6 +185,14 @@ export default function UserDashboardLayout({
                   </span>
                   <span className="text-[10px] sm:text-xs text-gray-400">Customer</span>
                 </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 rounded-full text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-900 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ml-1"
+                  title="Log Out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
               </div>
             </div>
           </div>
@@ -210,6 +246,14 @@ function NavIcon({ name }: { name: string }) {
         strokeWidth="2"
       />
     ),
+    logout: (
+      <path
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    ),
   };
   return (
     <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,3 +261,4 @@ function NavIcon({ name }: { name: string }) {
     </svg>
   );
 }
+
