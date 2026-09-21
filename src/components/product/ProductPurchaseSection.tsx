@@ -10,6 +10,9 @@ type ProductPurchaseSectionProps = {
   selectedSize: string | null;
   setSelectedSize: (size: string) => void;
   onAddToBag: () => void;
+  isBookmarked?: boolean;
+  bookmarkLoading?: boolean;
+  onToggleBookmark?: () => void;
 };
 
 export default function ProductPurchaseSection({
@@ -17,6 +20,9 @@ export default function ProductPurchaseSection({
   selectedSize,
   setSelectedSize,
   onAddToBag,
+  isBookmarked = false,
+  bookmarkLoading = false,
+  onToggleBookmark,
 }: ProductPurchaseSectionProps) {
   const filteredDetails = (product.details || []).filter(
     (detail) =>
@@ -164,16 +170,37 @@ export default function ProductPurchaseSection({
         </div>
       )}
 
-      {/* Add to Bag Button */}
-      <motion.button
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onAddToBag}
-        className="flex h-14 w-full items-center justify-center gap-3 bg-primary px-6 font-label text-[11px] font-black uppercase tracking-[0.2em] text-background shadow-lg hover:bg-primary-fixed hover:text-white transition-colors"
-      >
-        Add to Bag
-        <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
-      </motion.button>
+      {/* Add to Bag & Bookmark Buttons */}
+      <div className="flex items-center gap-3">
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onAddToBag}
+          className="flex-1 flex h-14 items-center justify-center gap-3 bg-primary px-6 font-label text-[11px] font-black uppercase tracking-[0.2em] text-background shadow-lg hover:bg-primary-fixed hover:text-white transition-colors cursor-pointer"
+        >
+          Add to Bag
+          <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
+        </motion.button>
+
+        {onToggleBookmark && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onToggleBookmark}
+            disabled={bookmarkLoading}
+            className={`flex h-14 w-14 items-center justify-center border transition-all cursor-pointer ${
+              isBookmarked
+                ? "border-pink-500 bg-pink-500 text-white shadow-md"
+                : "border-outline-variant bg-surface text-on-surface hover:border-pink-500 hover:text-pink-500"
+            }`}
+            title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
+          >
+            <span className="material-symbols-outlined text-[22px]">
+              {isBookmarked ? "bookmark_added" : "bookmark"}
+            </span>
+          </motion.button>
+        )}
+      </div>
 
       {/* Trust Badges */}
       <div className="grid grid-cols-3 gap-3 pt-6 border-t border-outline-variant/60">

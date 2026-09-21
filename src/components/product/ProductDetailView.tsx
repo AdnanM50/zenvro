@@ -42,10 +42,83 @@ export default function ProductDetailView({
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
   const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000";
   const rawImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const images = rawImages.filter((img) => Boolean(img) && typeof img === "string" && img.trim() !== "");
   if (images.length === 0) images.push(DEFAULT_IMAGE);
+
+  // Check initial bookmark status if user logged in
+  useEffect(() => {
+    if (!user) return;
+    const checkBookmarkStatus = async () => {
+      try {
+        const res = await fetch("/api/wishlist");
+        if (res.ok) {
+          const json = await res.json();
+          const items = json.data || json || [];
+          const targetId = product.id || product.slug;
+          const found = items.some(
+            (item: any) =>
+              item._id === targetId ||
+              item.id === targetId ||
+              item.product === targetId ||
+              item.slug === product.slug
+          );
+          setIsBookmarked(found);
+        }
+      } catch (err) {
+        console.error("Failed to check wishlist status:", err);
+      }
+    };
+    checkBookmarkStatus();
+  }, [user, product.id, product.slug]);
+
+  const handleToggleBookmark = async () => {
+    if (!user) {
+      toast.error("Please sign in to save bookmarks to your wishlist");
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    try {
+      setBookmarkLoading(true);
+      const targetId = product.id || product.slug;
+
+      if (isBookmarked) {
+        // Remove from wishlist
+        const res = await fetch(`/api/wishlist?product=${encodeURIComponent(targetId)}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setIsBookmarked(false);
+          toast.success("Removed from your bookmarks");
+        } else {
+          toast.error("Failed to remove bookmark");
+        }
+      } else {
+        // Add to wishlist
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product: targetId }),
+        });
+        if (res.ok || res.status === 409) {
+          setIsBookmarked(true);
+          toast.success("Saved to your bookmarks");
+        } else {
+          toast.error("Failed to bookmark product");
+        }
+      }
+    } catch (err) {
+      console.error("Bookmark error:", err);
+      toast.error("Failed to update bookmark");
+    } finally {
+      setBookmarkLoading(false);
+    }
+  };
 
   const handleAddToBag = () => {
     if (!user) {
@@ -80,12 +153,20 @@ export default function ProductDetailView({
         >
           {/* Left Column - Product Info & Purchase Options */}
           <div className="lg:col-span-7 flex flex-col gap-10">
-            <ProductHeader product={product} />
+            <ProductHeader
+              product={product}
+              isBookmarked={isBookmarked}
+              bookmarkLoading={bookmarkLoading}
+              onToggleBookmark={handleToggleBookmark}
+            />
             <ProductPurchaseSection
               product={product}
               selectedSize={selectedSize}
               setSelectedSize={setSelectedSize}
               onAddToBag={handleAddToBag}
+              isBookmarked={isBookmarked}
+              bookmarkLoading={bookmarkLoading}
+              onToggleBookmark={handleToggleBookmark}
             />
           </div>
 

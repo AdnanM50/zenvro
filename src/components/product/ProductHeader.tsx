@@ -7,19 +7,49 @@ import type { Product } from "@/lib/products";
 
 type ProductHeaderProps = {
   product: Product;
+  isBookmarked?: boolean;
+  bookmarkLoading?: boolean;
+  onToggleBookmark?: () => void;
 };
 
-export default function ProductHeader({ product }: ProductHeaderProps) {
+export default function ProductHeader({
+  product,
+  isBookmarked = false,
+  bookmarkLoading = false,
+  onToggleBookmark,
+}: ProductHeaderProps) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Link
-          href="/#products"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant bg-background text-on-surface transition hover:bg-primary hover:text-background"
-          aria-label="Back to products"
-        >
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/#products"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant bg-background text-on-surface transition hover:bg-primary hover:text-background"
+            aria-label="Back to products"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          </Link>
+
+          {onToggleBookmark && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onToggleBookmark}
+              disabled={bookmarkLoading}
+              className={`inline-flex h-10 px-4 items-center justify-center gap-2 rounded-full border text-xs font-bold uppercase tracking-wider transition-all ${
+                isBookmarked
+                  ? "border-pink-500 bg-pink-500 text-white shadow-md"
+                  : "border-outline-variant bg-background text-on-surface hover:border-pink-500 hover:text-pink-500"
+              }`}
+              title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {isBookmarked ? "bookmark_added" : "bookmark"}
+              </span>
+              <span>{isBookmarked ? "Saved" : "Save"}</span>
+            </motion.button>
+          )}
+        </div>
 
         <motion.p
           variants={fadeIn}

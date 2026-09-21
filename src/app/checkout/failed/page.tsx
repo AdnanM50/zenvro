@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import {
   XCircle,
   ArrowRight,
@@ -15,6 +16,29 @@ import {
 function FailedContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("orderNumber");
+  const [repaying, setRepaying] = useState(false);
+
+  const handleRetryPayment = async () => {
+    if (!orderNumber) return;
+    try {
+      setRepaying(true);
+      toast.loading("Creating new Stripe payment session...");
+      const res = await fetch("/api/checkout/repay-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.data?.url) {
+        throw new Error(json.error || "Failed to initiate payment retry");
+      }
+      toast.success("Redirecting to Stripe payment page...");
+      window.location.href = json.data.url;
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to retry payment");
+      setRepaying(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto border border-outline-variant bg-background rounded-3xl p-8 md:p-12 shadow-md space-y-8">
@@ -65,13 +89,24 @@ function FailedContent() {
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 border-t border-outline-variant">
-        <Link
-          href="/checkout"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-label text-xs font-black uppercase tracking-widest hover:opacity-90 transition-opacity shadow-md"
-        >
-          <RotateCcw className="h-4 w-4" />
-          Try Payment Again
-        </Link>
+        {orderNumber ? (
+          <button
+            onClick={handleRetryPayment}
+            disabled={repaying}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-label text-xs font-black uppercase tracking-widest hover:opacity-90 transition-opacity shadow-md cursor-pointer disabled:opacity-50"
+          >
+            <RotateCcw className="h-4 w-4" />
+            {repaying ? "Redirecting..." : "Try Payment Again"}
+          </button>
+        ) : (
+          <Link
+            href="/checkout"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-label text-xs font-black uppercase tracking-widest hover:opacity-90 transition-opacity shadow-md"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Try Payment Again
+          </Link>
+        )}
         <Link
           href="/#products"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-outline-variant font-label text-xs font-black uppercase tracking-widest hover:bg-surface-container transition-colors"

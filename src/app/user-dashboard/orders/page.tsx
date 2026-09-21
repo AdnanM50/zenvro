@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import type { Order } from "@/types";
-import { Printer, X, FileText, User, MapPin } from "lucide-react";
+import { Printer, X, FileText, User, MapPin, CreditCard, RotateCcw } from "lucide-react";
 
 export default function UserOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -13,7 +14,31 @@ export default function UserOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [repayingOrderNumber, setRepayingOrderNumber] = useState<string | null>(null);
   const ordersPerPage = 5;
+
+  const handleRepayOrder = async (orderNumber: string) => {
+    try {
+      setRepayingOrderNumber(orderNumber);
+      toast.loading("Initiating repayment session...");
+      const res = await fetch("/api/checkout/repay-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.data?.url) {
+        throw new Error(json.error || "Failed to create repayment session");
+      }
+      toast.success("Redirecting to Stripe payment page...");
+      window.location.href = json.data.url;
+    } catch (err: any) {
+      console.error("Repayment error:", err);
+      toast.error(err?.message || "Repayment failed. Please try again.");
+    } finally {
+      setRepayingOrderNumber(null);
+    }
+  };
 
   useEffect(() => {
     async function fetchOrders() {
@@ -218,13 +243,23 @@ export default function UserOrdersPage() {
                       {order.paymentMethod}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
-                    <div className="text-right">
+                  <div className="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
+                    <div className="text-right mr-2">
                       <span className="text-[10px] text-gray-400 uppercase font-bold block">Total Amount</span>
                       <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                         ${order.total?.toFixed(2)}
                       </span>
                     </div>
+                    {order.paymentStatus !== "paid" && order.orderStatus !== "cancelled" && (
+                      <button
+                        onClick={() => handleRepayOrder(order.orderNumber)}
+                        disabled={repayingOrderNumber === order.orderNumber}
+                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-md hover:scale-105 cursor-pointer disabled:opacity-50"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        {repayingOrderNumber === order.orderNumber ? "Redirecting..." : "Repay Now"}
+                      </button>
+                    )}
                     <button
                       onClick={() => setSelectedOrder(order)}
                       className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full text-xs font-bold hover:scale-105 transition-transform"
@@ -495,6 +530,16 @@ export default function UserOrdersPage() {
             <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/60 flex items-center justify-between shrink-0 print:hidden">
               <span className="text-xs text-gray-400 font-medium">Ready to print or save as PDF</span>
               <div className="flex items-center gap-3">
+                {selectedOrder.paymentStatus !== "paid" && selectedOrder.orderStatus !== "cancelled" && (
+                  <button
+                    onClick={() => handleRepayOrder(selectedOrder.orderNumber)}
+                    disabled={repayingOrderNumber === selectedOrder.orderNumber}
+                    className="px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-md cursor-pointer disabled:opacity-50"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {repayingOrderNumber === selectedOrder.orderNumber ? "Processing..." : "Retry Payment Now"}
+                  </button>
+                )}
                 <button
                   onClick={() => setSelectedOrder(null)}
                   className="px-5 py-2.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition cursor-pointer"
