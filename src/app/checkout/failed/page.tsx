@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -17,6 +17,24 @@ function FailedContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("orderNumber");
   const [repaying, setRepaying] = useState(false);
+  const notifiedRef = useRef(false);
+
+  // Automatically record failed status and dispatch humble notification email
+  useEffect(() => {
+    if (!orderNumber || notifiedRef.current) return;
+    notifiedRef.current = true;
+
+    fetch("/api/checkout/payment-failed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderNumber,
+        reason: "Stripe checkout session was interrupted or cancelled before payment confirmation.",
+      }),
+    }).catch((err) => {
+      console.warn("Failed to notify backend of checkout interruption:", err);
+    });
+  }, [orderNumber]);
 
   const handleRetryPayment = async () => {
     if (!orderNumber) return;

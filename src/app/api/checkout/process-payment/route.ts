@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
       userEmail
     );
 
+    // Asynchronously dispatch confirmation email
+    try {
+      const { sendOrderSuccessEmail } = await import('@/lib/mail');
+      await sendOrderSuccessEmail(order);
+    } catch (mailErr) {
+      console.error('Failed to dispatch order confirmation email on process-payment:', mailErr);
+    }
+
     return api.created(order, 'Order placed successfully');
   } catch (error) {
     console.error('Process payment error:', error);

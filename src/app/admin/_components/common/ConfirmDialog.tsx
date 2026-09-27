@@ -11,8 +11,11 @@ interface ConfirmDialogProps {
   title?: string;
   description?: string;
   confirmLabel?: string;
+  confirmLoadingLabel?: string;
   cancelLabel?: string;
   confirming?: boolean;
+  children?: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 const dialogVariants = {
@@ -65,8 +68,11 @@ export default function ConfirmDialog({
   title = 'Delete this item?',
   description = 'Are you sure you want to delete this item? This action cannot be undone.',
   confirmLabel = 'Delete',
+  confirmLoadingLabel,
   cancelLabel = 'Cancel',
   confirming = false,
+  children,
+  icon,
 }: ConfirmDialogProps) {
   useEffect(() => {
     if (isOpen) {
@@ -88,6 +94,8 @@ export default function ConfirmDialog({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose, confirming]);
+
+  const activeLoadingLabel = confirmLoadingLabel || `${confirmLabel}...`;
 
   return (
     <AnimatePresence>
@@ -143,7 +151,7 @@ export default function ConfirmDialog({
                   transition={{ duration: 1.4, repeat: Infinity, ease: 'easeOut' }}
                 />
                 <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-b from-red-500/15 to-red-600/10 ring-1 ring-red-500/25 shadow-inner">
-                  <Trash2 className="h-7 w-7 text-red-600 dark:text-red-400" strokeWidth={2} />
+                  {icon || <Trash2 className="h-7 w-7 text-red-600 dark:text-red-400" strokeWidth={2} />}
                 </div>
               </motion.div>
 
@@ -158,10 +166,17 @@ export default function ConfirmDialog({
               {/* Description */}
               <motion.p
                 variants={itemVariants}
-                className="mt-1.5 max-w-[260px] text-[13px] leading-relaxed text-gray-500 dark:text-gray-400"
+                className="mt-1.5 max-w-[280px] text-[13px] leading-relaxed text-gray-500 dark:text-gray-400"
               >
                 {description}
               </motion.p>
+
+              {/* Optional Custom Content (e.g. Reason Preview) */}
+              {children && (
+                <motion.div variants={itemVariants} className="w-full mt-3">
+                  {children}
+                </motion.div>
+              )}
 
               {/* Actions */}
               <motion.div variants={itemVariants} className="mt-6 flex w-full items-center gap-2.5">
@@ -179,8 +194,8 @@ export default function ConfirmDialog({
                   disabled={confirming}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-sm font-bold text-white shadow-lg shadow-red-600/30 hover:shadow-xl hover:shadow-red-500/30 hover:from-red-500 hover:to-red-400 active:scale-[0.97] transition-all disabled:opacity-60 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
                 >
-                  {confirming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                  {confirming ? 'Deleting...' : confirmLabel}
+                  {confirming ? <Loader2 className="h-4 w-4 animate-spin" /> : (icon ? null : <Trash2 className="h-4 w-4" />)}
+                  {confirming ? activeLoadingLabel : confirmLabel}
                 </button>
               </motion.div>
             </div>

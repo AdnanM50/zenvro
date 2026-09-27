@@ -26,6 +26,12 @@ export const PAYMENT_STATUS_OPTIONS: StatusOption<PaymentStatus>[] = [
     badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-500/60 shadow-xs",
     dotClass: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]",
   },
+  {
+    value: "refunded",
+    label: "Refunded",
+    badgeClass: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 hover:border-sky-500/60 shadow-xs",
+    dotClass: "bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]",
+  },
 ];
 
 export const ORDER_STATUS_OPTIONS: StatusOption<OrderStatus>[] = [
@@ -75,4 +81,5 @@ export const PAYMENT_FILTER_OPTIONS: StatusOption<string>[] = [
   { value: "paid", label: "Paid Only", badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", dotClass: "bg-emerald-500" },
   { value: "pending", label: "Pending Only", badgeClass: "bg-amber-500/10 text-amber-600 border-amber-500/30", dotClass: "bg-amber-500" },
   { value: "failed", label: "Failed Only", badgeClass: "bg-rose-500/10 text-rose-600 border-rose-500/30", dotClass: "bg-rose-500" },
+  { value: "refunded", label: "Refunded Only", badgeClass: "bg-sky-500/10 text-sky-600 border-sky-500/30", dotClass: "bg-sky-500" },
 ];

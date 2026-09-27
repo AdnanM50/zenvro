@@ -1,5 +1,21 @@
-export type PaymentStatus = 'pending' | 'paid' | 'failed';
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded';
 export type OrderStatus = 'processing' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface PaymentDetails {
+  cardBrand?: string; // 'visa' | 'mastercard' | 'amex' | 'discover' etc.
+  last4?: string; // '4242'
+  expMonth?: number;
+  expYear?: number;
+  funding?: string; // 'credit' | 'debit'
+  bankName?: string; // e.g. 'JPMorgan Chase Bank'
+  bankAccountNumber?: string; // e.g. '•••• •••• 8891'
+  bankRoutingNumber?: string; // e.g. '021000021'
+  receiptUrl?: string;
+  refundedAmount?: number;
+  refundReason?: string;
+  refundedAt?: string;
+  refundId?: string;
+}
 
 export interface OrderItem {
   key: string;
@@ -36,6 +52,9 @@ export interface Order {
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
   paymentIntentId?: string;
+  paymentDetails?: PaymentDetails;
+  cancellationReason?: string;
+  cancelledAt?: string;
   shippingAddress: ShippingAddress;
   createdAt: string;
   updatedAt: string;

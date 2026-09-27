@@ -1,13 +1,21 @@
 import nodemailer from 'nodemailer';
 import type { ContactMessage } from '@/types';
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_APP_PASSWORD,
   },
 });
+
+export {
+  sendOrderSuccessEmail,
+  sendPaymentFailedEmail,
+  sendOrderStatusUpdateEmail,
+  sendOrderCancellationEmail,
+  sendOrderRefundEmail,
+} from './order-emails';
 
 export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   await transporter.sendMail({

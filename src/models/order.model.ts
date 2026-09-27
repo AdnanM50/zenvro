@@ -100,7 +100,8 @@ export const OrderModel = {
     orderId: string,
     paymentStatus: Order['paymentStatus'],
     orderStatus?: Order['orderStatus'],
-    paymentIntentId?: string
+    paymentIntentId?: string,
+    paymentDetails?: Order['paymentDetails']
   ): Promise<Order | null> {
     const c = await col();
     let query: Record<string, unknown> = { orderNumber: orderId };
@@ -118,6 +119,32 @@ export const OrderModel = {
     if (paymentIntentId) {
       update.paymentIntentId = paymentIntentId;
     }
+    if (paymentDetails) {
+      update.paymentDetails = paymentDetails;
+    }
+
+    await c.updateOne(query, { $set: update });
+    return this.findById(orderId);
+  },
+
+  async updatePaymentDetails(
+    orderId: string,
+    paymentDetails: Order['paymentDetails'],
+    paymentStatus?: Order['paymentStatus']
+  ): Promise<Order | null> {
+    const c = await col();
+    let query: Record<string, unknown> = { orderNumber: orderId };
+    if (ObjectId.isValid(orderId)) {
+      query = { $or: [{ _id: new ObjectId(orderId) }, { orderNumber: orderId }] };
+    }
+
+    const update: Record<string, unknown> = {
+      paymentDetails,
+      updatedAt: new Date().toISOString(),
+    };
+    if (paymentStatus) {
+      update.paymentStatus = paymentStatus;
+    }
 
     await c.updateOne(query, { $set: update });
     return this.findById(orderId);
@@ -126,7 +153,8 @@ export const OrderModel = {
   async updateOrderStatus(
     orderId: string,
     orderStatus: Order['orderStatus'],
-    paymentStatus?: Order['paymentStatus']
+    paymentStatus?: Order['paymentStatus'],
+    cancellationReason?: string
   ): Promise<Order | null> {
     const c = await col();
     let query: Record<string, unknown> = { orderNumber: orderId };
@@ -140,6 +168,12 @@ export const OrderModel = {
     };
     if (paymentStatus) {
       update.paymentStatus = paymentStatus;
+    }
+    if (cancellationReason) {
+      update.cancellationReason = cancellationReason;
+      if (orderStatus === 'cancelled') {
+        update.cancelledAt = new Date().toISOString();
+      }
     }
 
     await c.updateOne(query, { $set: update });

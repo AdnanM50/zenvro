@@ -109,8 +109,27 @@ export default function OrderInvoiceModal({
             </tbody>
           </table>
 
-          <div className="flex justify-end pt-2">
-            <div className="w-1/2 space-y-1.5 text-xs">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-2 border-t border-gray-200">
+            <div className="space-y-1 text-xs text-gray-600 max-w-xs">
+              <span className="font-bold uppercase text-[10px] text-gray-500 block">
+                Payment &amp; Banking Method
+              </span>
+              <p className="font-bold text-black uppercase">
+                {order.paymentDetails?.cardBrand ? `${order.paymentDetails.cardBrand} •••• ${order.paymentDetails.last4 || '4242'}` : `${order.paymentMethod} Gateway`}
+              </p>
+              {order.paymentDetails?.bankName && (
+                <p className="text-[11px]">Bank: {order.paymentDetails.bankName}</p>
+              )}
+              {order.paymentDetails?.bankAccountNumber && (
+                <p className="text-[11px] font-mono">Account: {order.paymentDetails.bankAccountNumber}</p>
+              )}
+              <p className="text-[10px] uppercase font-bold text-gray-500 pt-1">
+                Status: <strong className="text-black">{order.paymentStatus.toUpperCase()}</strong>
+                {order.paymentDetails?.refundedAmount ? ` (Refunded ${formatCurrency(order.paymentDetails.refundedAmount)})` : ''}
+              </p>
+            </div>
+
+            <div className="w-full sm:w-1/2 space-y-1.5 text-xs">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
                 <span>

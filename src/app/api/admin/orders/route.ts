@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { OrderModel } from '@/models/order.model';
 import type { Order } from '@/types/order';
+import {
+  sendOrderStatusUpdateEmail,
+  sendOrderCancellationEmail,
+  sendOrderSuccessEmail,
+  sendPaymentFailedEmail,
+} from '@/lib/mail';
 
 // Mock seed orders if DB has none
 const MOCK_ADMIN_ORDERS: Order[] = [
@@ -26,6 +32,18 @@ const MOCK_ADMIN_ORDERS: Order[] = [
     paymentMethod: "stripe",
     paymentStatus: "paid",
     orderStatus: "shipped",
+    paymentIntentId: "pi_3PzK9281aL048xVisa",
+    paymentDetails: {
+      cardBrand: "visa",
+      last4: "4242",
+      expMonth: 8,
+      expYear: 2028,
+      funding: "credit",
+      bankName: "JPMorgan Chase Bank, N.A.",
+      bankAccountNumber: "•••• •••• 9812",
+      bankRoutingNumber: "021000021",
+      receiptUrl: "https://pay.stripe.com/receipts/test_rec_101",
+    },
     shippingAddress: {
       fullName: "Adnan Islam",
       email: "selixiw785@gexige.com",
@@ -59,6 +77,18 @@ const MOCK_ADMIN_ORDERS: Order[] = [
     paymentMethod: "stripe",
     paymentStatus: "paid",
     orderStatus: "delivered",
+    paymentIntentId: "pi_3Q2L0991bM931zMaster",
+    paymentDetails: {
+      cardBrand: "mastercard",
+      last4: "8821",
+      expMonth: 11,
+      expYear: 2027,
+      funding: "debit",
+      bankName: "Citibank, N.A.",
+      bankAccountNumber: "•••• •••• 4402",
+      bankRoutingNumber: "021000089",
+      receiptUrl: "https://pay.stripe.com/receipts/test_rec_102",
+    },
     shippingAddress: {
       fullName: "Adnan X",
       email: "nafip82705@hideam.com",
@@ -180,7 +210,7 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { orderId, orderStatus, paymentStatus } = body;
+    const { orderId, orderStatus, paymentStatus, cancellationReason } = body;
 
     if (!orderId) {
       return NextResponse.json(
@@ -189,27 +219,75 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const updated = await OrderModel.updateOrderStatus(orderId, orderStatus, paymentStatus);
+    // Lookup existing state to detect transitions
+    const existingOrder =
+      (await OrderModel.findById(orderId)) ||
+      MOCK_ADMIN_ORDERS.find((o) => o.orderNumber === orderId || o._id === orderId);
+
+    const updated = await OrderModel.updateOrderStatus(
+      orderId,
+      orderStatus,
+      paymentStatus,
+      cancellationReason
+    );
+
+    let finalOrder: Order | null = updated;
 
     // If mock order or DB fallback
-    if (!updated) {
-      const mock = MOCK_ADMIN_ORDERS.find(o => o.orderNumber === orderId || o._id === orderId);
+    if (!finalOrder) {
+      const mock = MOCK_ADMIN_ORDERS.find(
+        (o) => o.orderNumber === orderId || o._id === orderId
+      );
       if (mock) {
         if (orderStatus) mock.orderStatus = orderStatus;
         if (paymentStatus) mock.paymentStatus = paymentStatus;
+        if (cancellationReason) {
+          mock.cancellationReason = cancellationReason;
+          if (orderStatus === 'cancelled') {
+            mock.cancelledAt = new Date().toISOString();
+          }
+        }
         mock.updatedAt = new Date().toISOString();
-        return NextResponse.json({
-          success: true,
-          message: 'Order status updated successfully',
-          data: mock
-        });
+        finalOrder = { ...mock };
       }
+    }
+
+    if (!finalOrder) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    // Trigger humble emails asynchronously based on status changes
+    try {
+      if (orderStatus === 'cancelled') {
+        await sendOrderCancellationEmail(
+          finalOrder,
+          cancellationReason || 'Order cancellation processed upon administrative review.'
+        );
+      } else if (orderStatus && existingOrder && existingOrder.orderStatus !== orderStatus) {
+        await sendOrderStatusUpdateEmail(
+          finalOrder,
+          orderStatus,
+          existingOrder.orderStatus
+        );
+      } else if (paymentStatus && existingOrder && existingOrder.paymentStatus !== paymentStatus) {
+        if (paymentStatus === 'paid') {
+          await sendOrderSuccessEmail(finalOrder);
+        } else if (paymentStatus === 'failed') {
+          await sendPaymentFailedEmail(finalOrder);
+        }
+      }
+    } catch (mailErr) {
+      console.error('Failed to dispatch status email notification:', mailErr);
+      // Non-fatal to allow order update to succeed even if SMTP is offline
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Order status updated successfully',
-      data: updated
+      message: 'Order status updated successfully and notification dispatched',
+      data: finalOrder,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Failed to update order status';

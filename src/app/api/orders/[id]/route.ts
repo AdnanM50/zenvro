@@ -48,6 +48,13 @@ export async function GET(
             );
             if (updated) {
               order = updated;
+              // Asynchronously dispatch order confirmation email
+              try {
+                const { sendOrderSuccessEmail } = await import('@/lib/mail');
+                await sendOrderSuccessEmail(order);
+              } catch (mailErr) {
+                console.error('Failed to dispatch order confirmation email:', mailErr);
+              }
             }
           }
         }
