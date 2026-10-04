@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import TopMetricCards from "@/app/admin/_components/dashboard/TopMetricCards";
 import RevenueReportChart from "@/app/admin/_components/dashboard/RevenueReportChart";
 import StatGridCards from "@/app/admin/_components/dashboard/StatGridCards";
