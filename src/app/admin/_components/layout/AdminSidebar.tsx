@@ -226,19 +226,10 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           </button>
         </div>
 
-        {/* Greeting */}
-        <div className="mb-6 pb-4 border-b border-gray-100 dark:border-gray-800/80">
-          <div className="text-[11px] font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-            Store Overview
-          </div>
-          <h1 className="text-lg font-bold leading-tight text-gray-900 dark:text-white">
-            Welcome, {displayName.split(" ")[0]} <span role="img" aria-label="wave">&#128075;</span>
-          </h1>
-        </div>
 
         {/* Menu Section */}
         <div className="mb-6 lg:mb-8">
-          <button
+          {/* <button
             className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-wider mb-3 flex justify-between items-center w-full"
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -248,7 +239,7 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                 menuOpen ? "rotate-180" : ""
               }`}
             />
-          </button>
+          </button> */}
           <div
             className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
               menuOpen
