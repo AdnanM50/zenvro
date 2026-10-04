@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "@/app/admin/_components/layout/AdminSidebar";
 import AdminHeader from "@/app/admin/_components/layout/AdminHeader";
 import AnalyticsScripts from "@/components/AnalyticsScripts";
@@ -11,12 +11,26 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const savedState = localStorage.getItem("admin_sidebar_collapsed");
+    if (savedState !== null) {
+      setIsCollapsed(savedState === "true");
+    }
+  }, []);
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("admin_sidebar_collapsed", String(next));
+      return next;
+    });
+  };
 
   return (
     <div className="h-screen w-full bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-200 overflow-hidden">
-      <div
-        className="max-w-[1440px] mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-hidden flex h-full border-x border-gray-200 dark:border-gray-800 shadow-sm relative"
-      >
+      <div className="max-w-[1440px] mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-hidden flex h-full border-x border-gray-200 dark:border-gray-800 shadow-sm relative">
         {/* Mobile Overlay */}
         {sidebarOpen && (
           <div
@@ -25,7 +39,12 @@ export default function AdminLayout({
           />
         )}
 
-        <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <AdminSidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={handleToggleCollapse}
+        />
 
         {/* Dynamic Analytics & Hotjar Script */}
         <AnalyticsScripts />
@@ -35,7 +54,7 @@ export default function AdminLayout({
           <AdminHeader onOpenSidebar={() => setSidebarOpen(true)} />
 
           {/* Page Content */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 " data-lenis-prevent>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6" data-lenis-prevent>
             {children}
           </div>
         </main>
