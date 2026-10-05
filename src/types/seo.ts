@@ -13,6 +13,13 @@ export interface SeoSettings {
   defaultOgImage: string;
   favicon: string;
   logo: string;
+  logoDark?: string;
+  tagline?: string;
+  navBrandType?: 'text' | 'logo' | 'both';
+  navbarText?: string;
+  announcementEnabled?: boolean;
+  announcementText?: string;
+  announcementLink?: string;
   canonicalDomain: string;
   schemaOrganization: Record<string, unknown>;
   schemaWebsite: Record<string, unknown>;
@@ -21,6 +28,23 @@ export interface SeoSettings {
   yandexVerification: string;
   indexNowKey: string;
   robotsDefault: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactAddress?: string;
+  currencySymbol?: string;
+  currencyCode?: string;
+  socialFacebook?: string;
+  socialInstagram?: string;
+  socialTwitter?: string;
+  socialYoutube?: string;
+  socialTiktok?: string;
+  copyrightText?: string;
+  footerAboutText?: string;
+  footerShowPaymentIcons?: boolean;
+  footerNewsletterEnabled?: boolean;
+  footerNewsletterTitle?: string;
+  footerNewsletterSubtitle?: string;
+  footerQuickLinksTitle?: string;
   createdAt: Date;
   updatedAt: Date;
 }

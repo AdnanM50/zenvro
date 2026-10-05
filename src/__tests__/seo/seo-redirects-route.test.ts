@@ -91,6 +91,7 @@ describe('Redirects API Route Handlers', () => {
 
   describe('DELETE /api/admin/seo/redirects', () => {
     it('deletes redirect by _id', async () => {
+      (RedirectModel.findById as jest.Mock).mockResolvedValue({ _id: 'r1', from: '/old', to: '/new' });
       (RedirectModel.delete as jest.Mock).mockResolvedValue(true);
       const res = await DELETE(makeRequest({ url: 'http://localhost/api/admin/seo/redirects?_id=r1' }));
       const { status } = await parseResponse(res);

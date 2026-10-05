@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { Edit2, Eye, Search, Filter } from "lucide-react";
+import Link from "next/link";
+import { Edit2, Search, Filter } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const ORDERS = [
+interface RecentOrdersTableProps {
+  data?: DashboardStats["recentOrders"];
+}
+
+const FALLBACK_ORDERS = [
   {
-    id: 1,
+    id: "1",
+    orderNumber: "VL-892101",
     customer: "Elena Smith",
     email: "elenasmith387@gmail.com",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80",
@@ -14,10 +21,11 @@ const ORDERS = [
     amount: "$9.99",
     status: "In Progress",
     statusStyle: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-500/20",
-    date: "03, Sep 2024",
+    date: "03, Sep 2026",
   },
   {
-    id: 2,
+    id: "2",
+    orderNumber: "VL-892102",
     customer: "Nelson Gold",
     email: "noahrussell556@gmail.com",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
@@ -26,10 +34,11 @@ const ORDERS = [
     amount: "$49.99",
     status: "Pending",
     statusStyle: "bg-pink-50 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400 border border-pink-500/20",
-    date: "26, Jul 2024",
+    date: "26, Jul 2026",
   },
   {
-    id: 3,
+    id: "3",
+    orderNumber: "VL-892103",
     customer: "Grace Mitchell",
     email: "gracemitchell79@gmail.com",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
@@ -38,10 +47,11 @@ const ORDERS = [
     amount: "$29.99",
     status: "Success",
     statusStyle: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-500/20",
-    date: "12, May 2024",
+    date: "12, May 2026",
   },
   {
-    id: 4,
+    id: "4",
+    orderNumber: "VL-892104",
     customer: "Spencer Robin",
     email: "leophillips124@gmail.com",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
@@ -50,10 +60,11 @@ const ORDERS = [
     amount: "$19.99",
     status: "Success",
     statusStyle: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-500/20",
-    date: "15, Aug 2024",
+    date: "15, Aug 2026",
   },
   {
-    id: 5,
+    id: "5",
+    orderNumber: "VL-892105",
     customer: "Chloe Lewis",
     email: "chloelewis67@gmail.com",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80",
@@ -62,17 +73,19 @@ const ORDERS = [
     amount: "$14.99",
     status: "Pending",
     statusStyle: "bg-pink-50 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400 border border-pink-500/20",
-    date: "11, Oct 2024",
+    date: "11, Oct 2026",
   },
 ];
 
-export default function RecentOrdersTable() {
+export default function RecentOrdersTable({ data }: RecentOrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const ordersList = data?.length ? data : FALLBACK_ORDERS;
 
-  const filteredOrders = ORDERS.filter(
+  const filteredOrders = ordersList.filter(
     (order) =>
       order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.product.toLowerCase().includes(searchTerm.toLowerCase())
+      order.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -99,9 +112,13 @@ export default function RecentOrdersTable() {
               className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-1.5 pl-8 pr-3 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white w-36 sm:w-44"
             />
           </div>
-          <button className="p-1.5 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white border border-gray-200 dark:border-gray-700 transition-colors">
+          <Link
+            href="/admin/orders"
+            className="p-1.5 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white border border-gray-200 dark:border-gray-700 transition-colors inline-flex items-center justify-center"
+            title="View all orders"
+          >
             <Filter className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -128,6 +145,7 @@ export default function RecentOrdersTable() {
                 {/* Customer */}
                 <td className="py-3">
                   <div className="flex items-center gap-2.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={row.avatar}
                       alt={row.customer}
@@ -175,12 +193,13 @@ export default function RecentOrdersTable() {
 
                 {/* Action */}
                 <td className="py-3 text-center">
-                  <button
-                    aria-label="Edit order"
+                  <Link
+                    href={`/admin/orders`}
+                    aria-label="View or edit order"
                     className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 inline-flex items-center justify-center border border-emerald-500/20 transition-colors"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}

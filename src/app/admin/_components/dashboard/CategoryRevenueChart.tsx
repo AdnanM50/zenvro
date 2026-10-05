@@ -10,8 +10,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const CATEGORY_DATA = [
+interface CategoryRevenueChartProps {
+  data?: DashboardStats["categoryRevenue"];
+}
+
+const FALLBACK_CATEGORY_DATA = [
   { name: "Store A", category: "Electronics", revenue: 4800 },
   { name: "Store B", category: "Wearables", revenue: 7200 },
   { name: "Store C", category: "Audio", revenue: 4500 },
@@ -28,12 +33,19 @@ const CATEGORY_DATA = [
   { name: "Store Z", category: "Power", revenue: 6800 },
 ];
 
-export default function CategoryRevenueChart() {
+export default function CategoryRevenueChart({ data }: CategoryRevenueChartProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const chartData = data?.categories?.length ? data.categories : FALLBACK_CATEGORY_DATA;
+  const totalRevenue = data?.totalRevenue ? `$${data.totalRevenue.toLocaleString()}` : "$30,000";
+  const totalCategories = data?.totalCategories || 14;
+  const averageRevenue = data?.averageRevenue ? `$${data.averageRevenue.toLocaleString()}` : "$6,000";
+  const highest = data?.highestCategory ? `${data.highestCategory.name} ($${data.highestCategory.amount.toLocaleString()})` : "Laptops ($9,200)";
+  const lowest = data?.lowestCategory ? `${data.lowestCategory.name} ($${data.lowestCategory.amount.toLocaleString()})` : "Smart Home ($3,200)";
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
@@ -45,22 +57,22 @@ export default function CategoryRevenueChart() {
               Top Category Revenue Statistics
             </h2>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Total Revenue: <span className="font-semibold text-gray-800 dark:text-gray-200">$30,000</span>
+              Total Revenue: <span className="font-semibold text-gray-800 dark:text-gray-200">{totalRevenue}</span>
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              Highest: <span className="font-semibold text-gray-800 dark:text-gray-200">Laptops ($9,200)</span>{" "}
-              Lowest: <span className="font-semibold text-gray-800 dark:text-gray-200">Smart Home ($3,200)</span>
+              Highest: <span className="font-semibold text-gray-800 dark:text-gray-200">{highest}</span>{" "}
+              Lowest: <span className="font-semibold text-gray-800 dark:text-gray-200">{lowest}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-6 sm:text-right shrink-0">
             <div>
               <div className="text-[11px] text-gray-400 font-medium">Total Categories</div>
-              <div className="text-sm sm:text-base font-black text-gray-900 dark:text-white">14</div>
+              <div className="text-sm sm:text-base font-black text-gray-900 dark:text-white">{totalCategories}</div>
             </div>
             <div>
               <div className="text-[11px] text-gray-400 font-medium">Average Revenue</div>
-              <div className="text-sm sm:text-base font-black text-emerald-500">$6,000</div>
+              <div className="text-sm sm:text-base font-black text-emerald-500">{averageRevenue}</div>
             </div>
           </div>
         </div>
@@ -71,7 +83,7 @@ export default function CategoryRevenueChart() {
         {isMounted ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={CATEGORY_DATA}
+              data={chartData}
               margin={{ top: 15, right: 10, left: -15, bottom: 0 }}
             >
               <CartesianGrid
@@ -98,14 +110,14 @@ export default function CategoryRevenueChart() {
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
-                    const data = payload[0].payload;
+                    const itemData = payload[0].payload;
                     return (
                       <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-xl text-xs space-y-1">
                         <div className="font-bold text-gray-900 dark:text-white">
-                          {data.category} ({data.name})
+                          {itemData.category} ({itemData.name})
                         </div>
                         <div className="text-emerald-500 font-extrabold text-sm">
-                          ${data.revenue.toLocaleString()}
+                          ${itemData.revenue.toLocaleString()}
                         </div>
                         <div className="text-[10px] text-gray-400">
                           Performance: +14.2% vs last month

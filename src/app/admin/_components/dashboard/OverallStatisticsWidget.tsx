@@ -2,8 +2,17 @@
 
 import React from "react";
 import { ArrowUpRight } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-export default function OverallStatisticsWidget() {
+interface OverallStatisticsWidgetProps {
+  data?: DashboardStats["overallStatistics"];
+}
+
+export default function OverallStatisticsWidget({ data }: OverallStatisticsWidgetProps) {
+  const expenses = data?.expenses;
+  const newUsers = data?.newUsers;
+  const returningUsers = data?.returningUsers;
+
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-3">
@@ -18,11 +27,11 @@ export default function OverallStatisticsWidget() {
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span>Total Expenses</span>
             <span className="text-emerald-500 font-semibold flex items-center gap-0.5 text-[11px]">
-              0.45% <ArrowUpRight className="w-3 h-3" />
+              {expenses?.change ?? 0.45}% <ArrowUpRight className="w-3 h-3" />
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-2">
-            $134,032
+            {expenses?.formatted || "$134,032"}
           </div>
           <div className="h-7 w-full overflow-hidden">
             <svg className="w-full h-full" viewBox="0 0 200 30" preserveAspectRatio="none">
@@ -42,11 +51,11 @@ export default function OverallStatisticsWidget() {
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span>New Users</span>
             <span className="text-emerald-500 font-semibold flex items-center gap-0.5 text-[11px]">
-              11.05% <ArrowUpRight className="w-3 h-3" />
+              {newUsers?.change ?? 11.05}% <ArrowUpRight className="w-3 h-3" />
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-2">
-            7,893
+            {newUsers?.formatted || "7,893"}
           </div>
           <div className="h-7 w-full overflow-hidden">
             <svg className="w-full h-full" viewBox="0 0 200 30" preserveAspectRatio="none">
@@ -66,11 +75,11 @@ export default function OverallStatisticsWidget() {
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span>Returning Users</span>
             <span className="text-emerald-500 font-semibold flex items-center gap-0.5 text-[11px]">
-              1.69% <ArrowUpRight className="w-3 h-3" />
+              {returningUsers?.change ?? 1.69}% <ArrowUpRight className="w-3 h-3" />
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-2">
-            3,258
+            {returningUsers?.formatted || "3,258"}
           </div>
           <div className="h-7 w-full overflow-hidden">
             <svg className="w-full h-full" viewBox="0 0 200 30" preserveAspectRatio="none">

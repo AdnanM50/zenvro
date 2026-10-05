@@ -2,8 +2,18 @@
 
 import React from "react";
 import { Package, Users, ShoppingCart, BarChart3 } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-export default function StatGridCards() {
+interface StatGridCardsProps {
+  data?: DashboardStats["statGrid"];
+}
+
+export default function StatGridCards({ data }: StatGridCardsProps) {
+  const products = data?.totalProducts;
+  const customers = data?.totalCustomers;
+  const orders = data?.totalOrders;
+  const sales = data?.totalSales;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
       {/* Total Products */}
@@ -18,10 +28,10 @@ export default function StatGridCards() {
         </div>
         <div className="mt-3">
           <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-            300
+            {products?.count ? products.count.toLocaleString() : "300"}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Increase by <span className="text-emerald-500 font-bold">+200</span> this week
+            Increase by <span className="text-emerald-500 font-bold">{products?.change || "+200 this week"}</span>
           </div>
         </div>
       </div>
@@ -38,10 +48,10 @@ export default function StatGridCards() {
         </div>
         <div className="mt-3">
           <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-            50,000
+            {customers?.count ? customers.count.toLocaleString() : "50,000"}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Increase by <span className="text-rose-500 font-bold">-5k</span> this week
+            Increase by <span className="text-rose-500 font-bold">{customers?.change || "-5k this week"}</span>
           </div>
         </div>
       </div>
@@ -58,10 +68,10 @@ export default function StatGridCards() {
         </div>
         <div className="mt-3">
           <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-            1500
+            {orders?.count ? orders.count.toLocaleString() : "1,500"}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Increase by <span className="text-emerald-500 font-bold">+1k</span> this week
+            Increase by <span className="text-emerald-500 font-bold">{orders?.change || "+1k this week"}</span>
           </div>
         </div>
       </div>
@@ -78,10 +88,10 @@ export default function StatGridCards() {
         </div>
         <div className="mt-3">
           <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white truncate">
-            $25,00,000.00
+            {sales?.formatted || "$25,00,000.00"}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Increase by <span className="text-emerald-500 font-bold">+$10k</span> this week
+            Increase by <span className="text-emerald-500 font-bold">{sales?.change || "+$10k this week"}</span>
           </div>
         </div>
       </div>

@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  ShoppingBag,
   DollarSign,
   Users,
   ArrowUpRight,
@@ -10,50 +9,22 @@ import {
   Wifi,
   Sparkles,
 } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-export default function TopMetricCards() {
+interface TopMetricCardsProps {
+  data?: DashboardStats["topMetrics"];
+}
+
+export default function TopMetricCards({ data }: TopMetricCardsProps) {
+  const totalIncome = data?.totalIncome;
+  const totalVisitors = data?.totalVisitors;
+  const totalBalance = data?.totalBalance;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
-      {/* LEFT SECTION (9 COLUMNS): The 3 Metric Cards matching marked width */}
-      <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 items-stretch">
-        {/* 1. TOTAL SALES */}
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between relative overflow-hidden group">
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500/15 to-rose-500/10 text-pink-600 dark:text-pink-400 flex items-center justify-center border border-pink-500/20 shadow-xs shrink-0 group-hover:scale-105 transition-transform">
-                  <ShoppingBag className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 truncate">
-                  TOTAL SALES
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>+1.56%</span>
-              </div>
-            </div>
-
-            <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-              34,945
-            </div>
-          </div>
-
-          {/* Wavy Underline Sparkline */}
-          <div className="mt-4 pt-1">
-            <svg className="w-full h-4 overflow-visible" preserveAspectRatio="none" viewBox="0 0 160 16">
-              <path
-                d="M0 10 Q 25 3, 50 9 T 100 8 T 140 12 T 160 6"
-                fill="none"
-                stroke="#10B981"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* 2. TOTAL INCOME */}
+      {/* LEFT SECTION (9 COLUMNS): Metric Cards matching marked width */}
+      <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
+        {/* 1. TOTAL INCOME */}
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between relative overflow-hidden group">
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
@@ -65,14 +36,22 @@ export default function TopMetricCards() {
                   TOTAL INCOME
                 </span>
               </div>
-              <div className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full border border-rose-500/20 shrink-0">
-                <ArrowDownRight className="w-3.5 h-3.5" />
-                <span>-1.56%</span>
+              <div className={`inline-flex items-center gap-0.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${
+                totalIncome?.isPositive !== false
+                  ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500/20"
+                  : "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-500/20"
+              }`}>
+                {totalIncome?.isPositive !== false ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" />
+                )}
+                <span>{totalIncome ? `${totalIncome.growth > 0 ? '+' : ''}${totalIncome.growth}%` : "-1.56%"}</span>
               </div>
             </div>
 
             <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-              $378,802
+              {totalIncome?.formatted || "$378,802"}
             </div>
           </div>
 
@@ -90,7 +69,7 @@ export default function TopMetricCards() {
           </div>
         </div>
 
-        {/* 3. TOTAL VISITOR */}
+        {/* 2. TOTAL VISITOR */}
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between relative overflow-hidden group">
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
@@ -102,14 +81,22 @@ export default function TopMetricCards() {
                   TOTAL VISITOR
                 </span>
               </div>
-              <div className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-full border border-blue-500/20 shrink-0">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>+1.56%</span>
+              <div className={`inline-flex items-center gap-0.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${
+                totalVisitors?.isPositive !== false
+                  ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border-blue-500/20"
+                  : "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-500/20"
+              }`}>
+                {totalVisitors?.isPositive !== false ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" />
+                )}
+                <span>{totalVisitors ? `${totalVisitors.growth > 0 ? '+' : ''}${totalVisitors.growth}%` : "+1.56%"}</span>
               </div>
             </div>
 
             <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-              34,945
+              {totalVisitors?.formatted || "34,945"}
             </div>
           </div>
 
@@ -177,7 +164,7 @@ export default function TopMetricCards() {
               <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
             </div>
             <div className="text-2xl sm:text-[28px] font-black tracking-tight text-white mt-0.5 drop-shadow-md">
-              $378,802<span className="text-sm font-semibold text-gray-400">.00</span>
+              {totalBalance?.formatted || "$378,802.00"}
             </div>
           </div>
 
@@ -185,11 +172,11 @@ export default function TopMetricCards() {
           <div className="relative z-10 flex items-end justify-between pt-2 border-t border-white/10">
             <div>
               <div className="font-mono text-[11px] tracking-[0.18em] text-gray-300">
-                •••• •••• •••• 8842
+                {totalBalance?.cardNumber || "•••• •••• •••• 8842"}
               </div>
               <div className="flex items-center gap-3 text-[9px] text-gray-400 mt-0.5 font-medium uppercase tracking-wider">
-                <span>CARDHOLDER: ZENVRO STORE</span>
-                <span>EXP: 12/29</span>
+                <span>CARDHOLDER: {totalBalance?.cardHolder || "ZENVRO STORE"}</span>
+                <span>EXP: {totalBalance?.expiry || "12/29"}</span>
               </div>
             </div>
 

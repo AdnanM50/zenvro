@@ -2,15 +2,17 @@
 
 import React from "react";
 import { ArrowUpRight, HelpCircle } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-export default function OrderStatisticsGauge() {
-  // Arc calculation for smooth horseshoe gauge
-  // SVG radius 68, center (90, 85)
-  // Circumference of full circle = 2 * PI * 68 ≈ 427.25
-  // 70% arc = 300 dash length
-  const dashArray = 300;
-  const percentage = 87.8;
-  const dashOffset = dashArray * (1 - percentage / 100);
+interface OrderStatisticsGaugeProps {
+  data?: DashboardStats["orderStatistics"];
+}
+
+export default function OrderStatisticsGauge({ data }: OrderStatisticsGaugeProps) {
+  const percentage = data?.pendingPercentage ?? 87.8;
+  const growth = data?.growth ?? 0.57;
+  const totalOrders = data?.totalOrders ?? 3736;
+  const statusLabel = data?.pendingStatusLabel ?? "Pending";
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
@@ -31,10 +33,10 @@ export default function OrderStatisticsGauge() {
             TOTAL ORDERS
           </span>
           <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white">
-            3,736
+            {totalOrders.toLocaleString()}
           </span>
           <span className="inline-flex items-center text-xs font-bold text-emerald-500">
-            <ArrowUpRight className="w-3.5 h-3.5" /> 0.57%
+            <ArrowUpRight className="w-3.5 h-3.5" /> {growth}%
           </span>
         </div>
       </div>
@@ -76,10 +78,10 @@ export default function OrderStatisticsGauge() {
         {/* Center Label */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
           <div className="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight">
-            Pending
+            {statusLabel}
           </div>
           <div className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
-            87.8%
+            {percentage}%
           </div>
         </div>
       </div>

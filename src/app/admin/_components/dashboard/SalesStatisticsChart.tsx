@@ -10,8 +10,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const SALES_DATA = [
+interface SalesStatisticsChartProps {
+  data?: DashboardStats["salesStatistics"];
+}
+
+const FALLBACK_SALES_DATA = [
   { day: "Mon", direct: 50, online: 45, express: 20 },
   { day: "Tue", direct: 68, online: 42, express: 28 },
   { day: "Wed", direct: 55, online: 35, express: 18 },
@@ -21,12 +26,15 @@ const SALES_DATA = [
   { day: "Sun", direct: 70, online: 55, express: 32 },
 ];
 
-export default function SalesStatisticsChart() {
+export default function SalesStatisticsChart({ data }: SalesStatisticsChartProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const chartData = data?.weekly?.length ? data.weekly : FALLBACK_SALES_DATA;
+  const timeframe = data?.timeframe || "Weekly";
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col justify-between h-full">
@@ -35,7 +43,7 @@ export default function SalesStatisticsChart() {
           Sales Statistics
         </h2>
         <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-2.5 py-1 rounded-lg">
-          Weekly
+          {timeframe}
         </span>
       </div>
 
@@ -43,7 +51,7 @@ export default function SalesStatisticsChart() {
         {isMounted ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={SALES_DATA}
+              data={chartData}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <CartesianGrid

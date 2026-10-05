@@ -95,7 +95,7 @@ const navItems: NavItemType[] = [
       { label: "Payment Methods", href: "/admin/payment-methods" },
     ],
   },
-  { label: "Settings", icon: Settings, href: "#" },
+  { label: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 
 const NavItem = ({

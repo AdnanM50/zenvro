@@ -1,10 +1,15 @@
 "use client";
 
 import React from "react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const ACTIVITIES = [
+interface RecentActivityTimelineProps {
+  data?: DashboardStats["recentActivity"];
+}
+
+const FALLBACK_ACTIVITIES = [
   {
-    id: 1,
+    id: "1",
     time: "12 Hrs",
     user: "John Doe",
     action: "Updated the product description for Widget X.",
@@ -12,7 +17,7 @@ const ACTIVITIES = [
     ringColor: "ring-[#6366F1]/20",
   },
   {
-    id: 2,
+    id: "2",
     time: "4:32pm",
     user: "Jane Smith",
     action: "added a new user with username janesmith89.",
@@ -20,7 +25,7 @@ const ACTIVITIES = [
     ringColor: "ring-[#EC4899]/20",
   },
   {
-    id: 3,
+    id: "3",
     time: "11:45am",
     user: "Michael Brown",
     action: "Changed the status of order #12345 to Shipped.",
@@ -28,7 +33,7 @@ const ACTIVITIES = [
     ringColor: "ring-[#F59E0B]/20",
   },
   {
-    id: 4,
+    id: "4",
     time: "9:27am",
     user: "Sarah Connor",
     action: "Processed a refund for Order #9821.",
@@ -37,7 +42,9 @@ const ACTIVITIES = [
   },
 ];
 
-export default function RecentActivityTimeline() {
+export default function RecentActivityTimeline({ data }: RecentActivityTimelineProps) {
+  const activities = data?.length ? data : FALLBACK_ACTIVITIES;
+
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-4">
@@ -50,7 +57,7 @@ export default function RecentActivityTimeline() {
         {/* Continuous vertical connecting line */}
         <div className="absolute left-2 top-2 bottom-3 w-0.5 bg-gray-100 dark:bg-gray-800" />
 
-        {ACTIVITIES.map((act) => (
+        {activities.map((act) => (
           <div key={act.id} className="relative">
             {/* Colored circular dot */}
             <div

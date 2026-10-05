@@ -3,10 +3,15 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const TOP_PRODUCTS = [
+interface TopSellingProductsListProps {
+  data?: DashboardStats["topSellingProducts"];
+}
+
+const FALLBACK_TOP_PRODUCTS = [
   {
-    id: 1,
+    id: "1",
     name: "Chair with Cushion",
     category: "Furniture",
     price: "$124",
@@ -14,7 +19,7 @@ const TOP_PRODUCTS = [
     image: "https://images.unsplash.com/photo-1580481077195-c3a821a58875?w=120&auto=format&fit=crop&q=80",
   },
   {
-    id: 2,
+    id: "2",
     name: "Hand Bag",
     category: "Accessories",
     price: "$564",
@@ -22,7 +27,7 @@ const TOP_PRODUCTS = [
     image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=120&auto=format&fit=crop&q=80",
   },
   {
-    id: 3,
+    id: "3",
     name: "Sneakers",
     category: "Sports",
     price: "$964",
@@ -30,7 +35,7 @@ const TOP_PRODUCTS = [
     image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&auto=format&fit=crop&q=80",
   },
   {
-    id: 4,
+    id: "4",
     name: "Ron Hoodie",
     category: "Fashion",
     price: "$769",
@@ -38,7 +43,7 @@ const TOP_PRODUCTS = [
     image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=120&auto=format&fit=crop&q=80",
   },
   {
-    id: 5,
+    id: "5",
     name: "Minimalist Desk Lamp",
     category: "Home Decor",
     price: "$89",
@@ -47,7 +52,9 @@ const TOP_PRODUCTS = [
   },
 ];
 
-export default function TopSellingProductsList() {
+export default function TopSellingProductsList({ data }: TopSellingProductsListProps) {
+  const products = data?.length ? data : FALLBACK_TOP_PRODUCTS;
+
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       {/* Header */}
@@ -70,12 +77,13 @@ export default function TopSellingProductsList() {
 
       {/* List */}
       <div className="divide-y divide-gray-50 dark:divide-gray-800/80">
-        {TOP_PRODUCTS.map((prod) => (
+        {products.map((prod) => (
           <div
             key={prod.id}
             className="py-3 flex items-center justify-between gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/40 rounded-xl px-2 -mx-2 transition-colors"
           >
             <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={prod.image}
                 alt={prod.name}

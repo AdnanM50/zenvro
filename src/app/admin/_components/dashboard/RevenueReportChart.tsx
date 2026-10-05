@@ -11,8 +11,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ChevronDown } from "lucide-react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const DATA_YEARLY = [
+interface RevenueReportChartProps {
+  data?: DashboardStats["revenueReport"];
+}
+
+const FALLBACK_YEARLY = [
   { month: "Jan", earning: 22000, expense: 12000 },
   { month: "Feb", earning: 18000, expense: 15000 },
   { month: "Mar", earning: 27000, expense: 16000 },
@@ -27,14 +32,14 @@ const DATA_YEARLY = [
   { month: "Dec", earning: 24000, expense: 16000 },
 ];
 
-const DATA_MONTHLY = [
+const FALLBACK_MONTHLY = [
   { month: "W1", earning: 32000, expense: 18000 },
   { month: "W2", earning: 48000, expense: 22000 },
   { month: "W3", earning: 41000, expense: 29000 },
   { month: "W4", earning: 54000, expense: 31000 },
 ];
 
-export default function RevenueReportChart() {
+export default function RevenueReportChart({ data }: RevenueReportChartProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [timeframe, setTimeframe] = useState<"Yearly" | "Monthly">("Yearly");
 
@@ -42,7 +47,12 @@ export default function RevenueReportChart() {
     setIsMounted(true);
   }, []);
 
-  const chartData = timeframe === "Yearly" ? DATA_YEARLY : DATA_MONTHLY;
+  const yearlyData = data?.yearly?.length ? data.yearly : FALLBACK_YEARLY;
+  const monthlyData = data?.monthly?.length ? data.monthly : FALLBACK_MONTHLY;
+  const chartData = timeframe === "Yearly" ? yearlyData : monthlyData;
+
+  const formattedEarnings = data?.formattedEarnings || "$500,00,000.00";
+  const formattedExpenses = data?.formattedExpenses || "$20,000.00";
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between">
@@ -56,13 +66,13 @@ export default function RevenueReportChart() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB]" />
               <span className="text-gray-600 dark:text-gray-300 font-medium">
-                Earning: <span className="font-bold text-gray-900 dark:text-white">$500,00,000.00</span>
+                Earning: <span className="font-bold text-gray-900 dark:text-white">{formattedEarnings}</span>
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#F97316]" />
               <span className="text-gray-600 dark:text-gray-300 font-medium">
-                Expense: <span className="font-bold text-gray-900 dark:text-white">$20,000.00</span>
+                Expense: <span className="font-bold text-gray-900 dark:text-white">{formattedExpenses}</span>
               </span>
             </div>
           </div>

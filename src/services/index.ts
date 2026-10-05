@@ -23,3 +23,5 @@ export * from './upload.service';
 export * from './user.service';
 export * from './variant.service';
 export * from './wishlist.service';
+export * from './dashboard.service';
+

@@ -1,10 +1,15 @@
 "use client";
 
 import React from "react";
+import type { DashboardStats } from "@/models/dashboard.model";
 
-const PRODUCTS = [
+interface LatestPurchaseProductsProps {
+  data?: DashboardStats["latestPurchases"];
+}
+
+const FALLBACK_PRODUCTS = [
   {
-    id: 1,
+    id: "1",
     name: "SwiftBuds",
     price: "$39.99",
     status: "Success",
@@ -12,7 +17,7 @@ const PRODUCTS = [
     avatar: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=100&auto=format&fit=crop&q=80",
   },
   {
-    id: 2,
+    id: "2",
     name: "CozyCloud Pillow...",
     price: "$19.95",
     status: "Pending",
@@ -20,7 +25,7 @@ const PRODUCTS = [
     avatar: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=100&auto=format&fit=crop&q=80",
   },
   {
-    id: 3,
+    id: "3",
     name: "AquaGrip Bottle",
     price: "$9.99",
     status: "Failed",
@@ -28,7 +33,7 @@ const PRODUCTS = [
     avatar: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=100&auto=format&fit=crop&q=80",
   },
   {
-    id: 4,
+    id: "4",
     name: "GlowLite Lamp",
     price: "$24.99",
     status: "Success",
@@ -36,7 +41,7 @@ const PRODUCTS = [
     avatar: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=100&auto=format&fit=crop&q=80",
   },
   {
-    id: 5,
+    id: "5",
     name: "Bitvitamin",
     price: "$26.45",
     status: "Success",
@@ -44,7 +49,7 @@ const PRODUCTS = [
     avatar: "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=100&auto=format&fit=crop&q=80",
   },
   {
-    id: 6,
+    id: "6",
     name: "FitTrack",
     price: "$49.95",
     status: "Success",
@@ -53,7 +58,9 @@ const PRODUCTS = [
   },
 ];
 
-export default function LatestPurchaseProducts() {
+export default function LatestPurchaseProducts({ data }: LatestPurchaseProductsProps) {
+  const products = data?.length ? data : FALLBACK_PRODUCTS;
+
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-4">
@@ -72,7 +79,7 @@ export default function LatestPurchaseProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 dark:divide-gray-800/60">
-            {PRODUCTS.map((item) => (
+            {products.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors">
                 <td className="py-2.5">
                   <div className="flex items-center gap-2.5">
