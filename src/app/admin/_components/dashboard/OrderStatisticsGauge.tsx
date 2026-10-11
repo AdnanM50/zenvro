@@ -13,6 +13,10 @@ export default function OrderStatisticsGauge({ data }: OrderStatisticsGaugeProps
   const growth = data?.growth ?? 0.57;
   const totalOrders = data?.totalOrders ?? 3736;
   const statusLabel = data?.pendingStatusLabel ?? "Pending";
+  const breakdown = data?.breakdown;
+
+  // Arc stroke length is ~260 for this horseshoe path
+  const strokeDashoffset = Math.max(0, Math.min(260, Math.round(260 - 260 * (percentage / 100))));
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
@@ -23,7 +27,7 @@ export default function OrderStatisticsGauge({ data }: OrderStatisticsGaugeProps
             Order Statistics
           </h2>
           <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-            <span>Earnings</span>
+            <span>Orders</span>
             <HelpCircle className="w-3 h-3 text-emerald-500" />
           </div>
         </div>
@@ -36,7 +40,7 @@ export default function OrderStatisticsGauge({ data }: OrderStatisticsGaugeProps
             {totalOrders.toLocaleString()}
           </span>
           <span className="inline-flex items-center text-xs font-bold text-emerald-500">
-            <ArrowUpRight className="w-3.5 h-3.5" /> {growth}%
+            <ArrowUpRight className="w-3.5 h-3.5" /> {growth > 0 ? `+${growth}%` : `${growth}%`}
           </span>
         </div>
       </div>
@@ -70,7 +74,7 @@ export default function OrderStatisticsGauge({ data }: OrderStatisticsGaugeProps
             strokeWidth="16"
             strokeLinecap="round"
             strokeDasharray="260"
-            strokeDashoffset="32"
+            strokeDashoffset={strokeDashoffset}
             className="transition-all duration-1000 ease-out"
           />
         </svg>
@@ -88,21 +92,29 @@ export default function OrderStatisticsGauge({ data }: OrderStatisticsGaugeProps
 
       {/* Status Legends */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" title={`${breakdown?.delivered?.count ?? 0} orders`}>
           <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] shrink-0" />
-          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">Delivered</span>
+          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">
+            Delivered ({breakdown?.delivered?.percentage ?? 48}%)
+          </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" title={`${breakdown?.cancelled?.count ?? 0} orders`}>
           <span className="w-2.5 h-2.5 rounded-full bg-[#EC4899] shrink-0" />
-          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">Cancelled</span>
+          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">
+            Cancelled ({breakdown?.cancelled?.percentage ?? 8}%)
+          </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" title={`${breakdown?.pending?.count ?? 0} orders`}>
           <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6] shrink-0" />
-          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">Pending</span>
+          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">
+            Pending ({breakdown?.pending?.percentage ?? 87.8}%)
+          </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" title={`${breakdown?.returned?.count ?? 0} orders`}>
           <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] shrink-0" />
-          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">Returned</span>
+          <span className="text-gray-600 dark:text-gray-300 font-medium truncate">
+            Returned ({breakdown?.returned?.percentage ?? 4}%)
+          </span>
         </div>
       </div>
     </div>
