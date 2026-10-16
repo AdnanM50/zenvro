@@ -8,7 +8,6 @@ import { formatProductForUI, type Product as UIProduct } from "@/lib/products";
 import { buildPageMetadata } from "@/lib/pageMetadata";
 import HomeClientView from "@/app/_components/home/HomeClientView";
 import Product from "@/components/Product";
-import Collections from "@/components/Collections";
 
 // Incremental Static Revalidation (ISR) for super fast page loads
 export const revalidate = 60;
@@ -112,9 +111,11 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClientView initialPage={initialPage} initialTestimonials={initialTestimonials} />
-      <Product initialProducts={initialProducts} />
-      <Collections />
+      <HomeClientView
+        initialPage={initialPage}
+        initialTestimonials={initialTestimonials}
+        productsElement={<Product initialProducts={initialProducts} />}
+      />
     </main>
   );
 }

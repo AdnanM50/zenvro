@@ -87,12 +87,43 @@ export const defaultPagesList: Array<CreatePagePayload> = [
         },
       },
       {
+        id: 'home-achievement',
+        type: 'homeAchievement',
+        title: 'THE\nARCHIVE',
+        subtitle: 'From a single sewing table to a global community. Explore the milestones that defined our craft, shaped our sustainable ethos, and built a legacy over the past decade.',
+        isActive: true,
+        order: 3,
+        data: {
+          tag: '// The Journey',
+          items: [
+            {
+              year: '2018',
+              title: 'The First Atelier',
+              description: 'Started in a tiny 40m² studio with one sewing table and a belief that luxury should never feel out of reach.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf',
+            },
+            {
+              year: '2022',
+              title: 'Archive Drops Debut',
+              description: 'Our limited numbered-run format debuted. Four signature drops sold out in under an hour, and a community was born.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq',
+            },
+            {
+              year: '2026',
+              title: 'Global Sustainability',
+              description: 'Overhauling our supply chain—deadstock fabrics and recycled hardware became the non-negotiable core of every piece across twelve countries.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve',
+            },
+          ],
+        },
+      },
+      {
         id: 'home-testimonial',
         type: 'homeTestimonial',
         title: 'Testimonial',
         subtitle: 'See What Our Customers Are Saying',
         isActive: true,
-        order: 3,
+        order: 4,
         data: {
           headerIndex: '01/8',
           tag: '[Testimonial]',
@@ -103,6 +134,54 @@ export const defaultPagesList: Array<CreatePagePayload> = [
           rating: 5,
           reviewsCount: '49',
           footerText: 'See What Our Customers Are Saying',
+        },
+      },
+      {
+        id: 'home-collections',
+        type: 'homeCollections',
+        title: 'Collections',
+        subtitle: 'From enduring classics to daring statement pieces, our collections are crafted with intention.',
+        isActive: true,
+        order: 5,
+        data: {
+          marquee: 'CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE + SMART STYLE + BOLD EXPRESSION + REFINED DETAILS',
+          leftSubtitle: 'From enduring classics to daring statement pieces, our collections are crafted with intention.',
+          leftImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve',
+          leftBottomText: 'Being Part Of Our Journey.',
+          items: [
+            {
+              id: '1',
+              title: 'Statement Pieces 2025',
+              description: 'Your go-to wardrobe staples, crafted for comfort and effortless style.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAN8FAzZ6Z98nZ8sYGleNSAKoti9_iF3fu8z7I65Bw3HONXl-SUhJFYxpU2jhhzXvfS9KTh-dHu4EE8Y2dcvTOb06mudpwFstqK7Iivzugrvbf-uf2_72GnEVFBZEkoflE7ChpGtu1ql9yTVkx2L25xQ62yFuKTcVw0oYF85SEBPSiWSpCN1Rigaj21UKn4GdayMsDE64POVE4d_jGtny91Wtv11ljhddqyuDDKA497rJFWHbwFER3RnmpWT3aF108NvbpfXEUdehWf',
+              ctaLabel: 'GET STARTED',
+              ctaLink: '/products',
+            },
+            {
+              id: '2',
+              title: 'Everyday Essentials 2026',
+              description: 'Modern essentials designed for the rhythm of your daily life.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSUs8fzjaFq_UgiWHvEzssIE8LZz9u9S90I27yrJOmb8d9gRWmzjPxDqM7DXIlkP5iVLDm18Jil46QbiF_nWze1U6u45vN3tyoOfZeruHZhlvjTGDwSMZkTAdI3Zn7pdcPEntaCKxCTnZDDy3aY_3Vsx0ezQCPj1USMTLR7BDWozA0Usj2EpH4L7aGRTq4d-02iWLb3HUpBLgbuIQEhPOM-5JCNVA16Eze95sfztoWgSUCVbhGV_3DERa3OJo2wHqZVKc61zKD7UCq',
+              ctaLabel: 'GET STARTED',
+              ctaLink: '/products',
+            },
+            {
+              id: '3',
+              title: 'Timeless Classics 2026',
+              description: 'Enduring pieces that transcend seasons and trends with effortless grace.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1RoW5cBcoqT10u7JT7K7anHFGjv3NTjr8_mysaiCsk27iFErOxdP6goslnhBKFrJAC_iy8B-WQiIX7V9Tfq3ZQQ0DbKX0r3VZWRvRL8rx9a5vZ6yrB9wQOagG01U8I61_Y8LQ3h4X_uq6u5aA3yI1A8TPHK0I6FEbFTGhj8IPMtbCubZDYHng1tq9dl0pwI8nDdjwgiNLq4eIJQQwAMDg4xcvoJK2t1TVCM5VYhXT2E4qhkIg7Sq7cXGPMSQGBTsIMkBZr007K2R_',
+              ctaLabel: 'GET STARTED',
+              ctaLink: '/products',
+            },
+            {
+              id: '4',
+              title: 'Seasonal Collections 2025',
+              description: "Fresh arrivals curated for the current season's palette and mood.",
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmkJcw9YoYQsZHRiFf7H7KH3xRZyb_aYU4C7r3tffqaHqoyVKcPPLYoPhXRd7ZwQSlMieJrx5hQnmZvISItWIBj_f2EOhOXv7u3CxTN7jAQQpje6qCmuyPzquibOLEFvxPAcaezFSUmiXrVBqFcEjh0SI6u-PxB-62T34PWhO-wWIpHy_olj_K373paLFRyhzhjmm78s5jspSnyUstR6AOOKbiGXN-stQM3JqaIXTfnHDqacTyuDx-B6D0zH-11r0mb2nK5A07a8ve',
+              ctaLabel: 'GET STARTED',
+              ctaLink: '/products',
+            },
+          ],
         },
       },
     ],
@@ -450,7 +529,7 @@ export const PageModel = {
         ) {
           await c.updateOne({ slug: 'about-us' }, { $set: { sections: formattedSections, updatedAt: new Date() } });
         } else if (
-          def.slug === 'home' && (!existing.sections || existing.sections.length < 3 || !existing.sections[0]?.data?.modelImage)
+          def.slug === 'home' && (!existing.sections || existing.sections.length < 5 || !existing.sections.some((s: any) => s.type === 'homeAchievement'))
         ) {
           await c.updateOne({ slug: 'home' }, { $set: { sections: formattedSections, updatedAt: new Date() } });
         } else if (

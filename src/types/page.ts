@@ -11,7 +11,9 @@ export type SectionType =
   | 'faq'
   | 'homeHero'
   | 'homeAbout'
-  | 'homeTestimonial';
+  | 'homeTestimonial'
+  | 'homeAchievement'
+  | 'homeCollections';
 
 export interface PageSection {
   id: string;

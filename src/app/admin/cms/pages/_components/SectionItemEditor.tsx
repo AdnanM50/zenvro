@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ChevronUp,
   ChevronDown,
@@ -21,6 +21,10 @@ import {
   Home,
   PenTool,
   Quote,
+  Upload,
+  Loader2,
+  Award,
+  Layers,
 } from 'lucide-react';
 import type { PageSection, SectionType } from '@/types';
 import GalleryPickerButton from '@/app/admin/gallery/_components/GalleryPickerButton';
@@ -44,22 +48,66 @@ function ImageFieldWithPreview({
   onChange,
   onGallerySelect,
   placeholder = 'https://...',
+  folder = 'velour',
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
   onGallerySelect?: (urls: string[]) => void;
   placeholder?: string;
+  folder?: string;
 }) {
   const [hasError, setHasError] = useState(false);
   const [isEditingUrl, setIsEditingUrl] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', folder);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success && data.data?.url) {
+        setHasError(false);
+        setIsEditingUrl(false);
+        onChange(data.data.url);
+      } else {
+        alert(data.error || 'Failed to upload image');
+      }
+    } catch {
+      alert('Error uploading image');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const hasValue = Boolean(value && value.trim());
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-gray-700 font-medium text-xs">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="block text-gray-700 font-medium text-xs">{label}</label>
+        {isUploading && (
+          <span className="text-[11px] text-orange-600 font-normal flex items-center gap-1">
+            <Loader2 className="w-3 h-3 animate-spin" /> Uploading...
+          </span>
+        )}
+      </div>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+        className="hidden"
+      />
 
       {hasValue && !isEditingUrl ? (
         <div className="relative w-full aspect-square sm:aspect-[4/5] max-w-[200px] rounded-xl overflow-hidden bg-gray-100 group border border-gray-200 shadow-sm flex items-center justify-center">
@@ -78,12 +126,23 @@ function ImageFieldWithPreview({
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Action Buttons Container */}
-          <div className="absolute inset-0 flex items-center justify-center gap-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+          <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+            {/* Upload Direct */}
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="w-9 h-9 rounded-full bg-white text-slate-700 hover:text-orange-600 shadow-xl flex items-center justify-center transition-transform hover:scale-110 disabled:opacity-50"
+              title="Upload New Photo"
+            >
+              {isUploading ? <Loader2 className="w-4 h-4 animate-spin text-orange-500" /> : <Upload className="w-4 h-4 stroke-[2.5]" />}
+            </button>
+
             {/* View / Change */}
             <button
               type="button"
               onClick={() => setIsGalleryOpen(true)}
-              className="w-10 h-10 rounded-full bg-white text-slate-700 hover:text-slate-900 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              className="w-9 h-9 rounded-full bg-white text-slate-700 hover:text-slate-900 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
               title="Change Image (Gallery)"
             >
               <Eye className="w-4 h-4 stroke-[2.5]" />
@@ -93,7 +152,7 @@ function ImageFieldWithPreview({
             <button
               type="button"
               onClick={() => setIsEditingUrl(true)}
-              className="w-10 h-10 rounded-full bg-white text-slate-700 hover:text-slate-900 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              className="w-9 h-9 rounded-full bg-white text-slate-700 hover:text-slate-900 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
               title="Edit URL Manually"
             >
               <Pencil className="w-4 h-4 stroke-[2.5]" />
@@ -106,7 +165,7 @@ function ImageFieldWithPreview({
                 setHasError(false);
                 onChange('');
               }}
-              className="w-10 h-10 rounded-full bg-white text-red-500 hover:text-red-600 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              className="w-9 h-9 rounded-full bg-white text-red-500 hover:text-red-600 shadow-xl flex items-center justify-center transition-transform hover:scale-110"
               title="Remove Image"
             >
               <Trash2 className="w-4 h-4 stroke-[2.5]" />
@@ -126,7 +185,7 @@ function ImageFieldWithPreview({
           />
         </div>
       ) : (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
           <Input
             type="text"
             value={value}
@@ -134,9 +193,23 @@ function ImageFieldWithPreview({
               setHasError(false);
               onChange(e.target.value);
             }}
-            className="h-9 flex-1 rounded-md bg-white px-2.5 font-mono text-[11px] focus:bg-white focus:border-orange-500"
+            className="h-9 flex-1 min-w-[140px] rounded-md bg-white px-2.5 font-mono text-[11px] focus:bg-white focus:border-orange-500"
             placeholder={placeholder}
           />
+          <button
+            type="button"
+            disabled={isUploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-orange-200 bg-orange-50/70 hover:bg-orange-100/70 text-xs font-semibold text-orange-700 transition-colors disabled:opacity-50 shrink-0"
+            title="Upload from computer"
+          >
+            {isUploading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Upload className="h-3.5 w-3.5" />
+            )}
+            <span>Upload</span>
+          </button>
           <GalleryPickerButton
             onSelect={(urls) => {
               setHasError(false);
@@ -147,7 +220,7 @@ function ImageFieldWithPreview({
                 onChange(urls[0]);
               }
             }}
-            label="Choose"
+            label="Gallery"
           />
           {isEditingUrl && (
             <button
@@ -209,8 +282,12 @@ export default function SectionItemEditor({
         return { label: 'Home Hero Banner', icon: Home, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200' };
       case 'homeAbout':
         return { label: 'Home About Editorial', icon: PenTool, color: 'bg-cyan-50 text-cyan-600 border-cyan-200' };
+      case 'homeAchievement':
+        return { label: 'The Journey & Archive', icon: Award, color: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
       case 'homeTestimonial':
         return { label: 'Home Testimonial', icon: Quote, color: 'bg-violet-50 text-violet-600 border-violet-200' };
+      case 'homeCollections':
+        return { label: 'Home Collections Showcase', icon: Layers, color: 'bg-amber-50 text-amber-600 border-amber-200' };
       default:
         return { label: 'Rich Text', icon: Type, color: 'bg-gray-50 text-gray-600 border-gray-200' };
     }
@@ -1292,6 +1369,349 @@ export default function SectionItemEditor({
                       className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10"
                       placeholder="See What Our Customers Are Saying"
                     />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* HOME ACHIEVEMENT (THE ARCHIVE / THE JOURNEY) SECTION */}
+            {section.type === 'homeAchievement' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1 text-xs">Section Tag</label>
+                    <Input
+                      type="text"
+                      value={section.data?.tag || '// The Journey'}
+                      onChange={(e) => updateDataField('tag', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10 text-xs"
+                      placeholder="// The Journey"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1 text-xs">Big Heading (supports newlines)</label>
+                    <Input
+                      type="text"
+                      value={section.data?.title || 'THE\nARCHIVE'}
+                      onChange={(e) => updateDataField('title', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10 text-xs"
+                      placeholder="THE\nARCHIVE"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1 text-xs">Journey Description Paragraph</label>
+                  <textarea
+                    rows={3}
+                    value={
+                      section.data?.description ||
+                      section.subtitle ||
+                      'From a single sewing table to a global community. Explore the milestones that defined our craft, shaped our sustainable ethos, and built a legacy over the past decade.'
+                    }
+                    onChange={(e) => {
+                      updateDataField('description', e.target.value);
+                      updateField('subtitle', e.target.value);
+                    }}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-orange-500 text-xs"
+                    placeholder="Milestone description..."
+                  />
+                </div>
+
+                {/* Milestone Cards Manager */}
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Milestone Cards</h4>
+                      <p className="text-[11px] text-gray-400">Scrollable timeline cards with year, image & narrative</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const items = section.data?.items || [];
+                        updateDataField('items', [
+                          ...items,
+                          {
+                            year: `${new Date().getFullYear()}`,
+                            title: 'New Milestone',
+                            description: 'Description of the achievement or drop.',
+                            image: '',
+                          },
+                        ]);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Milestone
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(section.data?.items || []).map((mItem: any, mIdx: number) => (
+                      <div key={mIdx} className="p-3.5 bg-gray-50/70 border border-gray-200 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between gap-2 border-b border-gray-200/60 pb-2">
+                          <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px]">
+                              {mIdx + 1}
+                            </span>
+                            Milestone #{mIdx + 1} ({mItem.year || 'Year'})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newItems = (section.data?.items || []).filter((_: any, i: number) => i !== mIdx);
+                              updateDataField('items', newItems);
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 rounded transition"
+                            title="Delete Milestone"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-gray-600 font-medium text-[11px] mb-1">Year</label>
+                            <Input
+                              type="text"
+                              value={mItem.year || ''}
+                              onChange={(e) => {
+                                const newItems = [...(section.data?.items || [])];
+                                newItems[mIdx] = { ...newItems[mIdx], year: e.target.value };
+                                updateDataField('items', newItems);
+                              }}
+                              className="h-9 bg-white text-xs"
+                              placeholder="2026"
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-gray-600 font-medium text-[11px] mb-1">Milestone Title</label>
+                            <Input
+                              type="text"
+                              value={mItem.title || ''}
+                              onChange={(e) => {
+                                const newItems = [...(section.data?.items || [])];
+                                newItems[mIdx] = { ...newItems[mIdx], title: e.target.value };
+                                updateDataField('items', newItems);
+                              }}
+                              className="h-9 bg-white text-xs"
+                              placeholder="e.g. Global Sustainability"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-600 font-medium text-[11px] mb-1">Description</label>
+                          <textarea
+                            rows={2}
+                            value={mItem.description || ''}
+                            onChange={(e) => {
+                              const newItems = [...(section.data?.items || [])];
+                              newItems[mIdx] = { ...newItems[mIdx], description: e.target.value };
+                              updateDataField('items', newItems);
+                            }}
+                            className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-orange-500"
+                            placeholder="Describe what occurred in this milestone..."
+                          />
+                        </div>
+
+                        <ImageFieldWithPreview
+                          label="Milestone Photo (Upload or Choose)"
+                          value={mItem.image || ''}
+                          onChange={(val) => {
+                            const newItems = [...(section.data?.items || [])];
+                            newItems[mIdx] = { ...newItems[mIdx], image: val };
+                            updateDataField('items', newItems);
+                          }}
+                          placeholder="https://images.unsplash.com/..."
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* HOME COLLECTIONS SECTION */}
+            {section.type === 'homeCollections' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1 text-xs">Marquee Ticker Text</label>
+                  <Input
+                    type="text"
+                    value={
+                      section.data?.marquee ||
+                      'CRAFTED STORIES + PREMIUM MATERIALS + PREMIUM FABRICS + TIMELESS CUTS + URBAN INFLUENCE + SMART STYLE + BOLD EXPRESSION + REFINED DETAILS'
+                    }
+                    onChange={(e) => updateDataField('marquee', e.target.value)}
+                    className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10 text-xs font-mono"
+                    placeholder="TAG 1 + TAG 2 + TAG 3"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">Separated by &quot;+&quot; or commas for individual ticker pills</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1 text-xs">Left Paragraph / Lead Statement</label>
+                    <textarea
+                      rows={3}
+                      value={
+                        section.data?.leftSubtitle ||
+                        section.subtitle ||
+                        'From enduring classics to daring statement pieces, our collections are crafted with intention.'
+                      }
+                      onChange={(e) => {
+                        updateDataField('leftSubtitle', e.target.value);
+                        updateField('subtitle', e.target.value);
+                      }}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-orange-500 text-xs"
+                      placeholder="Introductory statement..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-1 text-xs">Left Bottom Tagline</label>
+                    <Input
+                      type="text"
+                      value={section.data?.leftBottomText || 'Being Part Of Our Journey.'}
+                      onChange={(e) => updateDataField('leftBottomText', e.target.value)}
+                      className="bg-gray-50 focus:bg-white focus:border-orange-500 rounded-md h-10 text-xs"
+                      placeholder="Being Part Of Our Journey."
+                    />
+                  </div>
+                </div>
+
+                <ImageFieldWithPreview
+                  label="Left Side Featured Model Photo"
+                  value={section.data?.leftImage || ''}
+                  onChange={(val) => updateDataField('leftImage', val)}
+                  placeholder="https://..."
+                />
+
+                {/* Collections Accordion Items List */}
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Collection Accordion Items</h4>
+                      <p className="text-[11px] text-gray-400">Interactive accordion rows with thumbnail and CTA button</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const items = section.data?.items || [];
+                        updateDataField('items', [
+                          ...items,
+                          {
+                            id: `col-${Date.now()}`,
+                            title: 'New Collection 2026',
+                            description: 'Modern essentials designed for the rhythm of your daily life.',
+                            image: '',
+                            ctaLabel: 'GET STARTED',
+                            ctaLink: '/products',
+                          },
+                        ]);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Collection
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(section.data?.items || []).map((colItem: any, cIdx: number) => (
+                      <div key={colItem.id || cIdx} className="p-3.5 bg-gray-50/70 border border-gray-200 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between gap-2 border-b border-gray-200/60 pb-2">
+                          <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px]">
+                              {cIdx + 1}
+                            </span>
+                            {colItem.title || `Collection #${cIdx + 1}`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newItems = (section.data?.items || []).filter((_: any, i: number) => i !== cIdx);
+                              updateDataField('items', newItems);
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 rounded transition"
+                            title="Delete Collection"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="sm:col-span-2">
+                            <label className="block text-gray-600 font-medium text-[11px] mb-1">Collection Title</label>
+                            <Input
+                              type="text"
+                              value={colItem.title || ''}
+                              onChange={(e) => {
+                                const newItems = [...(section.data?.items || [])];
+                                newItems[cIdx] = { ...newItems[cIdx], title: e.target.value };
+                                updateDataField('items', newItems);
+                              }}
+                              className="h-9 bg-white text-xs font-semibold"
+                              placeholder="e.g. Statement Pieces 2025"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-600 font-medium text-[11px] mb-1">Button Label</label>
+                            <Input
+                              type="text"
+                              value={colItem.ctaLabel || 'GET STARTED'}
+                              onChange={(e) => {
+                                const newItems = [...(section.data?.items || [])];
+                                newItems[cIdx] = { ...newItems[cIdx], ctaLabel: e.target.value };
+                                updateDataField('items', newItems);
+                              }}
+                              className="h-9 bg-white text-xs"
+                              placeholder="GET STARTED"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="sm:col-span-2">
+                            <label className="block text-gray-600 font-medium text-[11px] mb-1">Description</label>
+                            <textarea
+                              rows={2}
+                              value={colItem.description || ''}
+                              onChange={(e) => {
+                                const newItems = [...(section.data?.items || [])];
+                                newItems[cIdx] = { ...newItems[cIdx], description: e.target.value };
+                                updateDataField('items', newItems);
+                              }}
+                              className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-orange-500"
+                              placeholder="Collection description..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-600 font-medium text-[11px] mb-1">Button Link URL</label>
+                            <Input
+                              type="text"
+                              value={colItem.ctaLink || '/products'}
+                              onChange={(e) => {
+                                const newItems = [...(section.data?.items || [])];
+                                newItems[cIdx] = { ...newItems[cIdx], ctaLink: e.target.value };
+                                updateDataField('items', newItems);
+                              }}
+                              className="h-9 bg-white text-xs font-mono"
+                              placeholder="/products"
+                            />
+                          </div>
+                        </div>
+
+                        <ImageFieldWithPreview
+                          label="Thumbnail Photo (Upload or Choose)"
+                          value={colItem.image || ''}
+                          onChange={(val) => {
+                            const newItems = [...(section.data?.items || [])];
+                            newItems[cIdx] = { ...newItems[cIdx], image: val };
+                            updateDataField('items', newItems);
+                          }}
+                          placeholder="https://..."
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

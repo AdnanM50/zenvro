@@ -11,7 +11,6 @@ import {
   wordReveal,
   VIEWPORT_CONFIG,
 } from "@/lib/animations";
-import Achievement from "@/components/Achievement";
 import type { PageSection } from "@/types";
 
 interface HomeAboutProps {
@@ -220,9 +219,6 @@ const HomeAbout = ({ section }: HomeAboutProps) => {
           </div>
         </motion.div>
       </div>
-
-      {/* Product Highlight GSAP Achievement Section */}
-      <Achievement />
     </section>
   );
 };
