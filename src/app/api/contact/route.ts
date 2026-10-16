@@ -57,6 +57,24 @@ export async function POST(request: NextRequest) {
       console.error('Contact notification email failed:', mailError);
     }
 
+    // Real-time admin notification via Socket.IO
+    try {
+      const { createAndDispatchNotification } = await import('@/lib/notifications');
+      await createAndDispatchNotification({
+        type: 'contact',
+        title: 'New Contact Inquiry',
+        message: `${name}: ${subject ? `${subject} - ` : ''}${message.slice(0, 60)}${message.length > 60 ? '...' : ''}`,
+        link: '/admin/contact',
+        metadata: {
+          contactId: contactMessage._id,
+          name,
+          email,
+        },
+      });
+    } catch (notifErr) {
+      console.error('Failed to dispatch contact notification:', notifErr);
+    }
+
     return api.created(contactMessage, 'Message sent — we will get back to you within one working day.');
   } catch (error) {
     console.error('Create contact message error:', error);

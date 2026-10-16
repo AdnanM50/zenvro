@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { RefreshCw } from "lucide-react";
+
 import { useApiGet, createQueryKeys } from "@/hooks";
 import { getDashboardStats } from "@/services/dashboard.service";
 import type { DashboardStats } from "@/models/dashboard.model";

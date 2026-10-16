@@ -42,6 +42,20 @@ export async function POST(request: NextRequest) {
       userEmail
     );
 
+    // Real-time admin notification via Socket.IO
+    try {
+      const { createAndDispatchNotification } = await import('@/lib/notifications');
+      await createAndDispatchNotification({
+        type: 'order',
+        title: `New Order Pending #${order.orderNumber}`,
+        message: `${order.shippingAddress?.fullName || 'Customer'} initiated order for $${order.total.toFixed(2)}`,
+        link: '/admin/orders',
+        metadata: { orderId: order.orderNumber, total: order.total },
+      });
+    } catch (notifErr) {
+      console.error('Failed to dispatch order notification on checkout session:', notifErr);
+    }
+
     // 2. Fetch admin configured Stripe secret key
     const stripeConfig = await PaymentMethodModel.getByProvider('stripe');
     const secretKey = stripeConfig?.secretKey?.trim();

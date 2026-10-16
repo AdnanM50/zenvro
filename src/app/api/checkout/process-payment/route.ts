@@ -45,6 +45,32 @@ export async function POST(request: NextRequest) {
       console.error('Failed to dispatch order confirmation email on process-payment:', mailErr);
     }
 
+    // Real-time admin notifications via Socket.IO
+    try {
+      const { createAndDispatchNotification } = await import('@/lib/notifications');
+      // 1. Order Notification
+      await createAndDispatchNotification({
+        type: 'order',
+        title: `New Order #${order.orderNumber}`,
+        message: `${order.shippingAddress?.fullName || 'Customer'} placed an order of $${order.total.toFixed(2)} (${order.items?.length || 1} items)`,
+        link: '/admin/orders',
+        metadata: { orderId: order.orderNumber, total: order.total },
+      });
+
+      // 2. Payment Notification
+      if (order.paymentStatus === 'paid') {
+        await createAndDispatchNotification({
+          type: 'payment',
+          title: `Payment Received: #${order.orderNumber}`,
+          message: `Payment of $${order.total.toFixed(2)} completed successfully via ${order.paymentMethod.toUpperCase()}`,
+          link: '/admin/payment-history',
+          metadata: { orderId: order.orderNumber, total: order.total },
+        });
+      }
+    } catch (notifErr) {
+      console.error('Failed to dispatch order/payment notification:', notifErr);
+    }
+
     return api.created(order, 'Order placed successfully');
   } catch (error) {
     console.error('Process payment error:', error);

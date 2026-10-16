@@ -55,6 +55,20 @@ export async function GET(
               } catch (mailErr) {
                 console.error('Failed to dispatch order confirmation email:', mailErr);
               }
+
+              // Real-time payment notification via Socket.IO
+              try {
+                const { createAndDispatchNotification } = await import('@/lib/notifications');
+                await createAndDispatchNotification({
+                  type: 'payment',
+                  title: `Payment Confirmed: #${order.orderNumber}`,
+                  message: `Payment of $${order.total.toFixed(2)} confirmed via Stripe`,
+                  link: '/admin/payment-history',
+                  metadata: { orderId: order.orderNumber, total: order.total },
+                });
+              } catch (notifErr) {
+                console.error('Failed to dispatch payment notification:', notifErr);
+              }
             }
           }
         }
