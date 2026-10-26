@@ -9,8 +9,6 @@ import {
   MessageSquare,
   Send,
   Volume2,
-  Radio,
-  CheckCircle2,
   RefreshCw,
   Zap,
 } from "lucide-react";
