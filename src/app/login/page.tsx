@@ -48,6 +48,33 @@ function LoginForm() {
               Sign up
             </Link>
           </p>
+
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('admin@gmail.com');
+                setPassword('123456');
+                setError('');
+              }}
+              className="py-2.5 px-3 rounded-xl border border-surface-container-high bg-surface-container-lowest hover:border-primary-fixed hover:bg-surface-container-low text-on-surface font-label text-[11px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 group active:scale-95"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-fixed group-hover:scale-125 transition-transform" />
+              Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('koxik15313@luckfeed.com');
+                setPassword('123456');
+                setError('');
+              }}
+              className="py-2.5 px-3 rounded-xl border border-surface-container-high bg-surface-container-lowest hover:border-primary-fixed hover:bg-surface-container-low text-on-surface font-label text-[11px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 group active:scale-95"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-secondary group-hover:scale-125 transition-transform" />
+              User
+            </button>
+          </div>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>

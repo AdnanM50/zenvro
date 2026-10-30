@@ -13,17 +13,12 @@ interface PopupBannerItem {
   buttonText?: string;
   buttonLink?: string;
   discountCode?: string;
+  badgeText?: string;
+  imageBadgeText?: string;
+  footerText?: string;
+  triggerType?: string;
+  targetPage?: string;
 }
-
-const DEFAULT_POPUP: PopupBannerItem = {
-  _id: 'default-popup',
-  title: 'Unlock 20% Off Your First Order',
-  description: 'Join the VELORA inner circle and get instant access to secret flash deals & free express shipping.',
-  imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-  buttonText: 'Claim My Discount Now',
-  buttonLink: '/products',
-  discountCode: 'WELCOME20',
-};
 
 export default function FlashPopupModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,28 +30,29 @@ export default function FlashPopupModal() {
 
   // Fetch active popup configuration from public API
   useEffect(() => {
-    // Check frequency cap in sessionStorage
-    const dismissed = sessionStorage.getItem('velora_popup_dismissed');
-    if (dismissed) return;
-
-    fetch('/api/marketing/popups')
+    fetch('/api/marketing/popups?page=home')
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data && json.data.length > 0) {
-          setBanner(json.data[0]);
+          const activeItem = json.data[0];
+          // Check if this specific banner was already dismissed in this session
+          const dismissed = sessionStorage.getItem(`velora_popup_dismissed_${activeItem._id}`);
+          if (!dismissed) {
+            setBanner(activeItem);
+          }
         } else {
-          setBanner(DEFAULT_POPUP);
+          setBanner(null);
         }
       })
       .catch(() => {
-        setBanner(DEFAULT_POPUP);
+        setBanner(null);
       });
   }, []);
 
-  // Trigger setup (Timer delay 5s + Scroll trigger 35% + Exit Intent)
+  // Trigger setup (based on banner.triggerType)
   useEffect(() => {
     if (!banner) return;
-    const dismissed = sessionStorage.getItem('velora_popup_dismissed');
+    const dismissed = sessionStorage.getItem(`velora_popup_dismissed_${banner._id}`);
     if (dismissed) return;
 
     let triggered = false;
@@ -67,12 +63,15 @@ export default function FlashPopupModal() {
       setIsOpen(true);
     };
 
-    // 1. Time delay: 5 seconds
-    const timer = setTimeout(() => {
-      triggerShow();
-    }, 5000);
+    const triggerType = banner.triggerType || 'delay';
+    let timer: NodeJS.Timeout | null = null;
 
-    // 2. Scroll percentage: 35%
+    if (triggerType === 'delay') {
+      timer = setTimeout(() => {
+        triggerShow();
+      }, 4000);
+    }
+
     const handleScroll = () => {
       const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollTotal > 0) {
@@ -83,18 +82,27 @@ export default function FlashPopupModal() {
       }
     };
 
-    // 3. Exit intent: mouse moves above viewport top
+    if (triggerType === 'scroll') {
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY <= 0) {
         triggerShow();
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    document.addEventListener('mouseleave', handleMouseLeave);
+    if (triggerType === 'exit_intent') {
+      document.addEventListener('mouseleave', handleMouseLeave);
+    }
+
+    // Default trigger also responds after 5s or scroll if trigger was not specific
+    if (!['delay', 'scroll', 'exit_intent'].includes(triggerType)) {
+      timer = setTimeout(triggerShow, 5000);
+    }
 
     return () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
@@ -118,7 +126,9 @@ export default function FlashPopupModal() {
   }, [isOpen]);
 
   const handleClose = () => {
-    sessionStorage.setItem('velora_popup_dismissed', 'true');
+    if (banner) {
+      sessionStorage.setItem(`velora_popup_dismissed_${banner._id}`, 'true');
+    }
     if (overlayRef.current && modalRef.current) {
       gsap.to(modalRef.current, {
         scale: 0.9,
@@ -179,7 +189,7 @@ export default function FlashPopupModal() {
             <div className="absolute bottom-4 left-4 right-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-black uppercase tracking-wider shadow-lg">
                 <Zap className="w-3 h-3 fill-black" />
-                Limited Offer
+                {banner.imageBadgeText || 'Limited Offer'}
               </span>
             </div>
           </div>
@@ -192,7 +202,7 @@ export default function FlashPopupModal() {
                   <Sparkles className="w-4 h-4" />
                 </span>
                 <span className="text-xs font-semibold text-amber-400 uppercase tracking-widest">
-                  Exclusive Reward
+                  {banner.badgeText || 'Exclusive Reward'}
                 </span>
               </div>
 
@@ -249,7 +259,7 @@ export default function FlashPopupModal() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <div className="text-[10px] text-center text-gray-500">
-                No spam. Unsubscribe anytime.
+                {banner.footerText || 'No spam. Unsubscribe anytime.'}
               </div>
             </div>
           </div>

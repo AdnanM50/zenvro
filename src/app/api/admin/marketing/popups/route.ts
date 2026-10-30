@@ -93,6 +93,12 @@ export async function POST(request: NextRequest) {
       endDate,
       status: parsedStatus,
       sortOrder,
+      triggerType: strOr(body.triggerType) || undefined,
+      targetPage: strOr(body.targetPage) || undefined,
+      discountCode: strOr(body.discountCode) || undefined,
+      badgeText: strOr(body.badgeText) || undefined,
+      imageBadgeText: strOr(body.imageBadgeText) || undefined,
+      footerText: strOr(body.footerText) || undefined,
     });
 
     return api.created(banner, 'Popup banner created');
@@ -122,7 +128,18 @@ export async function PATCH(request: NextRequest) {
       updateData.title = body.title.trim();
     }
 
-    const optionalStringFields: string[] = ['description', 'imageUrl', 'buttonText', 'buttonLink'];
+    const optionalStringFields: string[] = [
+      'description',
+      'imageUrl',
+      'buttonText',
+      'buttonLink',
+      'triggerType',
+      'targetPage',
+      'discountCode',
+      'badgeText',
+      'imageBadgeText',
+      'footerText',
+    ];
     for (const field of optionalStringFields) {
       if (body[field] !== undefined) {
         updateData[field] = strOr(body[field]) || undefined;

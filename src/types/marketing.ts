@@ -23,6 +23,9 @@ export interface PopupBanner {
   triggerType?: string;
   targetPage?: string;
   discountCode?: string;
+  badgeText?: string;
+  imageBadgeText?: string;
+  footerText?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +44,9 @@ export interface CreatePopupBannerPayload {
   triggerType?: string;
   targetPage?: string;
   discountCode?: string;
+  badgeText?: string;
+  imageBadgeText?: string;
+  footerText?: string;
 }
 
 /** Payload for updating an existing popup banner (partial, _id required) */

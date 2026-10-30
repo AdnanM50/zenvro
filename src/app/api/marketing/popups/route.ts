@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
       if (b.status !== 'active') return false;
       if (b.startDate && new Date(b.startDate) > now) return false;
       if (b.endDate && new Date(b.endDate) < now) return false;
+      if (b.targetPage && b.targetPage !== 'all' && b.targetPage !== page) return false;
       return true;
     });
 

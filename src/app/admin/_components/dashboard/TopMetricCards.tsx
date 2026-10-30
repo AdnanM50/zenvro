@@ -21,9 +21,9 @@ export default function TopMetricCards({ data }: TopMetricCardsProps) {
   const totalBalance = data?.totalBalance;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-stretch">
       {/* LEFT SECTION (9 COLUMNS): Metric Cards matching marked width */}
-      <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
+      <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
         {/* 1. TOTAL INCOME */}
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl sm:rounded-3xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between relative overflow-hidden group">
           <div>
@@ -116,7 +116,7 @@ export default function TopMetricCards({ data }: TopMetricCardsProps) {
       </div>
 
       {/* RIGHT SECTION (3 COLUMNS): Premium ZENVRO Debit Card with Total Balance */}
-      <div className="lg:col-span-3 flex flex-col">
+      <div className="lg:col-span-1 flex flex-col">
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-950 via-slate-900 to-black text-white p-5 sm:p-5.5 shadow-xl shadow-black/25 border border-white/10 flex flex-col justify-between h-full min-h-[180px] group transition-all duration-300 hover:shadow-2xl hover:border-white/20">
           {/* Subtle metallic sheen & holographic background effects */}
           <div className="absolute -top-16 -right-16 w-44 h-44 bg-gradient-to-br from-indigo-500/20 via-purple-500/15 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />

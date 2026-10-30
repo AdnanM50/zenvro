@@ -63,6 +63,12 @@ export const PopupBannerModel = {
       endDate: strOrUndefined(data.endDate),
       status: data.status || 'inactive',
       sortOrder: toFiniteNumber(data.sortOrder),
+      triggerType: strOrUndefined(data.triggerType) || 'delay',
+      targetPage: strOrUndefined(data.targetPage) || 'all',
+      discountCode: strOrUndefined(data.discountCode),
+      badgeText: strOrUndefined(data.badgeText),
+      imageBadgeText: strOrUndefined(data.imageBadgeText),
+      footerText: strOrUndefined(data.footerText),
       createdAt: now,
       updatedAt: now,
     };
